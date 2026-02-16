@@ -36,7 +36,10 @@ async function main() {
   // Create default schedule
   const defaultSchedule = await prisma.schedule.upsert({
     where: {
-      userId: demoUser.id,
+      userId_name: {
+        userId: demoUser.id,
+        name: 'Business Hours',
+      },
     },
     update: {},
     create: {
