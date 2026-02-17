@@ -90,7 +90,7 @@ export const POST = withAuth(async (request, context, user) => {
 
     const override = await prisma.dateOverride.create({
       data: {
-        scheduleId: id,
+        scheduleId: id as string,
         date: overrideDate,
         startTime: validated.startTime ?? null,
         endTime: validated.endTime ?? null,

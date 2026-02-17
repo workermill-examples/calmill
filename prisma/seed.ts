@@ -475,6 +475,12 @@ async function main() {
     },
   ];
 
+  // Build a lookup map from eventTypeId to title for the booking title field
+  const eventTypeTitleMap: Record<string, string> = {};
+  for (const et of [eventTypeQuick, eventType30, eventType60, eventTypeInterview, eventTypePair, eventTypeCoffee]) {
+    eventTypeTitleMap[et.id] = et.title;
+  }
+
   for (const booking of bookingsData) {
     const existing = await prisma.booking.findUnique({
       where: { uid: booking.uid },
@@ -484,6 +490,7 @@ async function main() {
       await prisma.booking.create({
         data: {
           uid: booking.uid,
+          title: eventTypeTitleMap[booking.eventTypeId] ?? "Meeting",
           eventTypeId: booking.eventTypeId,
           userId: demoUser.id,
           startTime: booking.startTime,
@@ -493,8 +500,6 @@ async function main() {
           attendeeEmail: booking.attendeeEmail,
           attendeeTimezone: booking.attendeeTimezone,
           cancellationReason: "cancellationReason" in booking ? booking.cancellationReason : undefined,
-          // Use undefined (omit) for null JSON fields — Prisma 7 requires Prisma.DbNull for explicit null
-          responses: undefined,
         },
       });
     }
