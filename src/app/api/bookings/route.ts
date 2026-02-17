@@ -332,7 +332,6 @@ export async function POST(request: Request) {
       if (!firstBooking) {
         return NextResponse.json({ error: "Failed to create bookings" }, { status: 500 });
       }
-
       void sendBookingEmails(firstBooking, eventType, status, bookingUser, extraNotificationEmails).catch(
         (err) => {
           console.error("[Bookings] Email notification failed:", err);
