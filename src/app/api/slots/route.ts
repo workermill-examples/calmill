@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { slotQuerySchema } from "@/lib/validations";
 import { getAvailableSlots } from "@/lib/slots";
+import { getRoundRobinSlots, getCollectiveSlots } from "@/lib/team-slots";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/slots?eventTypeId=xxx&startDate=2026-02-20&endDate=2026-02-27&timezone=Europe/London
 // Public endpoint — no authentication required
@@ -36,12 +38,29 @@ export async function GET(request: Request) {
       );
     }
 
-    const slots = await getAvailableSlots({
+    // Determine scheduling type for this event type
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: validated.eventTypeId, isActive: true },
+      select: { schedulingType: true },
+    });
+
+    const slotParams = {
       eventTypeId: validated.eventTypeId,
       startDate: validated.startDate,
       endDate: validated.endDate,
       timezone: validated.timezone,
-    });
+    };
+
+    // Dispatch to the appropriate algorithm based on schedulingType
+    let slots;
+    if (eventType?.schedulingType === "ROUND_ROBIN") {
+      slots = await getRoundRobinSlots(slotParams);
+    } else if (eventType?.schedulingType === "COLLECTIVE") {
+      slots = await getCollectiveSlots(slotParams);
+    } else {
+      // Personal event type (schedulingType is null) — use existing algorithm
+      slots = await getAvailableSlots(slotParams);
+    }
 
     return NextResponse.json(
       { success: true, data: slots },
