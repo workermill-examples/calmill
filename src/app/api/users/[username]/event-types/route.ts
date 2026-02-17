@@ -25,6 +25,7 @@ export async function GET(
         isActive: true,
       },
       select: {
+        id: true,
         title: true,
         slug: true,
         description: true,
@@ -32,6 +33,7 @@ export async function GET(
         locations: true,
         price: true,
         currency: true,
+        color: true,
       },
       orderBy: { createdAt: "asc" },
     });
