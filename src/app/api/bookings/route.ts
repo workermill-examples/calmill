@@ -269,6 +269,7 @@ export async function POST(request: Request) {
       // Validate occurrences 1..N are available (occurrence 0 = startTime already verified above)
       for (let i = 1; i < occurrences.length; i++) {
         const occStart = occurrences[i];
+        if (!occStart) continue;
         const occDateStr = occStart.toISOString().slice(0, 10);
         const occSlotParams = {
           eventTypeId: validated.eventTypeId,
@@ -328,6 +329,10 @@ export async function POST(request: Request) {
 
       // Fire-and-forget emails and webhooks for the first occurrence only
       const firstBooking = bookings[0];
+      if (!firstBooking) {
+        return NextResponse.json({ error: "Failed to create bookings" }, { status: 500 });
+      }
+
       void sendBookingEmails(firstBooking, eventType, status, bookingUser, extraNotificationEmails).catch(
         (err) => {
           console.error("[Bookings] Email notification failed:", err);
@@ -443,6 +448,7 @@ function computeRecurringOccurrences(
   const occurrences: Date[] = [baseTime];
   for (let i = 1; i < count; i++) {
     const prev = occurrences[i - 1];
+    if (!prev) break;
     let next: Date;
     if (frequency === "weekly") {
       next = addDays(prev, 7);
