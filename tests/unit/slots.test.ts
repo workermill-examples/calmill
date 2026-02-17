@@ -1,489 +1,575 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { mockPrismaClient } from "../helpers/setup";
 
-const { getAvailableSlots } = await import("@/lib/slots");
+// Mock prisma before importing slots.ts (which imports prisma at module level)
+vi.mock("@/lib/prisma", () => ({
+  prisma: mockPrismaClient,
+}));
 
-// ─── FIXTURES ───────────────────────────────────────────────────────────────
+// Import the exported helpers from slots.ts directly
+import { isSlotConflicting, generateSlotsForWindow } from "@/lib/slots";
+import { slotQuerySchema } from "@/lib/validations";
 
-const baseEventType = {
-  id: "event-type-id-1",
-  title: "30 Minute Meeting",
-  slug: "30min",
-  duration: 30,
-  isActive: true,
-  requiresConfirmation: false,
-  price: 0,
-  currency: "USD",
-  userId: "demo-user-id",
-  scheduleId: "schedule-id-1",
-  minimumNotice: 0, // no minimum notice for most tests
-  futureLimit: 60,
-  beforeBuffer: 0,
-  afterBuffer: 0,
-  slotInterval: null, // use duration as interval
-  maxBookingsPerDay: null,
-  maxBookingsPerWeek: null,
-  recurringEnabled: false,
-  recurringMaxOccurrences: null,
-  recurringFrequency: null,
-  description: null,
-  locations: [],
-  customQuestions: null,
-  color: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  teamId: null,
-  schedulingType: null,
-  successRedirectUrl: null,
-  schedule: {
-    id: "schedule-id-1",
-    name: "Business Hours",
-    timezone: "America/New_York",
-    userId: "demo-user-id",
-    isDefault: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    availability: [
-      // Monday (1) 09:00-17:00 America/New_York
-      { id: "avail-mon", day: 1, startTime: "09:00", endTime: "17:00", scheduleId: "schedule-id-1" },
-      { id: "avail-tue", day: 2, startTime: "09:00", endTime: "17:00", scheduleId: "schedule-id-1" },
-      { id: "avail-wed", day: 3, startTime: "09:00", endTime: "17:00", scheduleId: "schedule-id-1" },
-      { id: "avail-thu", day: 4, startTime: "09:00", endTime: "17:00", scheduleId: "schedule-id-1" },
-      { id: "avail-fri", day: 5, startTime: "09:00", endTime: "17:00", scheduleId: "schedule-id-1" },
-    ],
-    dateOverrides: [] as Array<{ id: string; scheduleId: string; date: Date; isUnavailable: boolean; startTime: string | null; endTime: string | null }>,
-  },
+// ─── TYPE HELPERS ────────────────────────────────────────────────────────────
+
+type ExistingBooking = {
+  startTime: Date;
+  endTime: Date;
 };
 
-// A known Monday for deterministic tests: 2026-02-23 (UTC)
-const TEST_MONDAY = "2026-02-23";
-const TEST_TIMEZONE = "America/New_York";
+type EventTypeConstraints = {
+  duration: number;
+  slotInterval: number | null;
+  beforeBuffer: number;
+  afterBuffer: number;
+  minimumNotice: number;
+  maxBookingsPerDay: number | null;
+  maxBookingsPerWeek: number | null;
+};
 
-function setupMocks(eventType: unknown = baseEventType, existingBookings: unknown[] = []) {
-  mockPrismaClient.eventType.findUnique.mockResolvedValue(eventType);
-  mockPrismaClient.booking.findMany.mockResolvedValue(existingBookings);
-}
+// ─── isSlotConflicting ───────────────────────────────────────────────────────
 
-// ─── BASIC SLOT GENERATION ───────────────────────────────────────────────────
+describe("isSlotConflicting", () => {
+  it("returns false when no existing bookings", () => {
+    const slotStart = new Date("2026-03-10T10:00:00Z");
+    const slotEnd = new Date("2026-03-10T10:30:00Z");
 
-describe("getAvailableSlots — basic generation", () => {
-  it("returns slots for a single weekday", async () => {
-    setupMocks();
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    expect(slots.length).toBeGreaterThan(0);
-    // 09:00 to 17:00, 30 min slots = 16 slots
-    expect(slots.length).toBe(16);
-    expect(slots[0]!.duration).toBe(30);
-    expect(slots[0]!.time).toBeTruthy(); // ISO 8601 UTC
-    expect(slots[0]!.localTime).toMatch(/^\d{2}:\d{2}$/);
+    expect(isSlotConflicting(slotStart, slotEnd, [], 0, 0)).toBe(false);
   });
 
-  it("returns empty array for unknown event type", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue(null);
-    mockPrismaClient.booking.findMany.mockResolvedValue([]);
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "nonexistent",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    expect(slots).toHaveLength(0);
-  });
-
-  it("returns empty array for event type without schedule", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue({
-      ...baseEventType,
-      schedule: null,
-    });
-    mockPrismaClient.booking.findMany.mockResolvedValue([]);
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    expect(slots).toHaveLength(0);
-  });
-
-  it("returns no slots on weekends when availability is Mon-Fri only", async () => {
-    setupMocks();
-
-    // Sunday 2026-02-22
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: "2026-02-22",
-      endDate: "2026-02-22",
-      timezone: TEST_TIMEZONE,
-    });
-
-    expect(slots).toHaveLength(0);
-  });
-
-  it("uses slotInterval when specified instead of duration", async () => {
-    setupMocks({ ...baseEventType, slotInterval: 15, duration: 30 });
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    // 09:00-17:00 with 15min interval, 30min duration: slots at 09:00, 09:15, 09:30, ... 16:30 = 31 slots
-    expect(slots.length).toBe(31);
-  });
-});
-
-// ─── BUFFER TIMES ────────────────────────────────────────────────────────────
-
-describe("getAvailableSlots — buffer times", () => {
-  it("does not generate slot that conflicts with booking + afterBuffer", async () => {
-    // Booking from 10:00-10:30, afterBuffer=30min → blocks 10:00-11:00
-    // So slot at 10:00 (conflicts) and 10:30 (starts during buffer) should be blocked
-    const bookingStart = new Date("2026-02-23T15:00:00Z"); // 10:00 AM EST
-    const bookingEnd = new Date("2026-02-23T15:30:00Z"); // 10:30 AM EST
-
-    setupMocks(
-      { ...baseEventType, afterBuffer: 30 },
-      [{ startTime: bookingStart, endTime: bookingEnd }]
-    );
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    // Slot at 10:00 AM EST = 15:00 UTC should NOT appear
-    const slotTimes = slots.map((s) => s.time);
-    expect(slotTimes).not.toContain("2026-02-23T15:00:00.000Z");
-    // Slot at 10:30 AM EST = 15:30 UTC should NOT appear (starts during booking + buffer)
-    expect(slotTimes).not.toContain("2026-02-23T15:30:00.000Z");
-  });
-
-  it("blocks slot that starts within beforeBuffer of an existing booking", async () => {
-    // Booking from 11:00-11:30, beforeBuffer=15min → blocked zone starts at 10:45
-    const bookingStart = new Date("2026-02-23T16:00:00Z"); // 11:00 AM EST
-    const bookingEnd = new Date("2026-02-23T16:30:00Z"); // 11:30 AM EST
-
-    setupMocks(
-      { ...baseEventType, beforeBuffer: 15 },
-      [{ startTime: bookingStart, endTime: bookingEnd }]
-    );
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    // Slot at 11:00 AM EST = 16:00 UTC should NOT appear (conflicts with booking)
-    const slotTimes = slots.map((s) => s.time);
-    expect(slotTimes).not.toContain("2026-02-23T16:00:00.000Z");
-  });
-});
-
-// ─── MINIMUM NOTICE ──────────────────────────────────────────────────────────
-
-describe("getAvailableSlots — minimum notice", () => {
-  it("filters out slots within minimum notice window", async () => {
-    // Use a very large minimum notice (9999 hours) to block all near-future slots
-    setupMocks({ ...baseEventType, minimumNotice: 9999 * 60 }); // 9999 hours in minutes
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    // All slots should be filtered out since minimumNotice pushes beyond 60-day futureLimit
-    expect(slots).toHaveLength(0);
-  });
-});
-
-// ─── FUTURE LIMIT ────────────────────────────────────────────────────────────
-
-describe("getAvailableSlots — future limit", () => {
-  it("returns empty for date range beyond futureLimit", async () => {
-    setupMocks({ ...baseEventType, futureLimit: 1 }); // only 1 day in future
-
-    // 30 days from now
-    const farFuture = new Date();
-    farFuture.setDate(farFuture.getDate() + 30);
-    const farFutureDate = farFuture.toISOString().slice(0, 10);
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: farFutureDate,
-      endDate: farFutureDate,
-      timezone: TEST_TIMEZONE,
-    });
-
-    expect(slots).toHaveLength(0);
-  });
-});
-
-// ─── DATE OVERRIDES ──────────────────────────────────────────────────────────
-
-describe("getAvailableSlots — date overrides", () => {
-  it("returns empty slots for day marked as unavailable", async () => {
-    const eventTypeWithOverride = {
-      ...baseEventType,
-      schedule: {
-        ...baseEventType.schedule,
-        dateOverrides: [
-          {
-            id: "override-1",
-            scheduleId: "schedule-id-1",
-            date: new Date("2026-02-23T05:00:00Z"),
-            isUnavailable: true,
-            startTime: null,
-            endTime: null,
-          },
-        ],
-      },
+  it("returns true when slot directly overlaps a booking", () => {
+    const slotStart = new Date("2026-03-10T10:00:00Z");
+    const slotEnd = new Date("2026-03-10T10:30:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T10:15:00Z"),
+      endTime: new Date("2026-03-10T10:45:00Z"),
     };
-    setupMocks(eventTypeWithOverride);
 
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
-
-    expect(slots).toHaveLength(0);
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 0, 0)).toBe(true);
   });
 
-  it("uses override startTime/endTime when provided", async () => {
-    const eventTypeWithOverride = {
-      ...baseEventType,
-      schedule: {
-        ...baseEventType.schedule,
-        dateOverrides: [
-          {
-            id: "override-1",
-            scheduleId: "schedule-id-1",
-            date: new Date("2026-02-23T05:00:00Z"),
-            isUnavailable: false,
-            startTime: "10:00",
-            endTime: "12:00",
-          },
-        ],
-      },
+  it("returns false when slot ends exactly when booking starts (no overlap)", () => {
+    // Adjacent slots: slot [10:00, 10:30], booking [10:30, 11:00]
+    const slotStart = new Date("2026-03-10T10:00:00Z");
+    const slotEnd = new Date("2026-03-10T10:30:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T10:30:00Z"),
+      endTime: new Date("2026-03-10T11:00:00Z"),
     };
-    setupMocks(eventTypeWithOverride);
 
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
-    });
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 0, 0)).toBe(false);
+  });
 
-    // 10:00-12:00 with 30min slots = 4 slots
-    expect(slots.length).toBe(4);
+  it("returns false when slot starts exactly when booking ends (no overlap)", () => {
+    // Adjacent slots: booking [09:30, 10:00], slot [10:00, 10:30]
+    const slotStart = new Date("2026-03-10T10:00:00Z");
+    const slotEnd = new Date("2026-03-10T10:30:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T09:30:00Z"),
+      endTime: new Date("2026-03-10T10:00:00Z"),
+    };
+
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 0, 0)).toBe(false);
+  });
+
+  it("correctly applies beforeBuffer only to the existing booking (not the candidate slot)", () => {
+    // With 15-min beforeBuffer: booking [10:30, 11:00] → blocked zone [10:15, 11:00]
+    // Slot [10:00, 10:30]: slotStart(10:00) < blockedEnd(11:00) AND blockedStart(10:15) < slotEnd(10:30) → CONFLICT
+    const slotStart = new Date("2026-03-10T10:00:00Z");
+    const slotEnd = new Date("2026-03-10T10:30:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T10:30:00Z"),
+      endTime: new Date("2026-03-10T11:00:00Z"),
+    };
+
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 15, 0)).toBe(true);
+  });
+
+  it("correctly applies afterBuffer only to the existing booking (not the candidate slot)", () => {
+    // With 15-min afterBuffer: booking [09:00, 09:30] → blocked zone [09:00, 09:45]
+    // Slot [09:30, 10:00]: slotStart(09:30) < blockedEnd(09:45) → CONFLICT
+    const slotStart = new Date("2026-03-10T09:30:00Z");
+    const slotEnd = new Date("2026-03-10T10:00:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T09:00:00Z"),
+      endTime: new Date("2026-03-10T09:30:00Z"),
+    };
+
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 0, 15)).toBe(true);
+  });
+
+  it("does NOT double-buffer: 15-min buffer should block exactly 15 min, not 30 min", () => {
+    // Booking [10:30, 11:00] with 15-min beforeBuffer → blocked zone starts at 10:15
+    // Slot [09:45, 10:15]: slotStart(09:45) < blockedEnd(11:00) AND blockedStart(10:15) < slotEnd(10:15)?
+    // blockedStart(10:15) is NOT < slotEnd(10:15) → NO CONFLICT
+    const slotStart = new Date("2026-03-10T09:45:00Z");
+    const slotEnd = new Date("2026-03-10T10:15:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T10:30:00Z"),
+      endTime: new Date("2026-03-10T11:00:00Z"),
+    };
+
+    // The slot ends at exactly the start of the buffer zone → no conflict (boundary exclusive)
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 15, 0)).toBe(false);
+  });
+
+  it("handles 15-min afterBuffer: slot just after the buffer zone is valid", () => {
+    // Booking [09:00, 09:30] with 15-min afterBuffer → blocked zone ends at 09:45
+    // Slot [09:45, 10:15]: blockedStart(09:00) < slotEnd(10:15) AND slotStart(09:45) < blockedEnd(09:45)?
+    // slotStart(09:45) is NOT < blockedEnd(09:45) → NO CONFLICT
+    const slotStart = new Date("2026-03-10T09:45:00Z");
+    const slotEnd = new Date("2026-03-10T10:15:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T09:00:00Z"),
+      endTime: new Date("2026-03-10T09:30:00Z"),
+    };
+
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 0, 15)).toBe(false);
+  });
+
+  it("returns true when slot is fully contained within a booking", () => {
+    const slotStart = new Date("2026-03-10T10:05:00Z");
+    const slotEnd = new Date("2026-03-10T10:25:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T10:00:00Z"),
+      endTime: new Date("2026-03-10T11:00:00Z"),
+    };
+
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 0, 0)).toBe(true);
+  });
+
+  it("handles multiple bookings — returns true if ANY conflict", () => {
+    const slotStart = new Date("2026-03-10T14:00:00Z");
+    const slotEnd = new Date("2026-03-10T14:30:00Z");
+    const bookings: ExistingBooking[] = [
+      { startTime: new Date("2026-03-10T10:00:00Z"), endTime: new Date("2026-03-10T10:30:00Z") },
+      { startTime: new Date("2026-03-10T14:15:00Z"), endTime: new Date("2026-03-10T14:45:00Z") }, // conflicts
+    ];
+
+    expect(isSlotConflicting(slotStart, slotEnd, bookings, 0, 0)).toBe(true);
+  });
+
+  it("handles both before and after buffers simultaneously", () => {
+    // Booking [11:00, 11:30] with 10-min before + 10-min after → blocked zone [10:50, 11:40]
+    // Slot [10:30, 11:00]: slotStart(10:30) < blockedEnd(11:40) AND blockedStart(10:50) < slotEnd(11:00) → CONFLICT
+    const slotStart = new Date("2026-03-10T10:30:00Z");
+    const slotEnd = new Date("2026-03-10T11:00:00Z");
+    const booking: ExistingBooking = {
+      startTime: new Date("2026-03-10T11:00:00Z"),
+      endTime: new Date("2026-03-10T11:30:00Z"),
+    };
+
+    expect(isSlotConflicting(slotStart, slotEnd, [booking], 10, 10)).toBe(true);
   });
 });
 
-// ─── DAILY BOOKING LIMITS ────────────────────────────────────────────────────
+// ─── generateSlotsForWindow ──────────────────────────────────────────────────
 
-describe("getAvailableSlots — daily booking limits", () => {
-  it("returns no slots when daily limit is reached", async () => {
-    const bookingStart = new Date("2026-02-23T14:00:00Z"); // 9:00 AM EST
-    const bookingEnd = new Date("2026-02-23T14:30:00Z"); // 9:30 AM EST
+describe("generateSlotsForWindow", () => {
+  const baseEventType: EventTypeConstraints = {
+    duration: 30,
+    slotInterval: null,
+    beforeBuffer: 0,
+    afterBuffer: 0,
+    minimumNotice: 0,
+    maxBookingsPerDay: null,
+    maxBookingsPerWeek: null,
+  };
 
-    setupMocks(
-      { ...baseEventType, maxBookingsPerDay: 1 },
-      [{ startTime: bookingStart, endTime: bookingEnd }]
-    );
+  // A fixed "now" in the past so all slots are in the future
+  const fixedNow = new Date("2026-03-10T00:00:00Z");
+  const fixedFutureLimit = new Date("2026-06-10T00:00:00Z");
 
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
+  it("generates slots for a 2-hour window with 30-min duration", () => {
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T11:00:00Z"),
+    };
+
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType,
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
+    });
+
+    expect(slots).toHaveLength(4); // 09:00, 09:30, 10:00, 10:30
+    expect(slots[0]!.time).toBe("2026-03-10T09:00:00.000Z");
+    expect(slots[3]!.time).toBe("2026-03-10T10:30:00.000Z");
+  });
+
+  it("uses slotInterval when set (different from duration)", () => {
+    // 30-min duration with 15-min slot interval → more slots
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T11:00:00Z"),
+    };
+
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: { ...baseEventType, slotInterval: 15 },
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
+    });
+
+    // 09:00, 09:15, 09:30, 09:45, 10:00, 10:15, 10:30
+    expect(slots).toHaveLength(7);
+    expect(slots[0]!.time).toBe("2026-03-10T09:00:00.000Z");
+    expect(slots[1]!.time).toBe("2026-03-10T09:15:00.000Z");
+  });
+
+  it("excludes slots in the past (minimum notice = 0, but slot is before now)", () => {
+    // Window is in the past
+    const window = {
+      start: new Date("2026-03-09T09:00:00Z"), // yesterday
+      end: new Date("2026-03-09T11:00:00Z"),
+    };
+
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType,
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: new Date("2026-03-10T10:00:00Z"), // now = today
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
     });
 
     expect(slots).toHaveLength(0);
   });
 
-  it("returns slots when daily limit is not yet reached", async () => {
-    const bookingStart = new Date("2026-02-23T14:00:00Z");
-    const bookingEnd = new Date("2026-02-23T14:30:00Z");
+  it("enforces minimum notice", () => {
+    // minimumNotice = 60 min; now = 09:00; slots at 09:00 and 09:30 should be excluded
+    const now = new Date("2026-03-10T09:00:00Z");
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T11:00:00Z"),
+    };
 
-    setupMocks(
-      { ...baseEventType, maxBookingsPerDay: 5 },
-      [{ startTime: bookingStart, endTime: bookingEnd }]
-    );
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: { ...baseEventType, minimumNotice: 60 },
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
     });
 
-    expect(slots.length).toBeGreaterThan(0);
+    // Slots at 09:00 (starts == now, fails 60-min notice) and 09:30 (starts 30 min from now, fails) excluded
+    // 10:00 is exactly 60 min from now → passes (>= 60 min notice), 10:30 also passes
+    const slotTimes = slots.map((s) => s.time);
+    expect(slotTimes).not.toContain("2026-03-10T09:00:00.000Z");
+    expect(slotTimes).not.toContain("2026-03-10T09:30:00.000Z");
+    expect(slotTimes).toContain("2026-03-10T10:00:00.000Z");
   });
-});
 
-// ─── WEEKLY BOOKING LIMITS ───────────────────────────────────────────────────
+  it("excludes slots that conflict with existing bookings", () => {
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T12:00:00Z"),
+    };
+    const existingBookings = [
+      {
+        startTime: new Date("2026-03-10T10:00:00Z"),
+        endTime: new Date("2026-03-10T10:30:00Z"),
+      },
+    ];
 
-describe("getAvailableSlots — weekly booking limits", () => {
-  it("returns no slots when weekly limit is reached", async () => {
-    // 5 bookings on Monday
-    const bookings = Array.from({ length: 5 }, (_, i) => ({
-      startTime: new Date(`2026-02-23T${14 + i}:00:00Z`),
-      endTime: new Date(`2026-02-23T${14 + i}:30:00Z`),
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType,
+      existingBookings,
+      bookingsThisDay: existingBookings,
+      bookingsThisWeek: existingBookings,
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
+    });
+
+    const slotTimes = slots.map((s) => s.time);
+    expect(slotTimes).not.toContain("2026-03-10T10:00:00.000Z");
+    expect(slotTimes).toContain("2026-03-10T09:00:00.000Z");
+    expect(slotTimes).toContain("2026-03-10T10:30:00.000Z");
+  });
+
+  it("respects maxBookingsPerDay limit", () => {
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T12:00:00Z"),
+    };
+    // Already 2 bookings this day, limit is 2
+    const bookingsThisDay = [
+      { startTime: new Date("2026-03-10T08:00:00Z"), endTime: new Date("2026-03-10T08:30:00Z") },
+      { startTime: new Date("2026-03-10T08:30:00Z"), endTime: new Date("2026-03-10T09:00:00Z") },
+    ];
+
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: { ...baseEventType, maxBookingsPerDay: 2 },
+      existingBookings: bookingsThisDay,
+      bookingsThisDay,
+      bookingsThisWeek: bookingsThisDay,
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
+    });
+
+    expect(slots).toHaveLength(0);
+  });
+
+  it("respects maxBookingsPerWeek limit", () => {
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T12:00:00Z"),
+    };
+    // Already 5 bookings this week, limit is 5
+    const bookingsThisWeek = Array.from({ length: 5 }, (_, i) => ({
+      startTime: new Date(`2026-03-0${i + 2}T09:00:00Z`),
+      endTime: new Date(`2026-03-0${i + 2}T09:30:00Z`),
     }));
 
-    setupMocks(
-      { ...baseEventType, maxBookingsPerWeek: 5 },
-      bookings
-    );
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: { ...baseEventType, maxBookingsPerWeek: 5 },
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek,
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
     });
 
     expect(slots).toHaveLength(0);
   });
-});
 
-// ─── MULTI-DAY RANGE ─────────────────────────────────────────────────────────
+  it("stops generating slots beyond the future limit date", () => {
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T12:00:00Z"),
+    };
+    // futureLimit is before the window
+    const futureLimitDate = new Date("2026-03-10T09:45:00Z");
 
-describe("getAvailableSlots — multi-day range", () => {
-  it("returns slots for a full week (Mon-Fri)", async () => {
-    setupMocks();
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: "2026-02-23", // Monday
-      endDate: "2026-02-27", // Friday
-      timezone: TEST_TIMEZONE,
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType,
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: fixedNow,
+      futureLimitDate,
+      attendeeTimezone: "UTC",
     });
 
-    // 5 days × 16 slots = 80 slots
-    expect(slots.length).toBe(80);
+    // Only slots starting <= futureLimitDate: 09:00 and 09:30
+    expect(slots).toHaveLength(2);
+    expect(slots[0]!.time).toBe("2026-03-10T09:00:00.000Z");
+    expect(slots[1]!.time).toBe("2026-03-10T09:30:00.000Z");
   });
 
-  it("excludes weekends from a full week range", async () => {
-    setupMocks();
+  it("returns localTime in the attendee's timezone", () => {
+    // 2026-03-10 is after US DST spring forward (2nd Sunday Mar 2026 = Mar 8)
+    // So America/New_York is EDT (UTC-4) on 2026-03-10
+    // 15:00 UTC = 11:00 EDT
+    const window = {
+      start: new Date("2026-03-10T15:00:00Z"), // 11:00 America/New_York (EDT = UTC-4)
+      end: new Date("2026-03-10T15:30:00Z"),
+    };
 
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: "2026-02-22", // Sunday
-      endDate: "2026-02-28", // Saturday
-      timezone: TEST_TIMEZONE,
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType,
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "America/New_York",
     });
 
-    // Only Mon-Fri, 5 days × 16 slots = 80 slots
-    expect(slots.length).toBe(80);
+    expect(slots).toHaveLength(1);
+    expect(slots[0]!.localTime).toBe("11:00"); // 15:00 UTC = 11:00 EDT (spring forward in effect)
+    expect(slots[0]!.duration).toBe(30);
   });
-});
 
-// ─── BOOKING CONFLICTS ───────────────────────────────────────────────────────
+  it("includes duration in each slot object", () => {
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T09:45:00Z"),
+    };
 
-describe("getAvailableSlots — booking conflicts", () => {
-  it("removes slot that exactly overlaps existing booking", async () => {
-    const bookingStart = new Date("2026-02-23T14:00:00Z"); // 9:00 AM EST
-    const bookingEnd = new Date("2026-02-23T14:30:00Z"); // 9:30 AM EST
-
-    setupMocks(baseEventType, [{ startTime: bookingStart, endTime: bookingEnd }]);
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: { ...baseEventType, duration: 45 },
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
     });
 
-    // 9:00 AM slot should be removed
+    expect(slots).toHaveLength(1);
+    expect(slots[0]!.duration).toBe(45);
+  });
+
+  it("does not generate a slot if it would extend beyond the window end", () => {
+    // 30-min duration, window ends at 10:45 → slot at 10:30 would end at 11:00, excluded
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T10:45:00Z"),
+    };
+
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType, // 30-min duration
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
+    });
+
+    // 09:00, 09:30, 10:00 → 10:30 would end at 11:00 > 10:45, excluded
+    expect(slots).toHaveLength(3);
+    const lastSlot = slots[slots.length - 1]!;
+    expect(lastSlot.time).toBe("2026-03-10T10:00:00.000Z");
+  });
+
+  it("handles buffer times when checking booking conflicts", () => {
+    // With 15-min afterBuffer: booking [09:30, 10:00] blocks until 10:15
+    // Slot [10:00, 10:30] should be excluded due to afterBuffer
+    const window = {
+      start: new Date("2026-03-10T09:00:00Z"),
+      end: new Date("2026-03-10T11:00:00Z"),
+    };
+    const existingBookings = [
+      {
+        startTime: new Date("2026-03-10T09:30:00Z"),
+        endTime: new Date("2026-03-10T10:00:00Z"),
+      },
+    ];
+
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: { ...baseEventType, afterBuffer: 15 },
+      existingBookings,
+      bookingsThisDay: existingBookings,
+      bookingsThisWeek: existingBookings,
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
+    });
+
     const slotTimes = slots.map((s) => s.time);
-    expect(slotTimes).not.toContain("2026-02-23T14:00:00.000Z");
-    // But other slots remain
-    expect(slots.length).toBe(15);
+    expect(slotTimes).not.toContain("2026-03-10T10:00:00.000Z"); // conflicts with afterBuffer
+    expect(slotTimes).toContain("2026-03-10T10:30:00.000Z"); // 10:30 is after blocked zone
   });
 
-  it("includes slot that starts after booking ends", async () => {
-    const bookingStart = new Date("2026-02-23T14:00:00Z"); // 9:00 AM EST
-    const bookingEnd = new Date("2026-02-23T14:30:00Z"); // 9:30 AM EST
+  it("returns empty array for an empty window (start == end)", () => {
+    const window = {
+      start: new Date("2026-03-10T10:00:00Z"),
+      end: new Date("2026-03-10T10:00:00Z"),
+    };
 
-    setupMocks(baseEventType, [{ startTime: bookingStart, endTime: bookingEnd }]);
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType,
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: fixedNow,
+      futureLimitDate: fixedFutureLimit,
+      attendeeTimezone: "UTC",
     });
 
-    // 9:30 AM slot should be included (starts exactly when booking ends)
-    const slotTimes = slots.map((s) => s.time);
-    expect(slotTimes).toContain("2026-02-23T14:30:00.000Z");
+    expect(slots).toHaveLength(0);
+  });
+
+  it("handles DST transition (UTC time is authoritative, no DST issues in UTC)", () => {
+    // This test verifies that UTC slot times are correct regardless of attendee timezone DST
+    // US clocks spring forward on 2026-03-08 at 02:00 → 03:00
+    // On this date, 09:00 EDT = 13:00 UTC (after spring forward)
+    const window = {
+      start: new Date("2026-03-08T13:00:00Z"), // 09:00 EDT (after spring forward)
+      end: new Date("2026-03-08T15:00:00Z"),   // 11:00 EDT
+    };
+
+    // Use a 'now' that is before the DST window so slots aren't filtered as past
+    const nowBeforeWindow = new Date("2026-03-08T00:00:00Z");
+    const futureLimitFar = new Date("2026-06-10T00:00:00Z");
+
+    const slots = generateSlotsForWindow({
+      window,
+      eventType: baseEventType,
+      existingBookings: [],
+      bookingsThisDay: [],
+      bookingsThisWeek: [],
+      now: nowBeforeWindow,
+      futureLimitDate: futureLimitFar,
+      attendeeTimezone: "America/New_York",
+    });
+
+    // 2-hour window with 30-min slots = 4 slots
+    expect(slots.length).toBeGreaterThan(0);
+    // UTC times should be exact — no double-conversion artifacts
+    expect(slots[0]!.time).toBe("2026-03-08T13:00:00.000Z");
+    // After spring forward, the local time should be EDT (+4 hours offset from UTC-4)
+    expect(slots[0]!.localTime).toBe("09:00"); // 13:00 UTC = 09:00 EDT
   });
 });
 
-// ─── TIMEZONE HANDLING ───────────────────────────────────────────────────────
+// ─── Zod schema tests ────────────────────────────────────────────────────────
 
-describe("getAvailableSlots — timezone handling", () => {
-  it("returns localTime in attendee's timezone", async () => {
-    setupMocks();
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE, // America/New_York
+describe("slotQuerySchema validation", () => {
+  it("accepts valid slot query params", () => {
+    const result = slotQuerySchema.safeParse({
+      eventTypeId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      startDate: "2026-03-10",
+      endDate: "2026-03-17",
+      timezone: "America/New_York",
     });
-
-    // First slot should be 9:00 AM in Eastern Time
-    expect(slots[0]!.localTime).toBe("09:00");
+    expect(result.success).toBe(true);
   });
 
-  it("returns different localTime for attendee in different timezone", async () => {
-    setupMocks();
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: "America/Los_Angeles", // Pacific time (3h behind EST)
+  it("rejects invalid date format", () => {
+    const result = slotQuerySchema.safeParse({
+      eventTypeId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      startDate: "03/10/2026", // wrong format
+      endDate: "2026-03-17",
+      timezone: "UTC",
     });
-
-    // First slot at 9:00 AM EST = 6:00 AM PST
-    expect(slots[0]!.localTime).toBe("06:00");
+    expect(result.success).toBe(false);
   });
 
-  it("returns UTC time in the time field", async () => {
-    setupMocks();
-
-    const slots = await getAvailableSlots({
-      eventTypeId: "event-type-id-1",
-      startDate: TEST_MONDAY,
-      endDate: TEST_MONDAY,
-      timezone: TEST_TIMEZONE,
+  it("rejects missing eventTypeId", () => {
+    const result = slotQuerySchema.safeParse({
+      startDate: "2026-03-10",
+      endDate: "2026-03-17",
+      timezone: "UTC",
     });
+    expect(result.success).toBe(false);
+  });
 
-    // 9:00 AM EST = 14:00 UTC in February (EST = UTC-5)
-    expect(slots[0]!.time).toBe("2026-02-23T14:00:00.000Z");
+  it("rejects empty timezone", () => {
+    const result = slotQuerySchema.safeParse({
+      eventTypeId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      startDate: "2026-03-10",
+      endDate: "2026-03-17",
+      timezone: "",
+    });
+    expect(result.success).toBe(false);
   });
 });

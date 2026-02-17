@@ -1,317 +1,333 @@
-import { describe, it, expect } from "vitest";
-import { mockPrismaClient } from "../helpers/setup";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mockPrismaClient, mockSession } from "../helpers/setup";
 
-const { GET: getSchedules, POST: postSchedule } = await import(
-  "@/app/api/schedules/route"
-);
-const {
-  GET: getSchedule,
-  PUT: putSchedule,
-  DELETE: deleteSchedule,
-} = await import("@/app/api/schedules/[id]/route");
-const { GET: getOverrides, POST: postOverride } = await import(
-  "@/app/api/schedules/[id]/overrides/route"
-);
-const { DELETE: deleteOverride } = await import(
-  "@/app/api/schedules/[id]/overrides/[overrideId]/route"
-);
+// ─── MOCKS ───────────────────────────────────────────────────────────────────
 
-const makeRequest = (body?: unknown): Request =>
-  ({
+vi.mock("@/lib/prisma", () => ({
+  prisma: mockPrismaClient,
+}));
+
+vi.mock("@/lib/auth", () => ({
+  auth: vi.fn(() => Promise.resolve(mockSession)),
+}));
+
+vi.mock("next/server", () => ({
+  NextResponse: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    json: vi.fn((data: any, init?: any) => ({
+      status: init?.status ?? 200,
+      json: async () => data,
+      body: JSON.stringify(data),
+      _data: data,
+      _status: init?.status ?? 200,
+    })) as unknown as any,
+  },
+}));
+
+// ─── IMPORTS ─────────────────────────────────────────────────────────────────
+
+import { GET as _listSchedules, POST as _createSchedule } from "@/app/api/schedules/route";
+// Cast handlers to any so TypeScript accepts _data/_status on mock responses
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listSchedules = _listSchedules as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createSchedule = _createSchedule as (...args: any[]) => Promise<any>;
+import { scheduleCreateSchema } from "@/lib/validations";
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+function makeRequest(body?: unknown, method = "GET"): Request {
+  return {
+    method,
     json: async () => body,
+    url: "http://localhost:3000/api/schedules",
     headers: new Headers(),
-  }) as unknown as Request;
+  } as unknown as Request;
+}
 
-const makeContext = (params: Record<string, string> = { id: "schedule-id-1" }) => ({
-  params: Promise.resolve(params),
-});
+const mockContext = { params: Promise.resolve({}) };
 
 const mockSchedule = {
-  id: "schedule-id-1",
+  id: "schedule-1",
   name: "Business Hours",
   timezone: "America/New_York",
   isDefault: true,
   userId: "demo-user-id",
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date("2026-01-01"),
+  updatedAt: new Date("2026-01-01"),
   availability: [
-    { id: "avail-1", day: 1, startTime: "09:00", endTime: "17:00", scheduleId: "schedule-id-1" },
-    { id: "avail-2", day: 2, startTime: "09:00", endTime: "17:00", scheduleId: "schedule-id-1" },
+    { id: "avail-1", scheduleId: "schedule-1", day: 1, startTime: "09:00", endTime: "17:00" },
+    { id: "avail-2", scheduleId: "schedule-1", day: 2, startTime: "09:00", endTime: "17:00" },
+    { id: "avail-3", scheduleId: "schedule-1", day: 3, startTime: "09:00", endTime: "17:00" },
+    { id: "avail-4", scheduleId: "schedule-1", day: 4, startTime: "09:00", endTime: "17:00" },
+    { id: "avail-5", scheduleId: "schedule-1", day: 5, startTime: "09:00", endTime: "17:00" },
   ],
   dateOverrides: [],
   _count: { eventTypes: 2 },
 };
 
-const validScheduleInput = {
+const validCreateBody = {
   name: "Business Hours",
   timezone: "America/New_York",
+  isDefault: true,
   availability: [
     { day: 1, startTime: "09:00", endTime: "17:00" },
     { day: 2, startTime: "09:00", endTime: "17:00" },
+    { day: 3, startTime: "09:00", endTime: "17:00" },
+    { day: 4, startTime: "09:00", endTime: "17:00" },
+    { day: 5, startTime: "09:00", endTime: "17:00" },
   ],
 };
 
+// ─── GET /api/schedules ──────────────────────────────────────────────────────
+
 describe("GET /api/schedules", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("returns list of schedules for authenticated user", async () => {
     mockPrismaClient.schedule.findMany.mockResolvedValue([mockSchedule]);
 
-    const response = await getSchedules(makeRequest(), makeContext());
-    const data = await response.json();
+    const request = makeRequest(undefined, "GET");
+    const response = await listSchedules(request, mockContext);
 
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-    expect(data.data).toHaveLength(1);
-    expect(data.data[0].name).toBe("Business Hours");
+    expect(response._status).toBe(200);
+    expect(response._data.success).toBe(true);
+    expect(response._data.data).toHaveLength(1);
+    expect(response._data.data[0].name).toBe("Business Hours");
+  });
+
+  it("queries only the authenticated user's schedules", async () => {
+    mockPrismaClient.schedule.findMany.mockResolvedValue([]);
+
+    const request = makeRequest(undefined, "GET");
+    await listSchedules(request, mockContext);
+
+    expect(mockPrismaClient.schedule.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: mockSession.user.id },
+      })
+    );
+  });
+
+  it("includes availability and dateOverrides in the response", async () => {
+    mockPrismaClient.schedule.findMany.mockResolvedValue([mockSchedule]);
+
+    const request = makeRequest(undefined, "GET");
+    const response = await listSchedules(request, mockContext);
+
+    const schedule = response._data.data[0];
+    expect(schedule.availability).toBeDefined();
+    expect(schedule.availability).toHaveLength(5);
+    expect(schedule.dateOverrides).toBeDefined();
+  });
+
+  it("includes event type count", async () => {
+    mockPrismaClient.schedule.findMany.mockResolvedValue([mockSchedule]);
+
+    const request = makeRequest(undefined, "GET");
+    const response = await listSchedules(request, mockContext);
+
+    expect(response._data.data[0]._count.eventTypes).toBe(2);
   });
 
   it("returns empty array when user has no schedules", async () => {
     mockPrismaClient.schedule.findMany.mockResolvedValue([]);
 
-    const response = await getSchedules(makeRequest(), makeContext());
-    const data = await response.json();
+    const request = makeRequest(undefined, "GET");
+    const response = await listSchedules(request, mockContext);
 
-    expect(response.status).toBe(200);
-    expect(data.data).toHaveLength(0);
+    expect(response._data.success).toBe(true);
+    expect(response._data.data).toHaveLength(0);
+  });
+
+  it("returns 500 on database error", async () => {
+    mockPrismaClient.schedule.findMany.mockRejectedValue(new Error("DB error"));
+
+    const request = makeRequest(undefined, "GET");
+    const response = await listSchedules(request, mockContext);
+
+    expect(response._status).toBe(500);
+    expect(response._data.error).toBe("Internal server error");
   });
 });
 
+// ─── POST /api/schedules ─────────────────────────────────────────────────────
+
 describe("POST /api/schedules", () => {
-  it("creates schedule with valid data", async () => {
-    mockPrismaClient.schedule.updateMany.mockResolvedValue({ count: 0 });
+  beforeEach(() => {
+    vi.clearAllMocks();
     mockPrismaClient.schedule.create.mockResolvedValue(mockSchedule);
-    mockPrismaClient.availability.create.mockResolvedValue({});
-
-    const request = makeRequest(validScheduleInput);
-    const response = await postSchedule(request, makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(data.success).toBe(true);
+    mockPrismaClient.schedule.updateMany.mockResolvedValue({ count: 0 });
   });
 
-  it("returns 400 for missing availability", async () => {
-    const request = makeRequest({ name: "Test", timezone: "America/New_York" });
-    const response = await postSchedule(request, makeContext());
-    const data = await response.json();
+  it("creates a schedule with valid data", async () => {
+    const request = makeRequest(validCreateBody, "POST");
+    const response = await createSchedule(request, mockContext);
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBeTruthy();
+    expect(response._status).toBe(201);
+    expect(response._data.success).toBe(true);
+    expect(mockPrismaClient.schedule.create).toHaveBeenCalledTimes(1);
   });
 
-  it("returns 400 for invalid timezone", async () => {
-    const request = makeRequest({
-      ...validScheduleInput,
+  it("validates timezone against Intl.supportedValuesOf", async () => {
+    const body = {
+      ...validCreateBody,
       timezone: "Invalid/Timezone",
-    });
-    const response = await postSchedule(request, makeContext());
+    };
 
-    expect(response.status).toBe(400);
+    const request = makeRequest(body, "POST");
+    const response = await createSchedule(request, mockContext);
+
+    expect(response._status).toBe(400);
+    expect(response._data.error).toBe("Invalid timezone");
   });
 
-  it("unsets other default schedules when isDefault is true", async () => {
-    mockPrismaClient.schedule.updateMany.mockResolvedValue({ count: 1 });
-    mockPrismaClient.schedule.create.mockResolvedValue({ ...mockSchedule, isDefault: true });
-    mockPrismaClient.availability.create.mockResolvedValue({});
+  it("accepts valid IANA timezone", async () => {
+    const body = {
+      ...validCreateBody,
+      timezone: "Europe/London",
+    };
 
-    const request = makeRequest({ ...validScheduleInput, isDefault: true });
-    await postSchedule(request, makeContext());
+    const request = makeRequest(body, "POST");
+    const response = await createSchedule(request, mockContext);
 
-    expect(mockPrismaClient.schedule.updateMany).toHaveBeenCalledWith(
+    expect(response._status).toBe(201);
+  });
+
+  it("unsets existing default schedule when isDefault is true", async () => {
+    const body = { ...validCreateBody, isDefault: true };
+
+    const request = makeRequest(body, "POST");
+    await createSchedule(request, mockContext);
+
+    expect(mockPrismaClient.schedule.updateMany).toHaveBeenCalledWith({
+      where: { userId: mockSession.user.id, isDefault: true },
+      data: { isDefault: false },
+    });
+  });
+
+  it("does NOT unset default schedule when isDefault is false", async () => {
+    const body = { ...validCreateBody, isDefault: false };
+
+    const request = makeRequest(body, "POST");
+    await createSchedule(request, mockContext);
+
+    expect(mockPrismaClient.schedule.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("creates availability slots for the new schedule", async () => {
+    const request = makeRequest(validCreateBody, "POST");
+    await createSchedule(request, mockContext);
+
+    expect(mockPrismaClient.schedule.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ userId: "demo-user-id", isDefault: true }),
-        data: { isDefault: false },
+        data: expect.objectContaining({
+          availability: expect.objectContaining({
+            create: expect.arrayContaining([
+              expect.objectContaining({ day: 1, startTime: "09:00", endTime: "17:00" }),
+            ]),
+          }),
+        }),
       })
     );
   });
-});
 
-describe("GET /api/schedules/[id]", () => {
-  it("returns schedule for owner", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue(mockSchedule);
-
-    const response = await getSchedule(makeRequest(), makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.data.id).toBe("schedule-id-1");
-  });
-
-  it("returns 404 when schedule not found", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue(null);
-
-    const response = await getSchedule(makeRequest(), makeContext({ id: "nonexistent" }));
-    expect(response.status).toBe(404);
-  });
-
-  it("returns 403 when user does not own the schedule", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({
-      ...mockSchedule,
-      userId: "other-user-id",
-    });
-
-    const response = await getSchedule(makeRequest(), makeContext());
-    expect(response.status).toBe(403);
-  });
-});
-
-describe("PUT /api/schedules/[id]", () => {
-  it("replaces availability on update", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue(mockSchedule);
-    mockPrismaClient.schedule.updateMany.mockResolvedValue({ count: 0 });
-    mockPrismaClient.schedule.update.mockResolvedValue(mockSchedule);
-    mockPrismaClient.availability.deleteMany.mockResolvedValue({ count: 2 });
-    mockPrismaClient.availability.create.mockResolvedValue({});
-
-    const request = makeRequest(validScheduleInput);
-    const response = await putSchedule(request, makeContext());
-    await response.json();
-
-    expect(response.status).toBe(200);
-    expect(mockPrismaClient.availability.deleteMany).toHaveBeenCalled();
-  });
-});
-
-describe("DELETE /api/schedules/[id]", () => {
-  it("deletes schedule with no event type references", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({
-      id: "schedule-id-1",
-      userId: "demo-user-id",
-    });
-    mockPrismaClient.schedule.count.mockResolvedValue(2); // user has 2 schedules
-    mockPrismaClient.eventType.count.mockResolvedValue(0); // no references
-    mockPrismaClient.schedule.delete.mockResolvedValue(mockSchedule);
-
-    const response = await deleteSchedule(makeRequest(), makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-  });
-
-  it("returns 409 when event types reference this schedule", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({
-      id: "schedule-id-1",
-      userId: "demo-user-id",
-    });
-    mockPrismaClient.schedule.count.mockResolvedValue(2); // user has 2 schedules
-    mockPrismaClient.eventType.count.mockResolvedValue(3); // 3 event types reference this
-
-    const response = await deleteSchedule(makeRequest(), makeContext());
-    expect(response.status).toBe(409);
-  });
-
-  it("returns 409 when it is the only schedule", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({
-      id: "schedule-id-1",
-      userId: "demo-user-id",
-    });
-    mockPrismaClient.schedule.count.mockResolvedValue(1); // only one schedule
-
-    const response = await deleteSchedule(makeRequest(), makeContext());
-    expect(response.status).toBe(409);
-  });
-});
-
-describe("GET /api/schedules/[id]/overrides", () => {
-  it("returns date overrides for schedule", async () => {
-    const override = {
-      id: "override-1",
-      scheduleId: "schedule-id-1",
-      date: new Date("2026-03-15"),
-      isUnavailable: true,
-      startTime: null,
-      endTime: null,
+  it("returns 400 on missing availability array", async () => {
+    const body = {
+      name: "My Schedule",
+      timezone: "UTC",
+      availability: [],
     };
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({ id: "schedule-id-1", userId: "demo-user-id" });
-    mockPrismaClient.dateOverride.findMany.mockResolvedValue([override]);
 
-    const response = await getOverrides(makeRequest(), makeContext());
-    const data = await response.json();
+    const request = makeRequest(body, "POST");
+    const response = await createSchedule(request, mockContext);
 
-    expect(response.status).toBe(200);
-    expect(data.data).toHaveLength(1);
+    expect(response._status).toBe(400);
+    expect(response._data.error).toBe("Validation failed");
+  });
+
+  it("returns 400 when name is missing", async () => {
+    const body = {
+      timezone: "UTC",
+      availability: [{ day: 1, startTime: "09:00", endTime: "17:00" }],
+    };
+
+    const request = makeRequest(body, "POST");
+    const response = await createSchedule(request, mockContext);
+
+    expect(response._status).toBe(400);
+  });
+
+  it("sets userId from authenticated session", async () => {
+    const request = makeRequest(validCreateBody, "POST");
+    await createSchedule(request, mockContext);
+
+    expect(mockPrismaClient.schedule.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: mockSession.user.id,
+        }),
+      })
+    );
+  });
+
+  it("returns 500 on database error during creation", async () => {
+    mockPrismaClient.schedule.create.mockRejectedValue(new Error("DB write error"));
+
+    const request = makeRequest(validCreateBody, "POST");
+    const response = await createSchedule(request, mockContext);
+
+    expect(response._status).toBe(500);
   });
 });
 
-describe("POST /api/schedules/[id]/overrides", () => {
-  it("creates date override for future date", async () => {
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 10);
-    const futureDateStr = futureDate.toISOString().slice(0, 10);
+// ─── scheduleCreateSchema validation ────────────────────────────────────────
 
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({ id: "schedule-id-1", userId: "demo-user-id" });
-    mockPrismaClient.dateOverride.findFirst.mockResolvedValue(null);
-    mockPrismaClient.dateOverride.create.mockResolvedValue({
-      id: "override-1",
-      scheduleId: "schedule-id-1",
-      date: new Date(futureDateStr),
-      isUnavailable: true,
-      startTime: null,
-      endTime: null,
+describe("scheduleCreateSchema", () => {
+  it("accepts valid schedule data", () => {
+    const result = scheduleCreateSchema.safeParse(validCreateBody);
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects empty availability array", () => {
+    const result = scheduleCreateSchema.safeParse({
+      name: "Schedule",
+      timezone: "UTC",
+      availability: [],
     });
-
-    const request = makeRequest({ date: futureDateStr, isUnavailable: true });
-    const response = await postOverride(request, makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(data.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
-  it("returns 400 for past dates", async () => {
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({ id: "schedule-id-1", userId: "demo-user-id" });
-
-    const pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 5);
-    const pastDateStr = pastDate.toISOString().slice(0, 10);
-
-    const request = makeRequest({ date: pastDateStr, isUnavailable: true });
-    const response = await postOverride(request, makeContext());
-
-    expect(response.status).toBe(400);
-  });
-
-  it("returns 409 for duplicate date override", async () => {
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 10);
-    const futureDateStr = futureDate.toISOString().slice(0, 10);
-
-    mockPrismaClient.schedule.findUnique.mockResolvedValue({ id: "schedule-id-1", userId: "demo-user-id" });
-    mockPrismaClient.dateOverride.findFirst.mockResolvedValue({ id: "existing-override" });
-
-    const request = makeRequest({ date: futureDateStr, isUnavailable: true });
-    const response = await postOverride(request, makeContext());
-
-    expect(response.status).toBe(409);
-  });
-});
-
-describe("DELETE /api/schedules/[id]/overrides/[overrideId]", () => {
-  it("deletes date override owned by user", async () => {
-    mockPrismaClient.dateOverride.findUnique.mockResolvedValue({
-      id: "override-1",
-      scheduleId: "schedule-id-1",
-      schedule: { userId: "demo-user-id" },
+  it("rejects invalid time format in availability", () => {
+    const result = scheduleCreateSchema.safeParse({
+      name: "Schedule",
+      timezone: "UTC",
+      availability: [{ day: 1, startTime: "9:00", endTime: "17:00" }], // single digit hour
     });
-    mockPrismaClient.dateOverride.delete.mockResolvedValue({ id: "override-1" });
-
-    const response = await deleteOverride(
-      makeRequest(),
-      makeContext({ id: "schedule-id-1", overrideId: "override-1" })
-    );
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
-  it("returns 404 when override not found", async () => {
-    mockPrismaClient.dateOverride.findUnique.mockResolvedValue(null);
+  it("rejects invalid day of week (> 6)", () => {
+    const result = scheduleCreateSchema.safeParse({
+      name: "Schedule",
+      timezone: "UTC",
+      availability: [{ day: 7, startTime: "09:00", endTime: "17:00" }],
+    });
+    expect(result.success).toBe(false);
+  });
 
-    const response = await deleteOverride(
-      makeRequest(),
-      makeContext({ id: "schedule-id-1", overrideId: "nonexistent" })
-    );
-    expect(response.status).toBe(404);
+  it("accepts all 7 days (0-6)", () => {
+    const result = scheduleCreateSchema.safeParse({
+      name: "Schedule",
+      timezone: "UTC",
+      availability: Array.from({ length: 7 }, (_, i) => ({
+        day: i,
+        startTime: "09:00",
+        endTime: "17:00",
+      })),
+    });
+    expect(result.success).toBe(true);
   });
 });

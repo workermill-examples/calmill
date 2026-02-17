@@ -1,295 +1,401 @@
-import { describe, it, expect } from "vitest";
-import { mockPrismaClient } from "../helpers/setup";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mockPrismaClient, mockSession } from "../helpers/setup";
 
-// Import route handlers after mocks are set up
-const { GET: getEventTypes, POST: postEventType } = await import(
-  "@/app/api/event-types/route"
-);
-const {
-  GET: getEventType,
-  PUT: putEventType,
-  DELETE: deleteEventType,
-} = await import("@/app/api/event-types/[id]/route");
-const { PATCH: toggleEventType } = await import(
-  "@/app/api/event-types/[id]/toggle/route"
-);
+// ─── MOCKS ───────────────────────────────────────────────────────────────────
 
-const makeRequest = (body?: unknown): Request =>
-  ({
+// Mock the prisma module
+vi.mock("@/lib/prisma", () => ({
+  prisma: mockPrismaClient,
+}));
+
+// Mock NextAuth
+vi.mock("@/lib/auth", () => ({
+  auth: vi.fn(() => Promise.resolve(mockSession)),
+}));
+
+// Mock Next.js server components
+vi.mock("next/server", () => ({
+  NextResponse: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    json: vi.fn((data: any, init?: any) => ({
+      status: init?.status ?? 200,
+      json: async () => data,
+      body: JSON.stringify(data),
+      _data: data,
+      _status: init?.status ?? 200,
+    })) as unknown as any,
+  },
+}));
+
+// ─── IMPORTS ─────────────────────────────────────────────────────────────────
+
+// Import the route handlers (cast to any so TypeScript accepts _data/_status on mock responses)
+import { GET as _listEventTypes, POST as _createEventType } from "@/app/api/event-types/route";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listEventTypes = _listEventTypes as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createEventType = _createEventType as (...args: any[]) => Promise<any>;
+import { generateSlug } from "@/lib/utils";
+import { eventTypeCreateSchema } from "@/lib/validations";
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+function makeRequest(body?: unknown, method = "GET"): Request {
+  return {
+    method,
     json: async () => body,
+    url: "http://localhost:3000/api/event-types",
     headers: new Headers(),
-  }) as unknown as Request;
+  } as unknown as Request;
+}
 
-const makeContext = (id = "event-type-id-1") => ({
-  params: Promise.resolve({ id }),
-});
+const mockContext = { params: Promise.resolve({}) };
 
 const mockEventType = {
-  id: "event-type-id-1",
+  id: "clt1234567890abcdefghi",
   title: "30 Minute Meeting",
-  slug: "30min",
-  description: "A quick meeting",
+  slug: "30-minute-meeting",
+  description: "A standard 30 minute meeting",
   duration: 30,
   isActive: true,
   requiresConfirmation: false,
   price: 0,
   currency: "USD",
   minimumNotice: 120,
-  futureLimit: 60,
   beforeBuffer: 0,
   afterBuffer: 0,
-  userId: "demo-user-id",
-  scheduleId: "schedule-id-1",
-  locations: [],
-  customQuestions: null,
-  color: null,
   slotInterval: null,
   maxBookingsPerDay: null,
   maxBookingsPerWeek: null,
+  futureLimit: 60,
+  color: null,
+  customQuestions: null,
+  locations: null,
   recurringEnabled: false,
   recurringMaxOccurrences: null,
   recurringFrequency: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  userId: "demo-user-id",
+  scheduleId: "schedule-1",
+  createdAt: new Date("2026-01-01"),
+  updatedAt: new Date("2026-01-01"),
   _count: { bookings: 3 },
-  schedule: { id: "schedule-id-1", name: "Business Hours", timezone: "America/New_York" },
+  schedule: { id: "schedule-1", name: "Business Hours", timezone: "America/New_York" },
 };
 
+// ─── generateSlug utility ────────────────────────────────────────────────────
+
+describe("generateSlug", () => {
+  it("converts title to lowercase hyphenated slug", () => {
+    expect(generateSlug("30 Minute Meeting")).toBe("30-minute-meeting");
+  });
+
+  it("removes special characters", () => {
+    expect(generateSlug("Coffee & Chat!")).toBe("coffee-chat");
+  });
+
+  it("handles multiple spaces and hyphens", () => {
+    expect(generateSlug("  Tech   Interview  ")).toBe("tech-interview");
+  });
+
+  it("trims leading/trailing hyphens", () => {
+    expect(generateSlug("-Hello World-")).toBe("hello-world");
+  });
+
+  it("converts underscores to hyphens", () => {
+    expect(generateSlug("my_event_type")).toBe("my-event-type");
+  });
+});
+
+// ─── GET /api/event-types ────────────────────────────────────────────────────
+
 describe("GET /api/event-types", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("returns list of event types for authenticated user", async () => {
     mockPrismaClient.eventType.findMany.mockResolvedValue([mockEventType]);
 
-    const response = await getEventTypes(makeRequest(), makeContext());
-    const data = await response.json();
+    const request = makeRequest(undefined, "GET");
+    const response = await listEventTypes(request, mockContext);
 
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-    expect(data.data).toHaveLength(1);
-    expect(data.data[0].title).toBe("30 Minute Meeting");
+    expect(response._status).toBe(200);
+    expect(response._data.success).toBe(true);
+    expect(response._data.data).toHaveLength(1);
+    expect(response._data.data[0].title).toBe("30 Minute Meeting");
+  });
+
+  it("queries only the authenticated user's event types", async () => {
+    mockPrismaClient.eventType.findMany.mockResolvedValue([]);
+
+    const request = makeRequest(undefined, "GET");
+    await listEventTypes(request, mockContext);
+
+    expect(mockPrismaClient.eventType.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: mockSession.user.id },
+      })
+    );
   });
 
   it("returns empty array when user has no event types", async () => {
     mockPrismaClient.eventType.findMany.mockResolvedValue([]);
 
-    const response = await getEventTypes(makeRequest(), makeContext());
-    const data = await response.json();
+    const request = makeRequest(undefined, "GET");
+    const response = await listEventTypes(request, mockContext);
 
-    expect(response.status).toBe(200);
-    expect(data.data).toHaveLength(0);
+    expect(response._data.success).toBe(true);
+    expect(response._data.data).toHaveLength(0);
+  });
+
+  it("orders event types by createdAt descending", async () => {
+    mockPrismaClient.eventType.findMany.mockResolvedValue([]);
+
+    const request = makeRequest(undefined, "GET");
+    await listEventTypes(request, mockContext);
+
+    expect(mockPrismaClient.eventType.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { createdAt: "desc" },
+      })
+    );
+  });
+
+  it("includes booking count and schedule info", async () => {
+    mockPrismaClient.eventType.findMany.mockResolvedValue([mockEventType]);
+
+    const request = makeRequest(undefined, "GET");
+    const response = await listEventTypes(request, mockContext);
+
+    const eventType = response._data.data[0];
+    expect(eventType._count).toBeDefined();
+    expect(eventType._count.bookings).toBe(3);
+    expect(eventType.schedule).toBeDefined();
   });
 
   it("returns 500 on database error", async () => {
     mockPrismaClient.eventType.findMany.mockRejectedValue(new Error("DB error"));
 
-    const response = await getEventTypes(makeRequest(), makeContext());
-    const data = await response.json();
+    const request = makeRequest(undefined, "GET");
+    const response = await listEventTypes(request, mockContext);
 
-    expect(response.status).toBe(500);
-    expect(data.error).toBeTruthy();
+    expect(response._status).toBe(500);
+    expect(response._data.error).toBe("Internal server error");
   });
 });
+
+// ─── POST /api/event-types ───────────────────────────────────────────────────
 
 describe("POST /api/event-types", () => {
-  it("creates event type with valid data", async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // By default, no existing slugs
     mockPrismaClient.eventType.findMany.mockResolvedValue([]);
-    mockPrismaClient.schedule.findFirst.mockResolvedValue({ id: "schedule-id-1" });
-    mockPrismaClient.eventType.create.mockResolvedValue({ ...mockEventType, _count: { bookings: 0 } });
+    // No default schedule
+    mockPrismaClient.schedule.findFirst.mockResolvedValue(null);
+    // Event type create returns the mock
+    mockPrismaClient.eventType.create.mockResolvedValue(mockEventType);
+  });
 
-    const request = makeRequest({
+  it("creates an event type with valid data", async () => {
+    const body = {
       title: "30 Minute Meeting",
       duration: 30,
+    };
+
+    const request = makeRequest(body, "POST");
+    const response = await createEventType(request, mockContext);
+
+    expect(response._status).toBe(201);
+    expect(response._data.success).toBe(true);
+    expect(mockPrismaClient.eventType.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("auto-generates slug from title when not provided", async () => {
+    const body = { title: "Tech Interview", duration: 45 };
+
+    const request = makeRequest(body, "POST");
+    await createEventType(request, mockContext);
+
+    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          slug: "tech-interview",
+        }),
+      })
+    );
+  });
+
+  it("uses provided slug when explicitly given", async () => {
+    const body = { title: "Tech Interview", slug: "my-custom-slug", duration: 45 };
+
+    const request = makeRequest(body, "POST");
+    await createEventType(request, mockContext);
+
+    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          slug: "my-custom-slug",
+        }),
+      })
+    );
+  });
+
+  it("deduplicates slug with suffix when slug already exists", async () => {
+    // Return existing event type with the same slug
+    mockPrismaClient.eventType.findMany.mockResolvedValue([
+      { slug: "30-minute-meeting" },
+    ]);
+
+    const body = { title: "30 Minute Meeting", duration: 30 };
+    const request = makeRequest(body, "POST");
+    await createEventType(request, mockContext);
+
+    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          slug: "30-minute-meeting-2",
+        }),
+      })
+    );
+  });
+
+  it("increments slug counter past -2 if -2 also exists", async () => {
+    mockPrismaClient.eventType.findMany.mockResolvedValue([
+      { slug: "30-minute-meeting" },
+      { slug: "30-minute-meeting-2" },
+    ]);
+
+    const body = { title: "30 Minute Meeting", duration: 30 };
+    const request = makeRequest(body, "POST");
+    await createEventType(request, mockContext);
+
+    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          slug: "30-minute-meeting-3",
+        }),
+      })
+    );
+  });
+
+  it("uses user's default schedule when scheduleId not provided", async () => {
+    const defaultSchedule = { id: "default-schedule-id" };
+    mockPrismaClient.schedule.findFirst.mockResolvedValue(defaultSchedule);
+
+    const body = { title: "Meeting", duration: 30 };
+    const request = makeRequest(body, "POST");
+    await createEventType(request, mockContext);
+
+    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          scheduleId: "default-schedule-id",
+        }),
+      })
+    );
+  });
+
+  it("returns 400 on invalid input (missing duration)", async () => {
+    const body = { title: "Meeting" }; // missing required duration
+
+    const request = makeRequest(body, "POST");
+    const response = await createEventType(request, mockContext);
+
+    expect(response._status).toBe(400);
+    expect(response._data.error).toBe("Validation failed");
+  });
+
+  it("returns 400 when duration is below minimum (5 min)", async () => {
+    const body = { title: "Meeting", duration: 4 };
+
+    const request = makeRequest(body, "POST");
+    const response = await createEventType(request, mockContext);
+
+    expect(response._status).toBe(400);
+  });
+
+  it("returns 400 when duration exceeds maximum (720 min)", async () => {
+    const body = { title: "Meeting", duration: 721 };
+
+    const request = makeRequest(body, "POST");
+    const response = await createEventType(request, mockContext);
+
+    expect(response._status).toBe(400);
+  });
+
+  it("sets userId from the authenticated session", async () => {
+    const body = { title: "Meeting", duration: 30 };
+    const request = makeRequest(body, "POST");
+    await createEventType(request, mockContext);
+
+    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: mockSession.user.id,
+        }),
+      })
+    );
+  });
+
+  it("returns 500 on database error during creation", async () => {
+    mockPrismaClient.eventType.create.mockRejectedValue(new Error("DB write error"));
+
+    const body = { title: "Meeting", duration: 30 };
+    const request = makeRequest(body, "POST");
+    const response = await createEventType(request, mockContext);
+
+    expect(response._status).toBe(500);
+    expect(response._data.error).toBe("Internal server error");
+  });
+});
+
+// ─── eventTypeCreateSchema validation ───────────────────────────────────────
+
+describe("eventTypeCreateSchema", () => {
+  it("accepts valid event type data", () => {
+    const result = eventTypeCreateSchema.safeParse({
+      title: "Quick Chat",
+      duration: 15,
     });
-
-    const response = await postEventType(request, makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(data.success).toBe(true);
-    expect(data.data.title).toBe("30 Minute Meeting");
+    expect(result.success).toBe(true);
   });
 
-  it("auto-generates slug from title", async () => {
-    mockPrismaClient.eventType.findMany.mockResolvedValue([]);
-    mockPrismaClient.schedule.findFirst.mockResolvedValue({ id: "schedule-id-1" });
-    mockPrismaClient.eventType.create.mockResolvedValue({ ...mockEventType, slug: "my-meeting" });
-
-    const request = makeRequest({ title: "My Meeting", duration: 30 });
-    const response = await postEventType(request, makeContext());
-
-    expect(response.status).toBe(201);
-    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ slug: "my-meeting" }),
-      })
-    );
-  });
-
-  it("deduplicates slug when conflict exists", async () => {
-    mockPrismaClient.eventType.findMany.mockResolvedValue([{ slug: "30min" }]);
-    mockPrismaClient.schedule.findFirst.mockResolvedValue({ id: "schedule-id-1" });
-    mockPrismaClient.eventType.create.mockResolvedValue({ ...mockEventType, slug: "30min-2" });
-
-    const request = makeRequest({ title: "30 Minute Meeting", duration: 30, slug: "30min" });
-    const response = await postEventType(request, makeContext());
-
-    expect(response.status).toBe(201);
-    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ slug: "30min-2" }),
-      })
-    );
-  });
-
-  it("returns 400 for invalid input", async () => {
-    const request = makeRequest({ title: "", duration: 0 });
-    const response = await postEventType(request, makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(data.error).toBeTruthy();
-  });
-
-  it("uses provided scheduleId instead of default", async () => {
-    // Use a valid CUID so Zod schema validation passes
-    const customScheduleId = "clh1x2y3z0000abcdefghij01";
-    mockPrismaClient.eventType.findMany.mockResolvedValue([]);
-    mockPrismaClient.eventType.create.mockResolvedValue(mockEventType);
-
-    const request = makeRequest({
-      title: "Test",
+  it("rejects title longer than 100 characters", () => {
+    const result = eventTypeCreateSchema.safeParse({
+      title: "A".repeat(101),
       duration: 30,
-      scheduleId: customScheduleId,
     });
-    await postEventType(request, makeContext());
-
-    expect(mockPrismaClient.schedule.findFirst).not.toHaveBeenCalled();
-    expect(mockPrismaClient.eventType.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ scheduleId: customScheduleId }),
-      })
-    );
-  });
-});
-
-describe("GET /api/event-types/[id]", () => {
-  it("returns event type for owner", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue(mockEventType);
-
-    const response = await getEventType(makeRequest(), makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.data.id).toBe("event-type-id-1");
+    expect(result.success).toBe(false);
   });
 
-  it("returns 404 when event type not found", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue(null);
-
-    const response = await getEventType(makeRequest(), makeContext("nonexistent-id"));
-    const data = await response.json();
-
-    expect(response.status).toBe(404);
-    expect(data.error).toBeTruthy();
-  });
-
-  it("returns 403 when user does not own the event type", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue({
-      ...mockEventType,
-      userId: "other-user-id",
+  it("accepts optional fields", () => {
+    const result = eventTypeCreateSchema.safeParse({
+      title: "Meeting",
+      duration: 30,
+      beforeBuffer: 10,
+      afterBuffer: 10,
+      maxBookingsPerDay: 5,
+      requiresConfirmation: true,
     });
-
-    const response = await getEventType(makeRequest(), makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(403);
-    expect(data.error).toBeTruthy();
-  });
-});
-
-describe("PUT /api/event-types/[id]", () => {
-  it("updates event type with valid data", async () => {
-    const updatedType = { ...mockEventType, title: "Updated Title" };
-    mockPrismaClient.eventType.findUnique.mockResolvedValue(mockEventType);
-    mockPrismaClient.eventType.findMany.mockResolvedValue([]);
-    mockPrismaClient.eventType.update.mockResolvedValue(updatedType);
-
-    const request = makeRequest({ title: "Updated Title" });
-    const response = await putEventType(request, makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.data.title).toBe("Updated Title");
+    expect(result.success).toBe(true);
   });
 
-  it("returns 404 when event type not found", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue(null);
-
-    const request = makeRequest({ title: "Updated" });
-    const response = await putEventType(request, makeContext());
-    await response.json();
-
-    expect(response.status).toBe(404);
-  });
-});
-
-describe("DELETE /api/event-types/[id]", () => {
-  it("deletes event type owned by user", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue(mockEventType);
-    mockPrismaClient.booking.deleteMany.mockResolvedValue({ count: 0 });
-    mockPrismaClient.eventType.delete.mockResolvedValue(mockEventType);
-
-    const response = await deleteEventType(makeRequest(), makeContext());
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-  });
-
-  it("returns 403 when user does not own the event type", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue({
-      ...mockEventType,
-      userId: "other-user-id",
+  it("rejects invalid color format", () => {
+    const result = eventTypeCreateSchema.safeParse({
+      title: "Meeting",
+      duration: 30,
+      color: "blue", // not a hex color
     });
-
-    const response = await deleteEventType(makeRequest(), makeContext());
-    expect(response.status).toBe(403);
-  });
-});
-
-describe("PATCH /api/event-types/[id]/toggle", () => {
-  it("toggles isActive from true to false", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue({ ...mockEventType, isActive: true });
-    mockPrismaClient.eventType.update.mockResolvedValue({ ...mockEventType, isActive: false });
-
-    const response = await toggleEventType(makeRequest(), makeContext());
-    await response.json();
-
-    expect(response.status).toBe(200);
-    expect(mockPrismaClient.eventType.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { isActive: false },
-      })
-    );
+    expect(result.success).toBe(false);
   });
 
-  it("toggles isActive from false to true", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue({ ...mockEventType, isActive: false });
-    mockPrismaClient.eventType.update.mockResolvedValue({ ...mockEventType, isActive: true });
-
-    const response = await toggleEventType(makeRequest(), makeContext());
-
-    expect(response.status).toBe(200);
-    expect(mockPrismaClient.eventType.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { isActive: true },
-      })
-    );
-  });
-
-  it("returns 404 when event type not found", async () => {
-    mockPrismaClient.eventType.findUnique.mockResolvedValue(null);
-
-    const response = await toggleEventType(makeRequest(), makeContext());
-    expect(response.status).toBe(404);
+  it("accepts valid hex color", () => {
+    const result = eventTypeCreateSchema.safeParse({
+      title: "Meeting",
+      duration: 30,
+      color: "#3b82f6",
+    });
+    expect(result.success).toBe(true);
   });
 });

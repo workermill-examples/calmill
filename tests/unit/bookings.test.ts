@@ -1,72 +1,129 @@
-import { describe, it, expect, vi } from "vitest";
-import { mockPrismaClient } from "../helpers/setup";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mockPrismaClient, mockSession } from "../helpers/setup";
 
-// Mock @/lib/slots at module level so it takes effect before imports
+// ─── MOCKS ───────────────────────────────────────────────────────────────────
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: mockPrismaClient,
+}));
+
+vi.mock("@/lib/auth", () => ({
+  auth: vi.fn(() => Promise.resolve(mockSession)),
+}));
+
+vi.mock("next/server", () => ({
+  NextResponse: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    json: vi.fn((data: any, init?: any) => ({
+      status: init?.status ?? 200,
+      json: async () => data,
+      body: JSON.stringify(data),
+      _data: data,
+      _status: init?.status ?? 200,
+    })) as unknown as any,
+  },
+}));
+
+// Mock getAvailableSlots to control slot availability in tests
 vi.mock("@/lib/slots", () => ({
   getAvailableSlots: vi.fn(),
 }));
 
-const { getAvailableSlots } = await import("@/lib/slots");
-const { GET: getBookings, POST: postBooking } = await import(
-  "@/app/api/bookings/route"
-);
-const {
-  GET: getBookingByUid,
-  PATCH: patchBooking,
-  PUT: putBooking,
-} = await import("@/app/api/bookings/[uid]/route");
+// ─── IMPORTS ─────────────────────────────────────────────────────────────────
 
-// Use a valid CUID for eventTypeId to pass Zod schema validation
-const EVENT_TYPE_CUID = "clh1x2y3z0000abcdefghij01";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { GET as _listBookings, POST as _createBooking } from "@/app/api/bookings/route";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { GET as _getBooking, PATCH as _updateBookingStatus, PUT as _rescheduleBooking } from "@/app/api/bookings/[uid]/route";
+// Cast handlers to any so TypeScript accepts _data/_status on mock responses
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listBookings = _listBookings as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createBooking = _createBooking as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getBooking = _getBooking as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const updateBookingStatus = _updateBookingStatus as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rescheduleBooking = _rescheduleBooking as (...args: any[]) => Promise<any>;
+import { getAvailableSlots } from "@/lib/slots";
+import { bookingCreateSchema, bookingActionSchema } from "@/lib/validations";
 
-const makeRequest = (
-  body?: unknown,
-  searchParams?: Record<string, string>
-): Request => {
-  const url = "http://localhost:3000/api/bookings" +
-    (searchParams
-      ? "?" + new URLSearchParams(searchParams).toString()
-      : "");
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+function makeRequest(body?: unknown, method = "GET", searchParams?: Record<string, string>): Request {
+  const url = new URL("http://localhost:3000/api/bookings");
+  if (searchParams) {
+    Object.entries(searchParams).forEach(([k, v]) => url.searchParams.set(k, v));
+  }
   return {
-    url,
+    method,
     json: async () => body,
+    url: url.toString(),
     headers: new Headers(),
   } as unknown as Request;
+}
+
+function makeUidRequest(uid: string, body?: unknown, method = "GET"): [Request, { params: Promise<{ uid: string }> }] {
+  const request = {
+    method,
+    json: async () => body,
+    url: `http://localhost:3000/api/bookings/${uid}`,
+    headers: new Headers(),
+  } as unknown as Request;
+  const context = { params: Promise.resolve({ uid }) };
+  return [request, context];
+}
+
+const mockEventType = {
+  id: "clt1234567890abcdefghi",
+  title: "30 Minute Meeting",
+  duration: 30,
+  locations: null,
+  color: null,
+  requiresConfirmation: false,
+  userId: "demo-user-id",
+  isActive: true,
+  schedule: {
+    availability: [],
+    dateOverrides: [],
+  },
+  user: {
+    id: "demo-user-id",
+    name: "Alex Demo",
+    email: "demo@workermill.com",
+  },
 };
 
-const makeContext = (uid = "booking-uid-001") => ({
-  params: Promise.resolve({ uid }),
-});
-
 const mockBooking = {
-  id: "booking-id-1",
-  uid: "booking-uid-001",
-  eventTypeId: EVENT_TYPE_CUID,
-  userId: "demo-user-id",
-  startTime: new Date("2026-03-10T14:00:00Z"),
-  endTime: new Date("2026-03-10T14:30:00Z"),
+  id: "booking-1",
+  uid: "booking-uid-abc123",
+  title: "John Doe <> Alex Demo",
+  description: null,
+  startTime: new Date("2026-03-10T10:00:00Z"),
+  endTime: new Date("2026-03-10T10:30:00Z"),
   status: "PENDING",
   attendeeName: "John Doe",
   attendeeEmail: "john@example.com",
   attendeeTimezone: "America/New_York",
   attendeeNotes: null,
-  cancellationReason: null,
-  rejectionReason: null,
   location: null,
   responses: null,
+  cancellationReason: null,
+  cancelledAt: null,
   recurringEventId: null,
-  title: "John Doe <> Alex Demo",
-  description: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  userId: "demo-user-id",
+  eventTypeId: "clt1234567890abcdefghi",
+  createdAt: new Date("2026-03-01"),
+  updatedAt: new Date("2026-03-01"),
   eventType: {
-    id: EVENT_TYPE_CUID,
+    id: "clt1234567890abcdefghi",
     title: "30 Minute Meeting",
     duration: 30,
-    locations: [],
+    locations: null,
     color: null,
-    requiresConfirmation: false,
     userId: "demo-user-id",
+    requiresConfirmation: false,
     user: {
       id: "demo-user-id",
       name: "Alex Demo",
@@ -80,160 +137,248 @@ const mockBooking = {
 // ─── GET /api/bookings ───────────────────────────────────────────────────────
 
 describe("GET /api/bookings", () => {
-  it("returns paginated bookings for authenticated user", async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
     mockPrismaClient.booking.findMany.mockResolvedValue([mockBooking]);
     mockPrismaClient.booking.count.mockResolvedValue(1);
-
-    const response = await getBookings(makeRequest(undefined, {}));
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-    expect(data.data).toHaveLength(1);
-    expect(data.pagination).toBeDefined();
   });
 
-  it("filters bookings by status", async () => {
-    mockPrismaClient.booking.findMany.mockResolvedValue([]);
-    mockPrismaClient.booking.count.mockResolvedValue(0);
+  it("returns paginated list of bookings for authenticated user", async () => {
+    const request = makeRequest(undefined, "GET");
+    const response = await listBookings(request);
 
-    const response = await getBookings(makeRequest(undefined, { status: "ACCEPTED" }));
-    await response.json();
-
-    expect(response.status).toBe(200);
-    expect(mockPrismaClient.booking.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({ status: "ACCEPTED" }),
-      })
-    );
+    expect(response._status).toBe(200);
+    expect(response._data.success).toBe(true);
+    expect(response._data.data).toHaveLength(1);
   });
 
-  it("filters bookings by date range", async () => {
-    mockPrismaClient.booking.findMany.mockResolvedValue([]);
-    mockPrismaClient.booking.count.mockResolvedValue(0);
+  it("queries only the authenticated user's bookings", async () => {
+    const request = makeRequest(undefined, "GET");
+    await listBookings(request);
 
-    const response = await getBookings(
-      makeRequest(undefined, { startDate: "2026-03-01", endDate: "2026-03-31" })
-    );
-
-    expect(response.status).toBe(200);
     expect(mockPrismaClient.booking.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          startTime: expect.objectContaining({
-            gte: expect.any(Date),
-            lte: expect.any(Date),
-          }),
+          userId: mockSession.user.id,
         }),
       })
     );
+  });
+
+  it("filters by status when provided", async () => {
+    const request = makeRequest(undefined, "GET", { status: "pending" });
+    await listBookings(request);
+
+    expect(mockPrismaClient.booking.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: "PENDING",
+        }),
+      })
+    );
+  });
+
+  it("includes pagination metadata in the response", async () => {
+    const request = makeRequest(undefined, "GET");
+    const response = await listBookings(request);
+
+    expect(response._data.pagination).toBeDefined();
+    expect(response._data.pagination.page).toBe(1);
+    expect(response._data.pagination.total).toBe(1);
+  });
+
+  it("returns 500 on database error", async () => {
+    mockPrismaClient.booking.findMany.mockRejectedValue(new Error("DB error"));
+
+    const request = makeRequest(undefined, "GET");
+    const response = await listBookings(request);
+
+    expect(response._status).toBe(500);
+    expect(response._data.error).toBe("Internal server error");
   });
 });
 
 // ─── POST /api/bookings ──────────────────────────────────────────────────────
 
 describe("POST /api/bookings", () => {
-  const validBookingInput = {
-    eventTypeId: EVENT_TYPE_CUID,
-    startTime: "2026-03-10T14:00:00.000Z",
+  const validBody = {
+    eventTypeId: "clt1234567890abcdefghi",
+    startTime: "2026-03-10T10:00:00.000Z",
     attendeeName: "John Doe",
     attendeeEmail: "john@example.com",
     attendeeTimezone: "America/New_York",
   };
 
-  it("creates booking when slot is available", async () => {
-    vi.mocked(getAvailableSlots).mockResolvedValue([
-      { time: "2026-03-10T14:00:00.000Z", localTime: "09:00", duration: 30 },
-    ]);
+  const availableSlot = { time: "2026-03-10T10:00:00.000Z", localTime: "05:00", duration: 30 };
 
-    mockPrismaClient.eventType.findUnique.mockResolvedValue({
-      id: EVENT_TYPE_CUID,
-      userId: "demo-user-id",
-      duration: 30,
-      requiresConfirmation: false,
-      isActive: true,
-      user: { id: "demo-user-id", name: "Alex Demo", email: "demo@workermill.com" },
-      schedule: null,
-    });
-    mockPrismaClient.booking.create.mockResolvedValue({ ...mockBooking, status: "ACCEPTED" });
-
-    const request = makeRequest(validBookingInput);
-    const response = await postBooking(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(data.success).toBe(true);
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrismaClient.eventType.findUnique.mockResolvedValue(mockEventType);
+    (getAvailableSlots as ReturnType<typeof vi.fn>).mockResolvedValue([availableSlot]);
+    mockPrismaClient.booking.create.mockResolvedValue(mockBooking);
   });
 
-  it("returns 400 for invalid booking data", async () => {
-    const request = makeRequest({ eventTypeId: "not-a-cuid" });
-    const response = await postBooking(request);
-    const data = await response.json();
+  it("creates a booking when the slot is available", async () => {
+    const request = makeRequest(validBody, "POST");
+    const response = await createBooking(request);
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBeTruthy();
+    expect(response._status).toBe(201);
+    expect(response._data.success).toBe(true);
+    expect(mockPrismaClient.booking.create).toHaveBeenCalledTimes(1);
   });
 
-  it("returns 409 when slot is no longer available", async () => {
-    vi.mocked(getAvailableSlots).mockResolvedValue([]);
+  it("re-verifies slot availability before creating booking", async () => {
+    const request = makeRequest(validBody, "POST");
+    await createBooking(request);
 
+    expect(getAvailableSlots).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventTypeId: validBody.eventTypeId,
+        timezone: validBody.attendeeTimezone,
+      })
+    );
+  });
+
+  it("returns 409 when the requested slot is no longer available", async () => {
+    (getAvailableSlots as ReturnType<typeof vi.fn>).mockResolvedValue([]); // no slots available
+
+    const request = makeRequest(validBody, "POST");
+    const response = await createBooking(request);
+
+    expect(response._status).toBe(409);
+    expect(response._data.error).toContain("no longer available");
+    expect(mockPrismaClient.booking.create).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when event type is not found", async () => {
+    mockPrismaClient.eventType.findUnique.mockResolvedValue(null);
+
+    const request = makeRequest(validBody, "POST");
+    const response = await createBooking(request);
+
+    expect(response._status).toBe(404);
+    expect(response._data.error).toContain("not found");
+  });
+
+  it("creates booking with PENDING status when event requires confirmation", async () => {
     mockPrismaClient.eventType.findUnique.mockResolvedValue({
-      id: EVENT_TYPE_CUID,
-      userId: "demo-user-id",
-      duration: 30,
-      requiresConfirmation: false,
-      isActive: true,
-      user: { id: "demo-user-id", name: "Alex Demo", email: "demo@workermill.com" },
-      schedule: null,
+      ...mockEventType,
+      requiresConfirmation: true,
     });
 
-    const request = makeRequest(validBookingInput);
-    const response = await postBooking(request);
+    const request = makeRequest(validBody, "POST");
+    await createBooking(request);
 
-    expect(response.status).toBe(409);
+    expect(mockPrismaClient.booking.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "PENDING",
+        }),
+      })
+    );
+  });
+
+  it("creates booking with ACCEPTED status when event does not require confirmation", async () => {
+    mockPrismaClient.eventType.findUnique.mockResolvedValue({
+      ...mockEventType,
+      requiresConfirmation: false,
+    });
+
+    const request = makeRequest(validBody, "POST");
+    await createBooking(request);
+
+    expect(mockPrismaClient.booking.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "ACCEPTED",
+        }),
+      })
+    );
+  });
+
+  it("returns 400 on invalid input (missing attendee email)", async () => {
+    const body = { ...validBody, attendeeEmail: "not-an-email" };
+
+    const request = makeRequest(body, "POST");
+    const response = await createBooking(request);
+
+    expect(response._status).toBe(400);
+    expect(response._data.error).toBe("Validation failed");
+  });
+
+  it("returns 400 when startTime is missing", async () => {
+    const { startTime: _startTime, ...body } = validBody;
+
+    const request = makeRequest(body, "POST");
+    const response = await createBooking(request);
+
+    expect(response._status).toBe(400);
+  });
+
+  it("returns 500 on database error during creation", async () => {
+    mockPrismaClient.booking.create.mockRejectedValue(new Error("DB error"));
+
+    const request = makeRequest(validBody, "POST");
+    const response = await createBooking(request);
+
+    expect(response._status).toBe(500);
   });
 });
 
 // ─── GET /api/bookings/[uid] ─────────────────────────────────────────────────
 
 describe("GET /api/bookings/[uid]", () => {
-  it("returns booking by UID (public endpoint)", async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
     mockPrismaClient.booking.findUnique.mockResolvedValue(mockBooking);
-
-    const response = await getBookingByUid(makeRequest(), makeContext("booking-uid-001"));
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.data.uid).toBe("booking-uid-001");
   });
 
-  it("returns 404 for non-existent booking UID", async () => {
+  it("returns booking by UID", async () => {
+    const [request, context] = makeUidRequest("booking-uid-abc123");
+    const response = await getBooking(request, context);
+
+    expect(response._status).toBe(200);
+    expect(response._data.success).toBe(true);
+    expect(response._data.data.uid).toBe("booking-uid-abc123");
+  });
+
+  it("returns 404 when booking is not found", async () => {
     mockPrismaClient.booking.findUnique.mockResolvedValue(null);
 
-    const response = await getBookingByUid(makeRequest(), makeContext("nonexistent-uid"));
-    const data = await response.json();
+    const [request, context] = makeUidRequest("non-existent-uid");
+    const response = await getBooking(request, context);
 
-    expect(response.status).toBe(404);
-    expect(data.error).toBeTruthy();
+    expect(response._status).toBe(404);
+    expect(response._data.error).toBe("Booking not found");
+  });
+
+  it("includes event type and host info in response", async () => {
+    const [request, context] = makeUidRequest("booking-uid-abc123");
+    const response = await getBooking(request, context);
+
+    expect(response._data.data.eventType).toBeDefined();
+    expect(response._data.data.eventType.user).toBeDefined();
   });
 });
 
-// ─── PATCH /api/bookings/[uid] — Status transitions ─────────────────────────
+// ─── PATCH /api/bookings/[uid] — Status transitions ──────────────────────────
 
 describe("PATCH /api/bookings/[uid]", () => {
-  it("allows host to accept a PENDING booking", async () => {
-    mockPrismaClient.booking.findUnique.mockResolvedValue({
-      ...mockBooking,
-      status: "PENDING",
-      eventType: { userId: "demo-user-id" },
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrismaClient.booking.findUnique.mockResolvedValue(mockBooking);
     mockPrismaClient.booking.update.mockResolvedValue({ ...mockBooking, status: "ACCEPTED" });
+  });
 
-    const request = makeRequest({ action: "accept" });
-    const response = await patchBooking(request, makeContext("booking-uid-001"));
-    await response.json();
+  it("accepts a PENDING booking (host action)", async () => {
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { action: "accept" },
+      "PATCH"
+    );
+    const response = await updateBookingStatus(request, context);
 
-    expect(response.status).toBe(200);
+    expect(response._status).toBe(200);
     expect(mockPrismaClient.booking.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ status: "ACCEPTED" }),
@@ -241,107 +386,276 @@ describe("PATCH /api/bookings/[uid]", () => {
     );
   });
 
-  it("allows host to reject a PENDING booking", async () => {
-    mockPrismaClient.booking.findUnique.mockResolvedValue({
-      ...mockBooking,
-      status: "PENDING",
-      eventType: { userId: "demo-user-id" },
-    });
+  it("rejects a PENDING booking (host action)", async () => {
     mockPrismaClient.booking.update.mockResolvedValue({ ...mockBooking, status: "REJECTED" });
 
-    const request = makeRequest({ action: "reject", reason: "Not available" });
-    const response = await patchBooking(request, makeContext("booking-uid-001"));
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { action: "reject", reason: "Schedule conflict" },
+      "PATCH"
+    );
+    const response = await updateBookingStatus(request, context);
 
-    expect(response.status).toBe(200);
+    expect(response._status).toBe(200);
+    expect(mockPrismaClient.booking.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "REJECTED" }),
+      })
+    );
   });
 
-  it("allows cancellation of ACCEPTED booking", async () => {
-    mockPrismaClient.booking.findUnique.mockResolvedValue({
-      ...mockBooking,
-      status: "ACCEPTED",
-      eventType: { userId: "demo-user-id" },
-    });
+  it("cancels a booking (attendee or host)", async () => {
     mockPrismaClient.booking.update.mockResolvedValue({ ...mockBooking, status: "CANCELLED" });
 
-    const request = makeRequest({ action: "cancel" });
-    const response = await patchBooking(request, makeContext("booking-uid-001"));
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { action: "cancel", reason: "Cannot attend" },
+      "PATCH"
+    );
+    const response = await updateBookingStatus(request, context);
 
-    expect(response.status).toBe(200);
+    expect(response._status).toBe(200);
+    expect(mockPrismaClient.booking.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "CANCELLED" }),
+      })
+    );
   });
 
-  it("returns 409 for invalid status transition (CANCELLED → ACCEPTED)", async () => {
+  it("returns 409 on invalid status transition (CANCELLED → ACCEPTED)", async () => {
     mockPrismaClient.booking.findUnique.mockResolvedValue({
       ...mockBooking,
       status: "CANCELLED",
-      eventType: { userId: "demo-user-id" },
     });
 
-    const request = makeRequest({ action: "accept" });
-    const response = await patchBooking(request, makeContext("booking-uid-001"));
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { action: "accept" },
+      "PATCH"
+    );
+    const response = await updateBookingStatus(request, context);
 
-    expect(response.status).toBe(409);
+    expect(response._status).toBe(409);
+    expect(response._data.error).toContain("Cannot transition");
   });
 
-  it("returns 404 for non-existent booking", async () => {
+  it("returns 404 when booking is not found", async () => {
     mockPrismaClient.booking.findUnique.mockResolvedValue(null);
 
-    const request = makeRequest({ action: "cancel" });
-    const response = await patchBooking(request, makeContext("nonexistent"));
+    const [request, context] = makeUidRequest(
+      "non-existent-uid",
+      { action: "cancel" },
+      "PATCH"
+    );
+    const response = await updateBookingStatus(request, context);
 
-    expect(response.status).toBe(404);
+    expect(response._status).toBe(404);
   });
 
-  it("returns 400 for invalid action", async () => {
-    const request = makeRequest({ action: "invalid-action" });
-    const response = await patchBooking(request, makeContext());
-    const data = await response.json();
+  it("returns 400 on invalid action", async () => {
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { action: "invalid-action" },
+      "PATCH"
+    );
+    const response = await updateBookingStatus(request, context);
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBeTruthy();
+    expect(response._status).toBe(400);
+    expect(response._data.error).toBe("Validation failed");
   });
 });
 
-// ─── PUT /api/bookings/[uid] — Reschedule ───────────────────────────────────
+// ─── PUT /api/bookings/[uid] — Reschedule ────────────────────────────────────
 
 describe("PUT /api/bookings/[uid] (reschedule)", () => {
-  it("reschedules booking to new time slot", async () => {
-    mockPrismaClient.booking.findUnique.mockResolvedValue({
-      ...mockBooking,
-      status: "ACCEPTED",
-      eventTypeId: EVENT_TYPE_CUID,
-      eventType: {
-        ...mockBooking.eventType,
-        duration: 30,
-        requiresConfirmation: false,
-        schedule: null,
-      },
-    });
+  const newStartTime = "2026-03-11T14:00:00.000Z";
+  const newAvailableSlot = { time: newStartTime, localTime: "09:00", duration: 30 };
 
-    vi.mocked(getAvailableSlots).mockResolvedValue([
-      { time: "2026-03-11T14:00:00.000Z", localTime: "09:00", duration: 30 },
-    ]);
+  const bookingWithEventType = {
+    ...mockBooking,
+    eventTypeId: "clt1234567890abcdefghi",
+    eventType: {
+      ...mockBooking.eventType,
+      duration: 30,
+      requiresConfirmation: false,
+      schedule: { availability: [], dateOverrides: [] },
+    },
+  };
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrismaClient.booking.findUnique.mockResolvedValue(bookingWithEventType);
+    (getAvailableSlots as ReturnType<typeof vi.fn>).mockResolvedValue([newAvailableSlot]);
     mockPrismaClient.$transaction.mockImplementation(async (ops: unknown[]) => {
-      return Promise.all(ops.map((op) => Promise.resolve(op)));
+      // Simulate transaction by executing the promises
+      const results = await Promise.all((ops as Promise<unknown>[]));
+      return results;
     });
-    mockPrismaClient.booking.update.mockResolvedValue({ ...mockBooking, status: "RESCHEDULED" });
+    mockPrismaClient.booking.update.mockResolvedValue({ ...bookingWithEventType, status: "RESCHEDULED" });
     mockPrismaClient.booking.create.mockResolvedValue({
-      ...mockBooking,
-      uid: "new-booking-uid",
-      startTime: new Date("2026-03-11T14:00:00Z"),
-      status: "ACCEPTED",
+      ...bookingWithEventType,
+      id: "booking-new",
+      uid: "booking-uid-new",
+      startTime: new Date(newStartTime),
+      endTime: new Date(new Date(newStartTime).getTime() + 30 * 60 * 1000),
     });
-
-    const request = makeRequest({ startTime: "2026-03-11T14:00:00.000Z" });
-    const response = await putBooking(request, makeContext("booking-uid-001"));
-
-    expect(response.status).toBe(201);
   });
 
-  it("returns 400 for invalid reschedule input", async () => {
-    const request = makeRequest({ startTime: "not-a-date" });
-    const response = await putBooking(request, makeContext("booking-uid-001"));
+  it("reschedules a PENDING booking to a new available slot", async () => {
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { startTime: newStartTime },
+      "PUT"
+    );
+    const response = await rescheduleBooking(request, context);
 
-    expect(response.status).toBe(400);
+    expect(response._status).toBe(201);
+    expect(response._data.success).toBe(true);
+  });
+
+  it("verifies new slot availability before rescheduling", async () => {
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { startTime: newStartTime },
+      "PUT"
+    );
+    await rescheduleBooking(request, context);
+
+    expect(getAvailableSlots).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventTypeId: bookingWithEventType.eventTypeId,
+      })
+    );
+  });
+
+  it("returns 409 when new slot is not available", async () => {
+    (getAvailableSlots as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { startTime: newStartTime },
+      "PUT"
+    );
+    const response = await rescheduleBooking(request, context);
+
+    expect(response._status).toBe(409);
+    expect(response._data.error).toContain("not available");
+  });
+
+  it("returns 409 when trying to reschedule a CANCELLED booking", async () => {
+    mockPrismaClient.booking.findUnique.mockResolvedValue({
+      ...bookingWithEventType,
+      status: "CANCELLED",
+    });
+
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { startTime: newStartTime },
+      "PUT"
+    );
+    const response = await rescheduleBooking(request, context);
+
+    expect(response._status).toBe(409);
+    expect(response._data.error).toContain("Cannot reschedule");
+  });
+
+  it("returns 404 when booking is not found", async () => {
+    mockPrismaClient.booking.findUnique.mockResolvedValue(null);
+
+    const [request, context] = makeUidRequest(
+      "non-existent-uid",
+      { startTime: newStartTime },
+      "PUT"
+    );
+    const response = await rescheduleBooking(request, context);
+
+    expect(response._status).toBe(404);
+  });
+
+  it("returns 400 on invalid startTime format", async () => {
+    const [request, context] = makeUidRequest(
+      "booking-uid-abc123",
+      { startTime: "not-a-date" },
+      "PUT"
+    );
+    const response = await rescheduleBooking(request, context);
+
+    expect(response._status).toBe(400);
+    expect(response._data.error).toBe("Validation failed");
+  });
+});
+
+// ─── bookingCreateSchema validation ─────────────────────────────────────────
+
+describe("bookingCreateSchema", () => {
+  it("accepts valid booking data", () => {
+    const result = bookingCreateSchema.safeParse({
+      eventTypeId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      startTime: "2026-03-10T10:00:00.000Z",
+      attendeeName: "John Doe",
+      attendeeEmail: "john@example.com",
+      attendeeTimezone: "America/New_York",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid email", () => {
+    const result = bookingCreateSchema.safeParse({
+      eventTypeId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      startTime: "2026-03-10T10:00:00.000Z",
+      attendeeName: "John Doe",
+      attendeeEmail: "not-an-email",
+      attendeeTimezone: "UTC",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects non-datetime startTime", () => {
+    const result = bookingCreateSchema.safeParse({
+      eventTypeId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      startTime: "2026-03-10", // date only, not ISO datetime
+      attendeeName: "John Doe",
+      attendeeEmail: "john@example.com",
+      attendeeTimezone: "UTC",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts optional fields", () => {
+    const result = bookingCreateSchema.safeParse({
+      eventTypeId: "clxxxxxxxxxxxxxxxxxxxxxxxx",
+      startTime: "2026-03-10T10:00:00.000Z",
+      attendeeName: "John Doe",
+      attendeeEmail: "john@example.com",
+      attendeeTimezone: "UTC",
+      attendeeNotes: "Please bring your laptop",
+      location: "Zoom",
+      responses: { question1: "answer1" },
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ─── bookingActionSchema validation ─────────────────────────────────────────
+
+describe("bookingActionSchema", () => {
+  it("accepts accept action", () => {
+    const result = bookingActionSchema.safeParse({ action: "accept" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts reject action with reason", () => {
+    const result = bookingActionSchema.safeParse({ action: "reject", reason: "No availability" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts cancel action", () => {
+    const result = bookingActionSchema.safeParse({ action: "cancel" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects unknown action", () => {
+    const result = bookingActionSchema.safeParse({ action: "approve" });
+    expect(result.success).toBe(false);
   });
 });
