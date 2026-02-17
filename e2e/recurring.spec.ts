@@ -13,11 +13,8 @@
 import { test, expect } from "@playwright/test";
 import { loginAsDemoUser } from "./helpers/auth-helpers";
 import {
-  DEMO_USER,
-  EVENT_30MIN,
   goToBookingPage,
   waitForCalendarToLoad,
-  getCalendar,
   clickNextMonth,
   selectFirstAvailableDay,
   selectFirstSlotAndConfirm,
