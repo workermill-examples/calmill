@@ -79,7 +79,7 @@ function LoginForm() {
         router.push("/event-types");
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setErrors({ general: "An unexpected error occurred" });
     } finally {
       setIsLoading(false);
@@ -182,7 +182,7 @@ function LoginForm() {
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
               className="font-medium text-primary-600 hover:text-primary-500 transition-colors"

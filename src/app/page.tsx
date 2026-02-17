@@ -125,7 +125,7 @@ export default function LandingPage() {
             <h3 className="mb-2 text-xl font-semibold text-gray-900">Smart Scheduling</h3>
             <p className="text-gray-600">
               Timezone-aware availability with calendar conflict detection. Only show times
-              when you're actually available.
+              when you&apos;re actually available.
             </p>
           </div>
 
