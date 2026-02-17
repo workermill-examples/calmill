@@ -4,6 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/api-auth";
 import { bookingCreateSchema } from "@/lib/validations";
 import { getAvailableSlots } from "@/lib/slots";
+import { sendEmail } from "@/lib/email";
+import { formatDateInTimezone } from "@/lib/utils";
+import { buildGoogleCalendarUrl } from "@/lib/ics";
+import { BookingConfirmedEmail } from "@/emails/booking-confirmed";
+import { BookingNotificationEmail } from "@/emails/booking-notification";
+import React from "react";
 
 // ─── GET /api/bookings — Authenticated user's bookings ──────────────────────
 
@@ -93,7 +99,7 @@ export async function POST(request: Request) {
       where: { id: validated.eventTypeId, isActive: true },
       include: {
         user: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true, email: true, timezone: true, username: true },
         },
         schedule: {
           include: {
@@ -178,6 +184,11 @@ export async function POST(request: Request) {
       },
     });
 
+    // ── Fire-and-forget email notifications ──────────────────────────────────
+    void sendBookingEmails(booking, eventType, status).catch((err) => {
+      console.error("[Bookings] Email notification failed:", err);
+    });
+
     return NextResponse.json({ success: true, data: booking }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -196,4 +207,122 @@ export async function POST(request: Request) {
     console.error("POST /api/bookings error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+}
+
+// ─── EMAIL HELPERS ────────────────────────────────────────────────────────────
+
+type BookingEmailContext = {
+  id: string;
+  uid: string;
+  title: string;
+  startTime: Date;
+  endTime: Date;
+  attendeeName: string;
+  attendeeEmail: string;
+  attendeeTimezone: string;
+  attendeeNotes: string | null;
+  location: string | null;
+  responses: unknown;
+};
+
+type EventTypeEmailContext = {
+  id: string;
+  title: string;
+  duration: number;
+  requiresConfirmation: boolean;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    timezone: string;
+    username: string;
+  };
+};
+
+async function sendBookingEmails(
+  booking: BookingEmailContext,
+  eventType: EventTypeEmailContext,
+  status: string
+): Promise<void> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://calmill.workermill.com";
+  const host = eventType.user;
+  const hostName = host.name ?? host.email;
+  const hostTimezone = host.timezone;
+  const attendeeTimezone = booking.attendeeTimezone;
+
+  // Format times
+  const DATE_FORMAT = "MMM d, yyyy 'at' h:mm a";
+  const startTimeForAttendee = formatDateInTimezone(booking.startTime, attendeeTimezone, DATE_FORMAT);
+  const endTimeForAttendee = formatDateInTimezone(booking.endTime, attendeeTimezone, "h:mm a");
+  const startTimeForHost = formatDateInTimezone(booking.startTime, hostTimezone, DATE_FORMAT);
+  const endTimeForHost = formatDateInTimezone(booking.endTime, hostTimezone, "h:mm a");
+
+  const rescheduleUrl = `${appUrl}/${host.username}/${eventType.id}?reschedule=${booking.uid}`;
+  const cancelUrl = `${appUrl}/api/bookings/${booking.uid}`;
+  const bookingUrl = `${appUrl}/bookings/${booking.uid}`;
+
+  const googleCalendarUrl = buildGoogleCalendarUrl({
+    uid: booking.uid,
+    title: booking.title,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    location: booking.location ?? undefined,
+  });
+
+  // Parse responses if present
+  const responses =
+    booking.responses && typeof booking.responses === "object" && !Array.isArray(booking.responses)
+      ? (booking.responses as Record<string, string>)
+      : undefined;
+
+  const emailPromises: Promise<void>[] = [];
+
+  // Host always gets notified
+  emailPromises.push(
+    sendEmail({
+      to: host.email,
+      subject: `New booking: ${booking.attendeeName} – ${eventType.title}`,
+      template: React.createElement(BookingNotificationEmail, {
+        hostName,
+        attendeeName: booking.attendeeName,
+        attendeeEmail: booking.attendeeEmail,
+        eventTypeTitle: eventType.title,
+        duration: eventType.duration,
+        startTime: startTimeForHost,
+        endTime: endTimeForHost,
+        timezone: hostTimezone,
+        location: booking.location ?? undefined,
+        notes: booking.attendeeNotes ?? undefined,
+        responses,
+        bookingUrl,
+        requiresConfirmation: eventType.requiresConfirmation,
+      }),
+    })
+  );
+
+  // Attendee gets confirmation only if no manual confirmation is required
+  if (status === "ACCEPTED") {
+    emailPromises.push(
+      sendEmail({
+        to: booking.attendeeEmail,
+        subject: `Your meeting with ${hostName} is confirmed`,
+        template: React.createElement(BookingConfirmedEmail, {
+          hostName,
+          attendeeName: booking.attendeeName,
+          eventTypeTitle: eventType.title,
+          duration: eventType.duration,
+          startTime: startTimeForAttendee,
+          endTime: endTimeForAttendee,
+          timezone: attendeeTimezone,
+          location: booking.location ?? undefined,
+          googleCalendarUrl,
+          rescheduleUrl,
+          cancelUrl,
+          notes: booking.attendeeNotes ?? undefined,
+        }),
+      })
+    );
+  }
+
+  await Promise.allSettled(emailPromises);
 }
