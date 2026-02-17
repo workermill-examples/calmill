@@ -95,6 +95,14 @@ function DuplicateIcon() {
   );
 }
 
+function EmbedIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+    </svg>
+  );
+}
+
 function TrashIcon() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -406,6 +414,15 @@ export function EventTypeCard({ eventType, username, appUrl }: EventTypeCardProp
                 className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-ring transition-colors"
               >
                 <EditIcon />
+              </Link>
+
+              <Link
+                href={`/event-types/${eventType.id}/embed`}
+                title="Get embed code"
+                aria-label={`Get embed code for ${eventType.title}`}
+                className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-ring transition-colors"
+              >
+                <EmbedIcon />
               </Link>
 
               <button

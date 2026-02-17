@@ -21,6 +21,7 @@ export interface BookingCardData {
   attendeeTimezone: string;
   location?: string | null;
   cancellationReason?: string | null;
+  recurringEventId?: string | null;
   eventType: {
     id: string;
     title: string;
@@ -116,16 +117,19 @@ function ClockIcon() {
 
 function ReasonDialog({
   action,
+  isRecurring,
   onConfirm,
   onCancel,
   loading,
 }: {
   action: "reject" | "cancel";
-  onConfirm: (reason: string) => void;
+  isRecurring?: boolean;
+  onConfirm: (reason: string, cancelFuture?: boolean) => void;
   onCancel: () => void;
   loading: boolean;
 }) {
   const [reason, setReason] = useState("");
+  const [cancelFuture, setCancelFuture] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -172,6 +176,34 @@ function ReasonDialog({
           maxLength={500}
           className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none"
         />
+        {/* Recurring cancel options */}
+        {!isReject && isRecurring && (
+          <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3">
+            <p className="text-xs font-medium text-amber-800 mb-2">This is a recurring booking</p>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="cancel-scope"
+                  checked={!cancelFuture}
+                  onChange={() => setCancelFuture(false)}
+                  className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-amber-900">Cancel this occurrence only</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="cancel-scope"
+                  checked={cancelFuture}
+                  onChange={() => setCancelFuture(true)}
+                  className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-amber-900">Cancel this and all future occurrences</span>
+              </label>
+            </div>
+          </div>
+        )}
         <div className="mt-5 flex justify-end gap-3">
           <button
             ref={cancelRef}
@@ -184,7 +216,7 @@ function ReasonDialog({
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(reason)}
+            onClick={() => onConfirm(reason, cancelFuture)}
             disabled={loading}
             className="rounded-md bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-red-600 focus-ring disabled:opacity-50"
           >
@@ -223,10 +255,13 @@ export function BookingCard({ booking, onStatusChange }: BookingCardProps) {
     displayTimezone
   );
 
-  async function performAction(action: "accept" | "reject" | "cancel", reason?: string) {
+  async function performAction(action: "accept" | "reject" | "cancel", reason?: string, cancelFuture?: boolean) {
     setActionLoading(action);
     try {
-      const res = await fetch(`/api/bookings/${booking.uid}`, {
+      const url = action === "cancel" && cancelFuture
+        ? `/api/bookings/${booking.uid}?cancelFuture=true`
+        : `/api/bookings/${booking.uid}`;
+      const res = await fetch(url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, ...(reason ? { reason } : {}) }),
@@ -260,9 +295,9 @@ export function BookingCard({ booking, onStatusChange }: BookingCardProps) {
     await performAction("reject", reason);
   }
 
-  async function handleCancelConfirm(reason: string) {
+  async function handleCancelConfirm(reason: string, cancelFuture?: boolean) {
     setShowReasonDialog(null);
-    await performAction("cancel", reason);
+    await performAction("cancel", reason, cancelFuture);
   }
 
   return (
@@ -285,7 +320,7 @@ export function BookingCard({ booking, onStatusChange }: BookingCardProps) {
         <div className="flex flex-1 flex-col gap-3 pl-5 pr-4 py-4 sm:flex-row sm:items-center">
           {/* Main info */}
           <div className="min-w-0 flex-1">
-            {/* Top row: event type title + status badge */}
+            {/* Top row: event type title + status badge + recurring badge */}
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-gray-900 truncate">
                 {booking.eventType.title}
@@ -298,6 +333,14 @@ export function BookingCard({ booking, onStatusChange }: BookingCardProps) {
               >
                 {statusConfig.label}
               </span>
+              {booking.recurringEventId && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Recurring
+                </span>
+              )}
             </div>
 
             {/* Attendee info */}
@@ -387,6 +430,7 @@ export function BookingCard({ booking, onStatusChange }: BookingCardProps) {
       {showReasonDialog === "cancel" && (
         <ReasonDialog
           action="cancel"
+          isRecurring={!!booking.recurringEventId}
           onConfirm={handleCancelConfirm}
           onCancel={() => setShowReasonDialog(null)}
           loading={actionLoading === "cancel"}
