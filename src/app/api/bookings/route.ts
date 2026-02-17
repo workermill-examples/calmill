@@ -10,6 +10,7 @@ import { formatDateInTimezone } from "@/lib/utils";
 import { buildGoogleCalendarUrl } from "@/lib/ics";
 import { BookingConfirmedEmail } from "@/emails/booking-confirmed";
 import { BookingNotificationEmail } from "@/emails/booking-notification";
+import { deliverWebhookEvent, buildBookingPayload } from "@/lib/webhooks";
 import React from "react";
 
 // ─── GET /api/bookings — Authenticated user's bookings ──────────────────────
@@ -227,6 +228,7 @@ export async function POST(request: Request) {
           select: {
             id: true,
             title: true,
+            slug: true,
             duration: true,
             locations: true,
             color: true,
@@ -247,6 +249,29 @@ export async function POST(request: Request) {
     // ── Fire-and-forget email notifications ──────────────────────────────────
     void sendBookingEmails(booking, eventType, status, bookingUser, extraNotificationEmails).catch((err) => {
       console.error("[Bookings] Email notification failed:", err);
+    });
+
+    // ── Fire-and-forget webhook delivery ─────────────────────────────────────
+    void deliverWebhookEvent({
+      userId: bookingUserId,
+      eventType: "BOOKING_CREATED",
+      payload: buildBookingPayload("BOOKING_CREATED", {
+        uid: booking.uid,
+        title: booking.title,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        status: booking.status,
+        attendeeName: booking.attendeeName,
+        attendeeEmail: booking.attendeeEmail,
+        attendeeTimezone: booking.attendeeTimezone,
+        eventType: {
+          title: eventType.title,
+          slug: eventType.slug,
+          duration: eventType.duration,
+        },
+      }),
+    }).catch((err) => {
+      console.error("[Webhooks] BOOKING_CREATED delivery failed:", err);
     });
 
     return NextResponse.json({ success: true, data: booking }, { status: 201 });
@@ -288,6 +313,7 @@ type BookingEmailContext = {
 type EventTypeEmailContext = {
   id: string;
   title: string;
+  slug: string;
   duration: number;
   requiresConfirmation: boolean;
   user: {
