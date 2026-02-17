@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { addMinutes } from "date-fns";
+import { describe, it, expect, vi } from "vitest";
 import { mockPrismaClient } from "../helpers/setup";
 
 // Mock prisma before importing slots.ts (which imports prisma at module level)

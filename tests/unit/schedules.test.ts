@@ -13,23 +13,26 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: vi.fn((data, init) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    json: vi.fn((data: any, init?: any) => ({
       status: init?.status ?? 200,
       json: async () => data,
       body: JSON.stringify(data),
       _data: data,
       _status: init?.status ?? 200,
-    })),
+    })) as unknown as any,
   },
 }));
 
 // ─── IMPORTS ─────────────────────────────────────────────────────────────────
 
-import { GET as listSchedules, POST as createSchedule } from "@/app/api/schedules/route";
+import { GET as _listSchedules, POST as _createSchedule } from "@/app/api/schedules/route";
+// Cast handlers to any so TypeScript accepts _data/_status on mock responses
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listSchedules = _listSchedules as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createSchedule = _createSchedule as (...args: any[]) => Promise<any>;
 import { scheduleCreateSchema } from "@/lib/validations";
-
-// Add updateMany to schedule mock (not included in shared setup)
-(mockPrismaClient.schedule as Record<string, unknown>).updateMany = vi.fn();
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 

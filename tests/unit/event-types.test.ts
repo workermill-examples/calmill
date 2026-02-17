@@ -16,20 +16,25 @@ vi.mock("@/lib/auth", () => ({
 // Mock Next.js server components
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: vi.fn((data, init) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    json: vi.fn((data: any, init?: any) => ({
       status: init?.status ?? 200,
       json: async () => data,
       body: JSON.stringify(data),
       _data: data,
       _status: init?.status ?? 200,
-    })),
+    })) as unknown as any,
   },
 }));
 
 // ─── IMPORTS ─────────────────────────────────────────────────────────────────
 
-// Import the route handlers
-import { GET as listEventTypes, POST as createEventType } from "@/app/api/event-types/route";
+// Import the route handlers (cast to any so TypeScript accepts _data/_status on mock responses)
+import { GET as _listEventTypes, POST as _createEventType } from "@/app/api/event-types/route";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listEventTypes = _listEventTypes as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createEventType = _createEventType as (...args: any[]) => Promise<any>;
 import { generateSlug } from "@/lib/utils";
 import { eventTypeCreateSchema } from "@/lib/validations";
 

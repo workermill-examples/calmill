@@ -13,13 +13,14 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: vi.fn((data, init) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    json: vi.fn((data: any, init?: any) => ({
       status: init?.status ?? 200,
       json: async () => data,
       body: JSON.stringify(data),
       _data: data,
       _status: init?.status ?? 200,
-    })),
+    })) as unknown as any,
   },
 }));
 
@@ -30,8 +31,21 @@ vi.mock("@/lib/slots", () => ({
 
 // ─── IMPORTS ─────────────────────────────────────────────────────────────────
 
-import { GET as listBookings, POST as createBooking } from "@/app/api/bookings/route";
-import { GET as getBooking, PATCH as updateBookingStatus, PUT as rescheduleBooking } from "@/app/api/bookings/[uid]/route";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { GET as _listBookings, POST as _createBooking } from "@/app/api/bookings/route";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { GET as _getBooking, PATCH as _updateBookingStatus, PUT as _rescheduleBooking } from "@/app/api/bookings/[uid]/route";
+// Cast handlers to any so TypeScript accepts _data/_status on mock responses
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listBookings = _listBookings as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createBooking = _createBooking as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getBooking = _getBooking as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const updateBookingStatus = _updateBookingStatus as (...args: any[]) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rescheduleBooking = _rescheduleBooking as (...args: any[]) => Promise<any>;
 import { getAvailableSlots } from "@/lib/slots";
 import { bookingCreateSchema, bookingActionSchema } from "@/lib/validations";
 
