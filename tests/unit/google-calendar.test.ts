@@ -21,8 +21,6 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-import { prisma } from "@/lib/prisma";
-
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 /** Build a CalendarConnection fixture */
@@ -100,6 +98,9 @@ describe("GoogleCalendarService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();
+    // Required for token refresh — GoogleCalendarService reads these env vars
+    process.env.GOOGLE_CLIENT_ID = "test-client-id";
+    process.env.GOOGLE_CLIENT_SECRET = "test-client-secret";
   });
 
   // ── Token Management ────────────────────────────────────────────────────────
@@ -475,7 +476,7 @@ describe("GoogleCalendarService", () => {
       );
     });
 
-    it("throws on delete failure (event not found)", async () => {
+    it("resolves successfully on 404 (idempotent delete — event already gone)", async () => {
       const connection = makeConnection();
 
       vi.stubGlobal(
@@ -484,7 +485,20 @@ describe("GoogleCalendarService", () => {
       );
 
       const service = await getService(connection);
-      await expect(service.deleteEvent("nonexistent-event")).rejects.toThrow();
+      // 404 on delete means the event is already gone — should resolve, not throw
+      await expect(service.deleteEvent("nonexistent-event")).resolves.not.toThrow();
+    });
+
+    it("throws on delete failure (server error)", async () => {
+      const connection = makeConnection();
+
+      vi.stubGlobal(
+        "fetch",
+        mockFetchFailure(500, { error: { code: 500, message: "Internal Server Error" } })
+      );
+
+      const service = await getService(connection);
+      await expect(service.deleteEvent("event-id")).rejects.toThrow();
     });
   });
 });

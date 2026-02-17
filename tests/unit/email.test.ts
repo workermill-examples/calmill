@@ -182,11 +182,12 @@ describe("Email template selection for booking lifecycle events", () => {
 
     const props = {
       hostName: "Alex Host",
-      eventTypeTitle: "30 Minute Meeting",
-      eventTypeDuration: 30,
-      startTime: new Date("2026-03-10T15:00:00Z"),
-      attendeeTimezone: "America/New_York",
       attendeeName: "Jane Doe",
+      eventTypeTitle: "30 Minute Meeting",
+      duration: 30,
+      startTime: "Feb 20, 2026 at 2:00 PM",
+      endTime: "Feb 20, 2026 at 2:30 PM",
+      timezone: "America/New_York",
       location: "https://meet.google.com/abc",
       rescheduleUrl: "https://calmill.workermill.com/alex/30-min?reschedule=uid-abc",
       cancelUrl: "https://calmill.workermill.com/api/bookings/uid-abc/cancel",
@@ -203,14 +204,16 @@ describe("Email template selection for booking lifecycle events", () => {
     const { BookingNotificationEmail } = await import("@/emails/booking-notification");
 
     const props = {
+      hostName: "Alex Host",
       attendeeName: "Jane Doe",
       attendeeEmail: "jane@example.com",
       eventTypeTitle: "30 Minute Meeting",
-      eventTypeDuration: 30,
-      startTime: new Date("2026-03-10T15:00:00Z"),
-      hostTimezone: "UTC",
+      duration: 30,
+      startTime: "Mar 10, 2026 at 3:00 PM",
+      endTime: "Mar 10, 2026 at 3:30 PM",
+      timezone: "UTC",
       notes: "Looking forward to connecting",
-      dashboardUrl: "https://calmill.workermill.com/bookings/uid-abc",
+      bookingUrl: "https://calmill.workermill.com/bookings/uid-abc",
     };
 
     expect(() => BookingNotificationEmail(props)).not.toThrow();
@@ -223,9 +226,14 @@ describe("Email template selection for booking lifecycle events", () => {
     const { BookingCancelledEmail } = await import("@/emails/booking-cancelled");
 
     const props = {
+      recipientName: "Jane Doe",
+      hostName: "Alex Host",
+      attendeeName: "Jane Doe",
+      isHost: false,
       eventTypeTitle: "30 Minute Meeting",
-      startTime: new Date("2026-03-10T15:00:00Z"),
-      attendeeTimezone: "America/New_York",
+      startTime: "Mar 10, 2026 at 3:00 PM",
+      endTime: "Mar 10, 2026 at 3:30 PM",
+      timezone: "America/New_York",
       cancellationReason: "Scheduling conflict",
       rebookUrl: "https://calmill.workermill.com/alex/30-min",
     };
@@ -240,12 +248,17 @@ describe("Email template selection for booking lifecycle events", () => {
     const { BookingReminderEmail } = await import("@/emails/booking-reminder");
 
     const props = {
-      eventTypeTitle: "30 Minute Meeting",
+      recipientName: "Jane Doe",
       hostName: "Alex Host",
-      startTime: new Date("2026-03-10T15:00:00Z"),
-      attendeeTimezone: "UTC",
-      location: "https://meet.google.com/abc",
+      attendeeName: "Jane Doe",
+      isHost: false,
+      eventTypeTitle: "30 Minute Meeting",
+      duration: 30,
       timeUntil: "1 hour",
+      startTime: "Mar 10, 2026 at 3:00 PM",
+      endTime: "Mar 10, 2026 at 3:30 PM",
+      timezone: "UTC",
+      location: "https://meet.google.com/abc",
       rescheduleUrl: "https://calmill.workermill.com/alex/30-min?reschedule=uid-abc",
       cancelUrl: "https://calmill.workermill.com/api/bookings/uid-abc/cancel",
     };
