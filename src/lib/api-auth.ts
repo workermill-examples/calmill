@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth";
  * Gets the authenticated user from the current session.
  * Returns either the user object or an error NextResponse.
  */
-export async function getAuthenticatedUser(request?: Request) {
+export async function getAuthenticatedUser() {
   const session = await auth();
   if (!session?.user?.id) {
     return {
