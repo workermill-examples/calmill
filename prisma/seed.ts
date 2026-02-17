@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma } from "@/generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
 
 // Create Prisma client with Neon adapter (Prisma 7 pattern)
 function createPrismaClient() {
@@ -231,7 +232,7 @@ async function main() {
   });
   console.log(`✅ Created/found event type: ${eventTypeQuickChat.title} (${eventTypeQuickChat.id})`);
 
-  // 2. 30 Minute Meeting (existing)
+  // 2. 30 Minute Meeting (existing, recurring-enabled for demo)
   const eventType30 = await prisma.eventType.upsert({
     where: {
       userId_slug: {
@@ -239,7 +240,11 @@ async function main() {
         slug: "30min",
       },
     },
-    update: {},
+    update: {
+      recurringEnabled: true,
+      recurringFrequency: "weekly",
+      recurringMaxOccurrences: 4,
+    },
     create: {
       title: "30 Minute Meeting",
       slug: "30min",
@@ -251,6 +256,9 @@ async function main() {
       currency: "USD",
       minimumNotice: 120, // 2 hours
       futureLimit: 60, // 60 days
+      recurringEnabled: true,
+      recurringFrequency: "weekly",
+      recurringMaxOccurrences: 4,
       userId: demoUser.id,
       scheduleId: defaultSchedule.id,
       locations: [
@@ -943,6 +951,140 @@ async function main() {
   }
   console.log(`✅ Created ${teamBookingCount} team bookings (3 round-robin, 2 collective)`);
 
+  // ─── WEBHOOKS ────────────────────────────────────────────────────────
+
+  // Webhook 1: Active — points to httpbin.org for demo purposes
+  const existingWebhook1 = await prisma.webhook.findFirst({
+    where: {
+      userId: demoUser.id,
+      url: "https://httpbin.org/post",
+    },
+  });
+
+  if (!existingWebhook1) {
+    await prisma.webhook.create({
+      data: {
+        url: "https://httpbin.org/post",
+        eventTriggers: [
+          "BOOKING_CREATED",
+          "BOOKING_CANCELLED",
+          "BOOKING_RESCHEDULED",
+          "BOOKING_ACCEPTED",
+          "BOOKING_REJECTED",
+        ],
+        active: true,
+        secret: crypto.randomBytes(32).toString("hex"),
+        userId: demoUser.id,
+      },
+    });
+    console.log(`✅ Created webhook: httpbin.org/post (active, all events)`);
+  } else {
+    console.log(`✅ Found existing active webhook`);
+  }
+
+  // Webhook 2: Inactive — example Slack endpoint (demo, not real)
+  const existingWebhook2 = await prisma.webhook.findFirst({
+    where: {
+      userId: demoUser.id,
+      url: "https://hooks.slack.com/services/demo/calmill/notifications",
+    },
+  });
+
+  if (!existingWebhook2) {
+    await prisma.webhook.create({
+      data: {
+        url: "https://hooks.slack.com/services/demo/calmill/notifications",
+        eventTriggers: ["BOOKING_CREATED", "BOOKING_CANCELLED"],
+        active: false,
+        secret: crypto.randomBytes(32).toString("hex"),
+        userId: demoUser.id,
+      },
+    });
+    console.log(`✅ Created webhook: Slack notifications (inactive)`);
+  } else {
+    console.log(`✅ Found existing inactive webhook`);
+  }
+
+  // ─── RECURRING BOOKINGS ──────────────────────────────────────────────
+  // 3 recurring booking series (weekly, 4 occurrences each) using the 30min event type
+
+  const recurringSeriesData = [
+    {
+      recurringEventId: "recurring-series-alpha-weekly-2026",
+      attendeeName: "Priya Sharma",
+      attendeeEmail: "priya.sharma@example.com",
+      attendeeTimezone: "Asia/Kolkata",
+      baseOffsetDays: 3, // starts 3 days from now
+      baseHour: 10,
+      title: "30 Minute Meeting with Priya Sharma",
+      description: "Weekly sync — design review series.",
+      status: "ACCEPTED" as const,
+    },
+    {
+      recurringEventId: "recurring-series-beta-weekly-2026",
+      attendeeName: "Carlos Mendez",
+      attendeeEmail: "carlos.mendez@example.com",
+      attendeeTimezone: "America/Bogota",
+      baseOffsetDays: 4, // starts 4 days from now
+      baseHour: 14,
+      title: "30 Minute Meeting with Carlos Mendez",
+      description: "Weekly check-in — product roadmap alignment.",
+      status: "ACCEPTED" as const,
+    },
+    {
+      recurringEventId: "recurring-series-gamma-weekly-2026",
+      attendeeName: "Yuki Tanaka",
+      attendeeEmail: "yuki.tanaka@example.com",
+      attendeeTimezone: "Asia/Tokyo",
+      baseOffsetDays: 5, // starts 5 days from now
+      baseHour: 9,
+      title: "30 Minute Meeting with Yuki Tanaka",
+      description: "Weekly standup — engineering collaboration.",
+      status: "PENDING" as const,
+    },
+  ];
+
+  let recurringBookingCount = 0;
+  for (const series of recurringSeriesData) {
+    for (let occurrence = 0; occurrence < 4; occurrence++) {
+      const startTime = new Date(now);
+      startTime.setDate(now.getDate() + series.baseOffsetDays + occurrence * 7);
+      startTime.setHours(series.baseHour, 0, 0, 0);
+
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + eventType30.duration);
+
+      const existingRecurring = await prisma.booking.findFirst({
+        where: {
+          recurringEventId: series.recurringEventId,
+          attendeeEmail: series.attendeeEmail,
+          startTime,
+        },
+      });
+
+      if (!existingRecurring) {
+        await prisma.booking.create({
+          data: {
+            title: series.title,
+            description: series.description,
+            startTime,
+            endTime,
+            status: series.status,
+            attendeeName: series.attendeeName,
+            attendeeEmail: series.attendeeEmail,
+            attendeeTimezone: series.attendeeTimezone,
+            responses: Prisma.DbNull,
+            recurringEventId: series.recurringEventId,
+            userId: demoUser.id,
+            eventTypeId: eventType30.id,
+          },
+        });
+        recurringBookingCount++;
+      }
+    }
+  }
+  console.log(`✅ Created ${recurringBookingCount} recurring bookings (3 series × 4 occurrences)`);
+
   console.log("\n🎉 Database seeding completed!");
   console.log("\n📝 Demo credentials:");
   console.log(`   Email: ${demoEmail}`);
@@ -950,9 +1092,11 @@ async function main() {
   console.log(`   Username: ${demoUsername}`);
   console.log("\n📅 Seed summary:");
   console.log(`   Schedules: Business Hours (default), Extended Hours`);
-  console.log(`   Event Types: Quick Chat, 30min Meeting, 60min Consultation, Technical Interview, Pair Programming, Coffee Chat (inactive)`);
+  console.log(`   Event Types: Quick Chat, 30min Meeting (recurring-enabled), 60min Consultation, Technical Interview, Pair Programming, Coffee Chat (inactive)`);
   console.log(`   Bookings: 15 total (8 ACCEPTED, 3 PENDING, 2 CANCELLED, 2 past)`);
+  console.log(`   Recurring Bookings: 3 series × 4 occurrences = 12 bookings (2 ACCEPTED series, 1 PENDING series)`);
   console.log(`   Date Overrides: 1 blocked day, 1 modified hours`);
+  console.log(`   Webhooks: 2 total (1 active → httpbin.org/post, 1 inactive → Slack demo)`);
   console.log(`   Team: CalMill Demo Team (slug: calmill-demo-team)`);
   console.log(`   Team Members: Alex Demo (OWNER), Alice Cooper (MEMBER), Bob Builder (MEMBER)`);
   console.log(`   Team Event Types: Team Standup (ROUND_ROBIN), Group Demo (COLLECTIVE)`);
