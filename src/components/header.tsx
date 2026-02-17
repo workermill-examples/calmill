@@ -14,6 +14,7 @@ const pageTitles: Record<string, string> = {
   '/bookings': 'Bookings',
   '/availability': 'Availability',
   '/settings': 'Settings',
+  '/teams': 'Teams',
 };
 
 export function Header({ onMenuClick }: HeaderProps) {
