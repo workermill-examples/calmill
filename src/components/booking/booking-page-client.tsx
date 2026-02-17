@@ -31,6 +31,8 @@ export interface BookingPageClientProps {
   weekStart?: 0 | 1;
   /** Optional pre-selected date from query param (YYYY-MM-DD) */
   initialDate?: string | null;
+  /** Override the "Back to profile" link href. Defaults to /{username}. */
+  backHref?: string;
 }
 
 // ─── BOOKING FLOW STATE ──────────────────────────────────────
@@ -250,6 +252,7 @@ export function BookingPageClient({
   customQuestions,
   weekStart = 0,
   initialDate,
+  backHref,
 }: BookingPageClientProps) {
   const router = useRouter();
 
@@ -371,7 +374,7 @@ export function BookingPageClient({
         {/* Back to profile */}
         <div className="mb-4">
           <a
-            href={`/${username}`}
+            href={backHref ?? `/${username}`}
             className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             <ChevronLeftIcon />
@@ -417,7 +420,7 @@ export function BookingPageClient({
       {/* Back link + event info */}
       <div className="mb-6">
         <a
-          href={`/${username}`}
+          href={backHref ?? `/${username}`}
           className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           <ChevronLeftIcon />
