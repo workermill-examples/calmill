@@ -1,4 +1,4 @@
-import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaClient, Prisma } from "@/generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
 
@@ -632,7 +632,7 @@ async function main() {
           attendeeName: booking.attendeeName,
           attendeeEmail: booking.attendeeEmail,
           attendeeTimezone: booking.attendeeTimezone,
-          responses: booking.responses ?? null,
+          responses: booking.responses ?? Prisma.DbNull,
           cancellationReason: booking.cancellationReason ?? null,
           cancelledAt,
           userId: demoUser.id,
