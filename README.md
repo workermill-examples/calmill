@@ -23,6 +23,9 @@ CalMill is an open-source scheduling platform that lets individuals and teams cr
 - 🔗 **Public Booking Pages** — Share your personalized booking link (e.g., `calmill.workermill.com/demo`)
 - 🔐 **Secure Authentication** — Email/password and Google OAuth support
 - 🎨 **Modern UI** — Built with Next.js 16, React 19, and TailwindCSS 4
+- 🧩 **Embeddable Widgets** — Inline and popup booking widgets for any website
+- 🔔 **Webhooks** — Event-driven notifications for booking lifecycle events
+- 🔁 **Recurring Bookings** — Weekly, biweekly, and monthly recurring event support
 
 ---
 
@@ -127,6 +130,122 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+---
+
+## Embed Widgets
+
+CalMill supports embedding booking pages directly into any website — no redirects required.
+
+### Inline Embed
+
+Renders the booking form inside your page:
+
+```html
+<!-- Add this where you want the booking form to appear -->
+<div data-calmill-embed="demo/30min" data-calmill-theme="light"></div>
+
+<!-- Add the embed script once, anywhere on the page -->
+<script src="https://calmill.workermill.com/embed/calmill-embed.js" async></script>
+```
+
+### Popup Embed
+
+Opens the booking form as a modal when a button is clicked:
+
+```html
+<!-- Any button or link can trigger the popup -->
+<button data-calmill-popup="demo/30min">Book a Meeting</button>
+
+<!-- Or use any element -->
+<a href="#" data-calmill-popup="demo/30min">Schedule a call</a>
+
+<script src="https://calmill.workermill.com/embed/calmill-embed.js" async></script>
+```
+
+### Embed Options
+
+| Attribute | Values | Description |
+|-----------|--------|-------------|
+| `data-calmill-theme` | `light` / `dark` | Color theme for the embed |
+| `data-calmill-hide-details` | `true` | Hide event details panel |
+| `data-calmill-timezone` | e.g. `America/New_York` | Override timezone |
+
+### Embed Code Generator
+
+In the dashboard, navigate to **Event Types → [Event] → Embed** to generate embed code with a live preview and configuration options.
+
+### Live Preview
+
+See the embed demo at [calmill.workermill.com/calmill-embed-demo.html](https://calmill.workermill.com/calmill-embed-demo.html).
+
+---
+
+## Webhooks
+
+Receive real-time notifications when bookings are created, cancelled, rescheduled, or change status.
+
+### Setting Up Webhooks
+
+1. Go to **Settings → Webhooks** in the dashboard
+2. Click **Add Webhook**
+3. Enter your HTTPS endpoint URL
+4. Select the events you want to receive
+5. Save — CalMill generates a signing secret
+
+### Supported Events
+
+| Event | Description |
+|-------|-------------|
+| `BOOKING_CREATED` | New booking scheduled |
+| `BOOKING_CANCELLED` | Booking cancelled |
+| `BOOKING_RESCHEDULED` | Booking moved to a new time |
+| `BOOKING_ACCEPTED` | Booking confirmed |
+| `BOOKING_REJECTED` | Booking declined |
+
+### Payload Format
+
+```json
+{
+  "event": "BOOKING_CREATED",
+  "createdAt": "2026-02-20T15:00:00Z",
+  "data": {
+    "booking": {
+      "uid": "clxyz...",
+      "title": "30 Minute Meeting",
+      "startTime": "2026-02-25T15:00:00Z",
+      "endTime": "2026-02-25T15:30:00Z",
+      "status": "ACCEPTED",
+      "attendee": {
+        "name": "Jane Doe",
+        "email": "jane@example.com",
+        "timezone": "Europe/London"
+      }
+    }
+  }
+}
+```
+
+### Signature Verification
+
+All webhook payloads are signed using HMAC-SHA256. Verify the `X-CalMill-Signature` header:
+
+```javascript
+const crypto = require("crypto");
+
+function verifyWebhookSignature(payload, signature, secret) {
+  const expected = "sha256=" + crypto
+    .createHmac("sha256", secret)
+    .update(JSON.stringify(payload))
+    .digest("hex");
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+  );
+}
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -135,18 +254,31 @@ calmill/
 │   ├── schema.prisma          # Database schema (12 models, 3 enums)
 │   └── seed.ts                # Demo data seeding
 ├── prisma.config.ts           # Prisma 7 configuration
+├── vercel.json                # Vercel deployment config (CORS, iframe headers)
+├── public/
+│   ├── embed/
+│   │   └── calmill-embed.js   # Embed script (inline + popup widgets)
+│   └── calmill-embed-demo.html # Live embed demo page
 ├── src/
 │   ├── app/                   # Next.js App Router
 │   │   ├── (dashboard)/       # Authenticated layout (sidebar + header)
 │   │   │   ├── event-types/   # Event type management
+│   │   │   │   └── [id]/embed/ # Embed code generator
 │   │   │   ├── bookings/      # Booking management
 │   │   │   ├── availability/  # Schedule editor
-│   │   │   └── settings/      # User settings
+│   │   │   └── settings/
+│   │   │       └── webhooks/  # Webhook management
 │   │   ├── (public)/          # Public booking pages
 │   │   │   └── [username]/    # User profile and booking pages
+│   │   ├── embed/             # Embed-optimized booking pages
+│   │   │   ├── layout.tsx     # Minimal layout (no nav)
+│   │   │   └── [username]/[slug]/ # Embed booking page
 │   │   ├── login/             # Authentication pages
 │   │   ├── signup/
 │   │   └── api/               # API routes
+│   │       ├── health/        # Health check endpoint
+│   │       ├── webhooks/      # Webhook CRUD + delivery
+│   │       └── bookings/      # Booking routes (with webhook integration)
 │   ├── components/
 │   │   └── ui/                # Reusable UI components
 │   ├── generated/
@@ -155,13 +287,17 @@ calmill/
 │   │   ├── auth.ts            # NextAuth v5 configuration
 │   │   ├── prisma.ts          # PrismaClient singleton
 │   │   ├── utils.ts           # Utility functions
-│   │   └── validations.ts     # Zod schemas
+│   │   ├── validations.ts     # Zod schemas
+│   │   └── webhooks.ts        # Webhook delivery with HMAC signing
 │   └── types/
 │       ├── index.ts           # TypeScript types
 │       └── next-auth.d.ts     # NextAuth type extensions
+├── e2e/                       # Playwright E2E tests (88 tests)
+│   ├── helpers/               # Auth, booking, seed utilities
+│   └── *.spec.ts              # Test suites by feature
 ├── tests/
 │   ├── unit/                  # Vitest unit tests
-│   └── e2e/                   # Playwright E2E tests
+│   └── e2e/                   # Legacy E2E tests
 └── .github/workflows/         # CI/CD pipelines
 ```
 
@@ -207,8 +343,8 @@ CalMill uses **12 Prisma models** organized into logical groups:
 | `DATABASE_URL` | Pooled database connection (for app) | `postgresql://user:pass@host:5432/db` |
 | `DIRECT_DATABASE_URL` | Direct database connection (for Prisma CLI) | `postgresql://user:pass@host:5432/db` |
 | `AUTH_SECRET` | NextAuth encryption secret | `openssl rand -base64 32` |
-| `NEXTAUTH_URL` | Application URL | `http://localhost:3000` |
-| `NEXT_PUBLIC_APP_URL` | Public-facing app URL | `http://localhost:3000` |
+| `NEXTAUTH_URL` | Application URL | `https://calmill.workermill.com` |
+| `NEXT_PUBLIC_APP_URL` | Public-facing app URL | `https://calmill.workermill.com` |
 
 ### Optional
 
@@ -217,7 +353,7 @@ CalMill uses **12 Prisma models** organized into logical groups:
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth secret | From Google Console |
 | `RESEND_API_KEY` | Email service API key | From Resend |
-| `EMAIL_FROM` | Sender email address | `CalMill <noreply@example.com>` |
+| `EMAIL_FROM` | Sender email address | `CalMill <noreply@calmill.workermill.com>` |
 | `SEED_TOKEN` | Protect seed endpoint | Any secure random string |
 
 ---
@@ -267,6 +403,36 @@ CalMill uses a comprehensive testing strategy:
 
 ## Deployment
 
+### Production Setup
+
+#### Required GitHub Secrets
+
+Set these in your repository's **Settings → Secrets and variables → Actions**:
+
+| Secret | Description |
+|--------|-------------|
+| `VERCEL_TOKEN` | Vercel API token |
+| `VERCEL_ORG_ID` | Vercel organization ID |
+| `VERCEL_PROJECT_ID` | Vercel project ID |
+| `DATABASE_URL` | Pooled Neon PostgreSQL connection string |
+| `DIRECT_DATABASE_URL` | Direct Neon PostgreSQL connection string |
+| `AUTH_SECRET` | NextAuth secret (`openssl rand -base64 32`) |
+| `SEED_TOKEN` | Token to protect the `/api/seed` endpoint |
+
+#### Production Deployment Checklist
+
+Before going live, verify:
+
+- [ ] All GitHub secrets are configured
+- [ ] Vercel environment variables match your `.env` file
+- [ ] Database migrations applied: `npx prisma db push`
+- [ ] Demo data seeded via `/api/seed` or `npx prisma db seed`
+- [ ] Health check passes: `GET https://calmill.workermill.com/api/health`
+- [ ] Public booking page works: `https://calmill.workermill.com/demo/30min`
+- [ ] Embed script accessible: `https://calmill.workermill.com/embed/calmill-embed.js`
+- [ ] Embed script has CORS header `Access-Control-Allow-Origin: *`
+- [ ] Embed pages allow iframe embedding (`X-Frame-Options: ALLOWALL`)
+
 ### CI/CD Pipeline
 
 CalMill uses GitHub Actions for continuous integration and deployment:
@@ -288,8 +454,9 @@ Runs on every push to `main` branch:
 1. Run database migrations (`prisma db push`)
 2. Seed demo data
 3. Deploy to Vercel using CLI
-4. Health check verification
-5. Deployment summary
+4. Health check verification (`/api/health`)
+5. Embed script accessibility check (CORS headers)
+6. Deployment summary
 
 ### Manual Deployment
 
@@ -374,5 +541,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Last Updated:** 2026-02-16
+**Last Updated:** 2026-02-17
 **Version:** 1.0.0
