@@ -1,40 +1,226 @@
-import React from "react";
+import { Button, Hr, Link, Row, Column, Section, Text } from "@react-email/components";
+import { EmailLayout, colors } from "./components/email-layout";
+import { DetailRow } from "./components/detail-row";
 
-export type BookingConfirmedEmailProps = {
+export interface BookingConfirmedEmailProps {
+  /** Host's display name */
   hostName: string;
-  eventTypeTitle: string;
-  eventTypeDuration: number;
-  startTime: Date;
-  attendeeTimezone: string;
+  /** Attendee's display name */
   attendeeName: string;
-  location?: string | null;
+  /** Event type title (e.g. "30 Minute Meeting") */
+  eventTypeTitle: string;
+  /** Duration in minutes */
+  duration: number;
+  /** Formatted start time in attendee's timezone (e.g. "Feb 20, 2026 at 2:00 PM") */
+  startTime: string;
+  /** Formatted end time in attendee's timezone */
+  endTime: string;
+  /** Attendee's timezone (e.g. "America/New_York") */
+  timezone: string;
+  /** Optional location or meeting URL */
+  location?: string;
+  /** Google Calendar URL for adding event */
+  googleCalendarUrl?: string;
+  /** URL to reschedule this booking */
   rescheduleUrl: string;
+  /** URL to cancel this booking */
   cancelUrl: string;
-};
+  /** Optional attendee notes */
+  notes?: string;
+}
 
-export function BookingConfirmedEmail(props: BookingConfirmedEmailProps): React.ReactElement {
-  const {
-    hostName,
-    eventTypeTitle,
-    eventTypeDuration,
-    startTime,
-    attendeeName,
-    location,
-    rescheduleUrl,
-    cancelUrl,
-  } = props;
+export function BookingConfirmedEmail({
+  hostName,
+  attendeeName,
+  eventTypeTitle,
+  duration,
+  startTime,
+  endTime,
+  timezone,
+  location,
+  googleCalendarUrl,
+  rescheduleUrl,
+  cancelUrl,
+  notes,
+}: BookingConfirmedEmailProps) {
+  const preview = `Your meeting with ${hostName} is confirmed`;
 
-  return React.createElement(
-    "div",
-    null,
-    React.createElement("h1", null, `Your meeting with ${hostName} is confirmed`),
-    React.createElement("p", null, `Hi ${attendeeName},`),
-    React.createElement("p", null, `Your ${eventTypeDuration}-minute ${eventTypeTitle} has been scheduled.`),
-    React.createElement("p", null, `Date: ${startTime.toISOString()}`),
-    location && React.createElement("p", null, `Location: ${location}`),
-    React.createElement("a", { href: rescheduleUrl }, "Reschedule"),
-    React.createElement("a", { href: cancelUrl }, "Cancel")
+  return (
+    <EmailLayout preview={preview}>
+      {/* Status icon + heading */}
+      <Section style={styles.centeredSection}>
+        <Text style={styles.statusIconCircle}>✓</Text>
+      </Section>
+
+      <Text style={styles.heading}>Meeting confirmed!</Text>
+      <Text style={styles.subheading}>
+        Hi {attendeeName}, your meeting has been scheduled.
+      </Text>
+
+      <Hr style={styles.divider} />
+
+      {/* Event details */}
+      <Section style={styles.detailsCard}>
+        <Text style={styles.eventTitle}>{eventTypeTitle}</Text>
+
+        <DetailRow icon="📅" label="Date & Time">
+          {startTime} – {endTime}
+          <br />
+          <span style={styles.timezone}>{timezone}</span>
+        </DetailRow>
+
+        <DetailRow icon="⏱" label="Duration">
+          {duration} minutes
+        </DetailRow>
+
+        <DetailRow icon="👤" label="Host">
+          {hostName}
+        </DetailRow>
+
+        {location && (
+          <DetailRow icon="📍" label="Location">
+            {isUrl(location) ? (
+              <Link href={location} style={styles.link}>
+                {location}
+              </Link>
+            ) : (
+              location
+            )}
+          </DetailRow>
+        )}
+
+        {notes && (
+          <DetailRow icon="📝" label="Your notes">
+            {notes}
+          </DetailRow>
+        )}
+      </Section>
+
+      <Hr style={styles.divider} />
+
+      {/* Add to calendar CTA */}
+      {googleCalendarUrl && (
+        <Section style={styles.centeredSection}>
+          <Button href={googleCalendarUrl} style={styles.primaryButton}>
+            Add to Google Calendar
+          </Button>
+        </Section>
+      )}
+
+      {/* Reschedule / Cancel links as table row for email client compat */}
+      <Row style={styles.secondaryActions}>
+        <Column style={styles.actionColumn}>
+          <Link href={rescheduleUrl} style={styles.secondaryLink}>
+            Reschedule
+          </Link>
+        </Column>
+        <Column style={styles.dotColumn}>
+          <Text style={styles.dot}>·</Text>
+        </Column>
+        <Column style={styles.actionColumn}>
+          <Link href={cancelUrl} style={styles.cancelLink}>
+            Cancel
+          </Link>
+        </Column>
+      </Row>
+    </EmailLayout>
   );
 }
+
+function isUrl(str: string): boolean {
+  return str.startsWith("http://") || str.startsWith("https://");
+}
+
+const styles = {
+  centeredSection: {
+    textAlign: "center" as const,
+  },
+  statusIconCircle: {
+    backgroundColor: colors.success,
+    borderRadius: "50%",
+    color: colors.white,
+    fontSize: "24px",
+    fontWeight: "700",
+    margin: "0 auto 16px",
+    padding: "12px 16px",
+    textAlign: "center" as const,
+  },
+  heading: {
+    color: colors.text,
+    fontSize: "24px",
+    fontWeight: "700",
+    lineHeight: "1.3",
+    margin: "0 0 8px",
+    textAlign: "center" as const,
+  },
+  subheading: {
+    color: colors.textMuted,
+    fontSize: "15px",
+    lineHeight: "1.6",
+    margin: "0 0 24px",
+    textAlign: "center" as const,
+  },
+  divider: {
+    borderColor: colors.border,
+    margin: "24px 0",
+  },
+  detailsCard: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: "8px",
+    padding: "16px 20px",
+  },
+  eventTitle: {
+    color: colors.primary,
+    fontSize: "17px",
+    fontWeight: "700",
+    margin: "0 0 16px",
+  },
+  timezone: {
+    color: colors.textMuted,
+    fontSize: "13px",
+  },
+  link: {
+    color: colors.primary,
+    textDecoration: "none",
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: "6px",
+    color: colors.white,
+    display: "inline-block",
+    fontSize: "15px",
+    fontWeight: "600",
+    marginBottom: "16px",
+    padding: "12px 24px",
+    textDecoration: "none",
+  },
+  secondaryActions: {
+    textAlign: "center" as const,
+    width: "100%",
+  },
+  actionColumn: {
+    textAlign: "center" as const,
+    width: "auto",
+  },
+  dotColumn: {
+    textAlign: "center" as const,
+    width: "24px",
+  },
+  secondaryLink: {
+    color: colors.primary,
+    fontSize: "14px",
+    textDecoration: "none",
+  },
+  dot: {
+    color: colors.textMuted,
+    fontSize: "14px",
+    margin: "0",
+  },
+  cancelLink: {
+    color: colors.textMuted,
+    fontSize: "14px",
+    textDecoration: "none",
+  },
+} as const;
 
 export default BookingConfirmedEmail;
