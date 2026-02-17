@@ -74,7 +74,7 @@ export const PUT = withAuth(async (request, context, user) => {
         select: { slug: true },
       });
 
-      const slugSet = new Set(existingSlugs.map((e) => e.slug));
+      const slugSet = new Set(existingSlugs.map((e: { slug: string }) => e.slug));
       if (slugSet.has(slug)) {
         let counter = 2;
         while (slugSet.has(`${slug}-${counter}`)) {
@@ -95,7 +95,7 @@ export const PUT = withAuth(async (request, context, user) => {
           select: { slug: true },
         });
 
-        const slugSet = new Set(existingSlugs.map((e) => e.slug));
+        const slugSet = new Set(existingSlugs.map((e: { slug: string }) => e.slug));
         slug = baseSlug;
         if (slugSet.has(slug)) {
           let counter = 2;

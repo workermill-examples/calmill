@@ -54,7 +54,7 @@ export const POST = withAuth(async (request, _context, user) => {
     });
 
     if (existing.length > 0) {
-      const existingSlugs = new Set(existing.map((e) => e.slug));
+      const existingSlugs = new Set(existing.map((e: { slug: string }) => e.slug));
       if (existingSlugs.has(slug)) {
         // Find next available suffix (-2, -3, ...)
         let counter = 2;
