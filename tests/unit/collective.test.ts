@@ -192,7 +192,7 @@ describe("getCollectiveSlots", () => {
     });
 
     expect(result).toHaveLength(1);
-    expect(result[0].time).toBe("2026-03-01T09:00:00Z");
+    expect(result[0]!.time).toBe("2026-03-01T09:00:00Z");
   });
 
   it("returns all slots when a single member has availability (no intersection needed)", async () => {
@@ -237,9 +237,9 @@ describe("getCollectiveSlots", () => {
       timezone: "UTC",
     });
 
-    expect(result[0].time).toBe("2026-03-01T09:00:00Z");
-    expect(result[1].time).toBe("2026-03-01T10:00:00Z");
-    expect(result[2].time).toBe("2026-03-01T11:00:00Z");
+    expect(result[0]!.time).toBe("2026-03-01T09:00:00Z");
+    expect(result[1]!.time).toBe("2026-03-01T10:00:00Z");
+    expect(result[2]!.time).toBe("2026-03-01T11:00:00Z");
   });
 
   it("handles multiple availability windows across the day correctly", async () => {
