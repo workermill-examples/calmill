@@ -155,7 +155,54 @@ export default async function DashboardPage() {
 export { GET, POST } from "@/lib/auth";
 ```
 
-### 5. Path Aliases
+### 5. Embed System Conventions
+
+**Embed pages live under `src/app/embed/`** — separate from the public booking pages:
+
+- `src/app/embed/layout.tsx` — Minimal layout, no navigation, transparent background
+- `src/app/embed/[username]/[slug]/page.tsx` — Booking page variant for iframes
+
+**Embed pages MUST:**
+- Send `postMessage({ type: "calmill:resize", height: N })` when content height changes
+- Send `postMessage({ type: "calmill:booked", booking: { uid, title, startTime } })` on successful booking
+- Accept `?theme=light|dark`, `?hideEventDetails=true`, `?timezone=...` query params
+- Have no header or footer (clean embedding experience)
+
+**The embed script lives at `public/embed/calmill-embed.js`** (not `src/`):
+- Served at `/embed/calmill-embed.js` with `Access-Control-Allow-Origin: *` header (configured in `vercel.json`)
+- Finds `[data-calmill-embed]` divs → creates iframes
+- Finds `[data-calmill-popup]` elements → creates overlay on click
+
+**Embed pages require special security headers** (configured in `vercel.json`):
+- `X-Frame-Options: ALLOWALL` — allows rendering in iframes on external sites
+- `Content-Security-Policy: frame-ancestors *` — CSP equivalent
+
+**Do NOT apply these iframe headers to non-embed routes** — other pages keep default security headers.
+
+### 6. Webhook System Conventions
+
+**Webhook delivery is fire-and-forget** — `deliverWebhookEvent()` in `src/lib/webhooks.ts`:
+- Never `await` it in request handlers (don't block the booking response)
+- Has a 10-second timeout per delivery attempt
+- Logs success/failure to database (WebhookDelivery model)
+
+**HMAC signature format:**
+```
+X-CalMill-Signature: sha256=<hex_digest>
+```
+Digest is `HMAC-SHA256(secret, JSON.stringify(payload))`.
+
+**Webhook integration points** — call `deliverWebhookEvent()` in:
+- `POST /api/bookings` → `BOOKING_CREATED`
+- `PATCH /api/bookings/[uid]` (accept) → `BOOKING_ACCEPTED`
+- `PATCH /api/bookings/[uid]` (reject) → `BOOKING_REJECTED`
+- `PATCH /api/bookings/[uid]` (cancel) → `BOOKING_CANCELLED`
+- `PUT /api/bookings/[uid]/reschedule` → `BOOKING_RESCHEDULED`
+
+**Valid event trigger names** (from Zod schema):
+`BOOKING_CREATED`, `BOOKING_CANCELLED`, `BOOKING_RESCHEDULED`, `BOOKING_ACCEPTED`, `BOOKING_REJECTED`
+
+### 7. Path Aliases
 
 All imports use `@/*` alias:
 
@@ -233,6 +280,53 @@ npm run test:e2e
 
 # Run E2E tests with UI
 npm run test:e2e:ui
+
+# Run specific E2E test file
+npx playwright test e2e/webhooks.spec.ts
+
+# Run E2E tests with debug output
+npx playwright test --debug
+```
+
+### Webhook Testing
+
+```bash
+# List webhooks for current user (requires auth session cookie)
+curl -s http://localhost:3000/api/webhooks \
+  -H "Cookie: <your-session-cookie>"
+
+# Create a test webhook pointing to a public echo endpoint
+curl -s -X POST http://localhost:3000/api/webhooks \
+  -H "Content-Type: application/json" \
+  -H "Cookie: <your-session-cookie>" \
+  -d '{
+    "url": "https://httpbin.org/post",
+    "eventTriggers": ["BOOKING_CREATED", "BOOKING_CANCELLED"],
+    "active": true
+  }'
+
+# Trigger a test delivery for a specific webhook
+curl -s -X POST http://localhost:3000/api/webhooks/<id>/test \
+  -H "Cookie: <your-session-cookie>"
+
+# Verify webhook signature (Node.js snippet)
+# const crypto = require("crypto");
+# const sig = "sha256=" + crypto.createHmac("sha256", secret).update(body).digest("hex");
+# assert(sig === req.headers["x-calmill-signature"]);
+```
+
+### Embed Testing
+
+```bash
+# Check embed script is accessible with correct CORS header
+curl -s -I http://localhost:3000/embed/calmill-embed.js \
+  -H "Origin: https://example.com" | grep -i "access-control"
+
+# Check embed page allows iframe embedding
+curl -s -I "http://localhost:3000/embed/demo/30min" | grep -i "x-frame\|frame-ancestors"
+
+# Open the embed demo page
+open http://localhost:3000/calmill-embed-demo.html
 ```
 
 ---
@@ -245,11 +339,26 @@ calmill/
 │   ├── schema.prisma          # Database schema (12 models, 3 enums)
 │   └── seed.ts                # Demo data seeding
 ├── prisma.config.ts           # Prisma 7 configuration
+├── vercel.json                # Vercel config — CORS + iframe headers for embeds
+├── public/
+│   ├── embed/
+│   │   └── calmill-embed.js   # Embed script (inline + popup, <3KB)
+│   └── calmill-embed-demo.html # Static embed demo page
 ├── src/
 │   ├── app/                   # Next.js App Router
 │   │   ├── (dashboard)/       # Authenticated routes
+│   │   │   ├── settings/
+│   │   │   │   └── webhooks/  # Webhook management UI
+│   │   │   └── event-types/
+│   │   │       └── [id]/embed/ # Embed code generator
 │   │   ├── (public)/          # Public booking pages
+│   │   ├── embed/             # Embed-optimized pages (no nav, allows iframe)
+│   │   │   ├── layout.tsx     # Minimal layout
+│   │   │   └── [username]/[slug]/ # Embed booking page with postMessage
 │   │   └── api/               # API routes
+│   │       ├── health/        # GET /api/health
+│   │       ├── webhooks/      # Webhook CRUD
+│   │       └── bookings/      # Bookings (webhook delivery integrated)
 │   ├── components/
 │   │   ├── ui/                # Reusable UI primitives
 │   │   └── providers.tsx      # Client-side providers
@@ -259,14 +368,18 @@ calmill/
 │   │   ├── auth.ts            # NextAuth configuration
 │   │   ├── prisma.ts          # PrismaClient singleton
 │   │   ├── utils.ts           # Shared utilities
-│   │   └── validations.ts     # Zod schemas
+│   │   ├── validations.ts     # Zod schemas
+│   │   └── webhooks.ts        # deliverWebhookEvent() with HMAC signing
 │   └── types/
 │       ├── index.ts           # App types
 │       └── next-auth.d.ts     # NextAuth type augmentation
+├── e2e/                       # Playwright E2E tests (88 tests)
+│   ├── helpers/               # Shared auth/booking/seed utilities
+│   └── *.spec.ts              # Feature-specific spec files
 ├── tests/
 │   ├── helpers/setup.ts       # Test mocks and setup
 │   ├── unit/                  # Vitest unit tests
-│   └── e2e/                   # Playwright E2E tests
+│   └── e2e/                   # Legacy E2E tests
 └── .github/workflows/         # CI/CD pipelines
 ```
 
@@ -405,7 +518,7 @@ import { prisma } from "../../lib/prisma";  // ❌ Avoid
 ### CI/CD
 
 - **`.github/workflows/ci.yml`** — Runs on all pushes and PRs: lint, typecheck, test, build
-- **`.github/workflows/deploy.yml`** — Deploys to Vercel on main branch push after CI passes
+- **`.github/workflows/deploy.yml`** — Deploys to Vercel on main branch push: migrations, seed, deploy, health check, embed script check
 
 ### Production
 
@@ -413,6 +526,36 @@ import { prisma } from "../../lib/prisma";  // ❌ Avoid
 - **URL:** https://calmill.workermill.com
 - **Database:** Neon PostgreSQL (serverless)
 - **Auto-deploy:** DISABLED — manual deployment via GitHub Actions only
+
+### Post-Deploy Verification
+
+```bash
+# Health check
+curl https://calmill.workermill.com/api/health
+
+# Embed script accessible with CORS
+curl -I https://calmill.workermill.com/embed/calmill-embed.js \
+  -H "Origin: https://example.com"
+# Expect: Access-Control-Allow-Origin: *
+
+# Public booking page
+curl -s -o /dev/null -w "%{http_code}" \
+  https://calmill.workermill.com/demo/30min
+# Expect: 200
+
+# Embed page allows iframe
+curl -I https://calmill.workermill.com/embed/demo/30min
+# Expect: X-Frame-Options: ALLOWALL
+```
+
+### vercel.json — Critical Headers
+
+`vercel.json` configures two groups of special headers:
+
+1. `/embed/calmill-embed.js` — `Access-Control-Allow-Origin: *` (script loaded from external sites)
+2. `/embed/*` — `X-Frame-Options: ALLOWALL` + `frame-ancestors *` CSP (pages rendered in iframes)
+
+These headers are **required** for embeds to work cross-origin. Do not remove them.
 
 ---
 
@@ -433,5 +576,5 @@ import { prisma } from "../../lib/prisma";  // ❌ Avoid
 
 ---
 
-**Last Updated:** 2026-02-16
+**Last Updated:** 2026-02-17
 **Version:** 1.0.0

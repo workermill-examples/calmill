@@ -78,6 +78,29 @@ jobs:
             exit 1
           fi
 
+      - name: Embed script accessibility check
+        run: |
+          echo "Checking embed script is accessible with correct CORS headers..."
+
+          CORS_HEADER=$(curl -s -o /dev/null -D - https://calmill.workermill.com/embed/calmill-embed.js \
+            -H "Origin: https://example.com" | grep -i "access-control-allow-origin" | tr -d '\r')
+
+          if echo "$CORS_HEADER" | grep -q "\*"; then
+            echo "✅ Embed script CORS header correct: $CORS_HEADER"
+          else
+            echo "❌ Embed script CORS header missing or incorrect: $CORS_HEADER"
+            exit 1
+          fi
+
+          EMBED_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://calmill.workermill.com/embed/calmill-embed.js)
+
+          if [ "$EMBED_RESPONSE" -eq 200 ]; then
+            echo "✅ Embed script accessible (HTTP $EMBED_RESPONSE)"
+          else
+            echo "❌ Embed script not accessible (HTTP $EMBED_RESPONSE)"
+            exit 1
+          fi
+
       - name: Deployment summary
         run: |
           echo "## 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
