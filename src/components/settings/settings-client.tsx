@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { debounce } from "@/lib/utils";
 import { ProfileForm } from "./profile-form";
 import { PreferencesForm } from "./preferences-form";
@@ -264,6 +265,61 @@ export function SettingsClient({ user, appUrl }: SettingsClientProps) {
 
       {/* Password section — only for credentials auth */}
       {user.hasPassword && <PasswordForm />}
+
+      {/* Integrations section */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <h2 className="text-base font-semibold text-gray-900">Integrations</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Connect external services to enhance your scheduling.
+        </p>
+        <div className="mt-4">
+          <Link
+            href="/settings/calendars"
+            className="flex items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50 transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 group-hover:bg-white transition-colors border border-gray-200">
+                <svg
+                  className="h-5 w-5 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  Calendar Integrations
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Connect Google Calendar to check availability and sync bookings
+                </p>
+              </div>
+            </div>
+            <svg
+              className="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </Link>
+        </div>
+      </div>
 
       {/* Danger zone */}
       <DangerZone
