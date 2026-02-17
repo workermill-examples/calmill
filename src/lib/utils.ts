@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, parseISO } from "date-fns";
-import { formatInTimeZone } from "@date-fns/tz";
+import { TZDate } from "@date-fns/tz";
 
 /**
  * Merge Tailwind CSS classes with clsx and tailwind-merge
@@ -45,7 +45,8 @@ export function formatDateInTimezone(
 ): string {
   try {
     const dateObj = typeof date === "string" ? parseISO(date) : date;
-    return formatInTimeZone(dateObj, timezone, formatStr);
+    const tzDate = new TZDate(dateObj, timezone);
+    return format(tzDate, formatStr);
   } catch (error) {
     console.error("Error formatting date in timezone:", error);
     return "";
