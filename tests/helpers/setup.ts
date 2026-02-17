@@ -38,6 +38,7 @@ const mockPrismaClient = {
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    deleteMany: vi.fn(),
     upsert: vi.fn(),
     count: vi.fn(),
   },
@@ -48,6 +49,7 @@ const mockPrismaClient = {
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
     delete: vi.fn(),
     upsert: vi.fn(),
     count: vi.fn(),
@@ -154,6 +156,41 @@ const mockPrismaClient = {
 
 vi.mock("@/generated/prisma/client", () => ({
   PrismaClient: vi.fn(() => mockPrismaClient),
+  Prisma: {
+    DbNull: "DbNull",
+    JsonNull: "JsonNull",
+  },
+}));
+
+// ─── NEXT/SERVER MOCK ───────────────────────────────────────────────────────
+
+/**
+ * Mock NextResponse so tests can inspect responses using standard Web API:
+ *   const data = await response.json()
+ *   const status = response.status
+ */
+vi.mock("next/server", () => ({
+  NextResponse: {
+    json: vi.fn((data: unknown, init?: { status?: number }) => {
+      const status = init?.status ?? 200;
+      return {
+        status,
+        json: async () => data,
+        headers: new Headers(),
+      };
+    }),
+    redirect: vi.fn((url: string, status = 302) => ({
+      status,
+      headers: new Headers({ location: url }),
+      json: async () => null,
+    })),
+    next: vi.fn(() => ({
+      status: 200,
+      headers: new Headers(),
+      json: async () => null,
+    })),
+  },
+  NextRequest: vi.fn(),
 }));
 
 // ─── NEXTAUTH MOCK ──────────────────────────────────────────────────────────
@@ -171,6 +208,17 @@ const mockSession = {
 
 vi.mock("next-auth", () => ({
   default: vi.fn(),
+}));
+
+vi.mock("@/lib/auth", () => ({
+  auth: vi.fn(() => Promise.resolve(mockSession)),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  handlers: {},
+}));
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: mockPrismaClient,
 }));
 
 vi.mock("next-auth/react", () => ({
