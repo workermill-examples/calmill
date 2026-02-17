@@ -31,7 +31,7 @@ declare module "next-auth/jwt" {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as any, // Type assertion to fix adapter type mismatch between next-auth's bundled @auth/core and standalone @auth/prisma-adapter
   providers: [
     Credentials({
       name: "credentials",
@@ -103,9 +103,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt({ token, user, trigger, session }) {
       // Initial sign in - populate token with user data
       if (user) {
-        token.id = user.id;
-        token.username = user.username;
-        token.timezone = user.timezone;
+        token.id = user.id ?? "";
+        token.username = user.username ?? "";
+        token.timezone = user.timezone ?? "America/New_York";
       }
 
       // Session update - sync token with updated session data
@@ -138,7 +138,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // If username not set, generate one from email
         if (existingUser && !existingUser.username) {
-          const baseUsername = user.email.split("@")[0].toLowerCase();
+          const baseUsername = (user.email.split("@")[0] ?? user.email).toLowerCase();
           const username = baseUsername.replace(/[^a-z0-9_-]/g, "");
 
           // Update user with generated username
@@ -158,6 +158,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async createUser({ user }) {
+      // Only create default data if user.id exists (should always be the case after user creation)
+      if (!user.id) {
+        console.error("User created without ID - skipping default schedule creation");
+        return;
+      }
+
       // Create default schedule for new users
       const defaultSchedule = await prisma.schedule.create({
         data: {
