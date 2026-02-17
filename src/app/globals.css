@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  /* ───────────────────────────────────────────────────── */
+  /* Colors                                                 */
+  /* ───────────────────────────────────────────────────── */
+
+  /* Primary blue scale */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Semantic colors */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ───────────────────────────────────────────────────── */
+  /* Typography                                             */
+  /* ───────────────────────────────────────────────────── */
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+
+  /* ───────────────────────────────────────────────────── */
+  /* Border Radius                                          */
+  /* ───────────────────────────────────────────────────── */
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* ───────────────────────────────────────────────────── */
+  /* Spacing (if needed for custom spacing tokens)         */
+  /* ───────────────────────────────────────────────────── */
+
+  --spacing-page: 2rem;
+}
+
+/* ───────────────────────────────────────────────────── */
+/* Base Styles                                            */
+/* ───────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl;
+  }
+
+  h2 {
+    @apply text-3xl;
+  }
+
+  h3 {
+    @apply text-2xl;
+  }
+
+  h4 {
+    @apply text-xl;
+  }
+
+  h5 {
+    @apply text-lg;
+  }
+
+  h6 {
+    @apply text-base;
+  }
+}
+
+/* ───────────────────────────────────────────────────── */
+/* Component Utilities                                    */
+/* ───────────────────────────────────────────────────── */
+
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
