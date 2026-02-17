@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn, formatDate } from "@/lib/utils";
 import type { DateOverride } from "@/generated/prisma/client";
+import { TIME_OPTIONS, formatTime } from "./time-utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -11,31 +12,6 @@ interface DateOverridesProps {
   overrides: DateOverride[];
   onOverrideAdded: (override: DateOverride) => void;
   onOverrideDeleted: (overrideId: string) => void;
-}
-
-// ─── Time options in 15-min increments ───────────────────────────────────────
-
-function generateTimeOptions(): string[] {
-  const options: string[] = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 15) {
-      const h = String(hour).padStart(2, "0");
-      const m = String(minute).padStart(2, "0");
-      options.push(`${h}:${m}`);
-    }
-  }
-  return options;
-}
-
-const TIME_OPTIONS = generateTimeOptions();
-
-function formatTime(hhmm: string): string {
-  const [hStr, mStr] = hhmm.split(":");
-  const h = parseInt(hStr ?? "0", 10);
-  const m = mStr ?? "00";
-  const period = h < 12 ? "AM" : "PM";
-  const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${displayHour}:${m} ${period}`;
 }
 
 // Format a Date to YYYY-MM-DD in local time (for display)
@@ -223,9 +199,11 @@ function OverrideRow({
   onDeleted: (id: string) => void;
 }) {
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   async function handleDelete() {
     setDeleting(true);
+    setDeleteError("");
     try {
       const res = await fetch(`/api/schedules/${scheduleId}/overrides/${override.id}`, {
         method: "DELETE",
@@ -233,10 +211,10 @@ function OverrideRow({
       if (res.ok) {
         onDeleted(override.id);
       } else {
-        alert("Failed to delete override");
+        setDeleteError("Failed to delete override");
       }
     } catch {
-      alert("Failed to delete override");
+      setDeleteError("Failed to delete override");
     } finally {
       setDeleting(false);
     }
@@ -256,14 +234,15 @@ function OverrideRow({
     : "Custom hours";
 
   return (
-    <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-900">{displayDate}</p>
-        <p className={cn("text-xs", override.isUnavailable ? "text-red-600" : "text-gray-500")}>
-          {displayTime}
-        </p>
-      </div>
-      <button
+    <div className="rounded-md border border-gray-200 bg-white px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-gray-900">{displayDate}</p>
+          <p className={cn("text-xs", override.isUnavailable ? "text-red-600" : "text-gray-500")}>
+            {displayTime}
+          </p>
+        </div>
+        <button
         type="button"
         onClick={handleDelete}
         disabled={deleting}
@@ -281,7 +260,11 @@ function OverrideRow({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         )}
-      </button>
+        </button>
+      </div>
+      {deleteError && (
+        <p className="mt-2 text-xs text-red-600">{deleteError}</p>
+      )}
     </div>
   );
 }

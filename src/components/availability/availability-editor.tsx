@@ -182,11 +182,13 @@ function DeleteScheduleDialog({
   onConfirm,
   onCancel,
   loading,
+  error,
 }: {
   scheduleName: string;
   onConfirm: () => void;
   onCancel: () => void;
   loading: boolean;
+  error?: string;
 }) {
   return (
     <div
@@ -203,6 +205,9 @@ function DeleteScheduleDialog({
         <p className="mt-2 text-sm text-gray-600">
           This will permanently delete this schedule and all its availability windows. This cannot be undone.
         </p>
+        {error && (
+          <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        )}
         <div className="mt-5 flex justify-end gap-3">
           <button
             type="button"
@@ -226,6 +231,13 @@ function DeleteScheduleDialog({
   );
 }
 
+// Default Mon-Fri 9:00-17:00 availability for new schedules
+const DEFAULT_AVAILABILITY = [1, 2, 3, 4, 5].map((day) => ({
+  day,
+  startTime: "09:00",
+  endTime: "17:00",
+}));
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function AvailabilityEditor({ initialSchedules, userTimezone }: AvailabilityEditorProps) {
@@ -240,6 +252,7 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const selectedSchedule = schedules.find((s) => s.id === selectedId) ?? schedules[0];
@@ -384,7 +397,7 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
         name,
         timezone,
         isDefault: false,
-        availability: [],
+        availability: DEFAULT_AVAILABILITY,
       }),
     });
     if (res.ok) {
@@ -403,6 +416,7 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
   async function handleDeleteSchedule() {
     if (!selectedSchedule) return;
     setDeleteLoading(true);
+    setDeleteError("");
     try {
       const res = await fetch(`/api/schedules/${selectedSchedule.id}`, {
         method: "DELETE",
@@ -412,14 +426,13 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
         setSchedules(remaining);
         setSelectedId(remaining[0]?.id ?? "");
         setShowDeleteDialog(false);
+        setDeleteError("");
       } else {
         const data = await res.json();
-        alert(data.error ?? "Failed to delete schedule");
-        setShowDeleteDialog(false);
+        setDeleteError(data.error ?? "Failed to delete schedule");
       }
     } catch {
-      alert("Failed to delete schedule");
-      setShowDeleteDialog(false);
+      setDeleteError("Failed to delete schedule");
     } finally {
       setDeleteLoading(false);
     }
@@ -640,7 +653,7 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
           </div>
           <button
             type="button"
-            onClick={() => setShowDeleteDialog(true)}
+            onClick={() => { setDeleteError(""); setShowDeleteDialog(true); }}
             disabled={
               schedules.length <= 1 ||
               (selectedSchedule._count !== undefined && selectedSchedule._count.eventTypes > 0)
@@ -664,8 +677,9 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
         <DeleteScheduleDialog
           scheduleName={selectedSchedule.name}
           onConfirm={handleDeleteSchedule}
-          onCancel={() => setShowDeleteDialog(false)}
+          onCancel={() => { setShowDeleteDialog(false); setDeleteError(""); }}
           loading={deleteLoading}
+          error={deleteError}
         />
       )}
     </div>

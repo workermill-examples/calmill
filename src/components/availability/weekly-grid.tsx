@@ -3,13 +3,20 @@
 import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import type { Availability } from "@/generated/prisma/client";
+import { TIME_OPTIONS, formatTime } from "./time-utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type TimeWindow = {
+  id: string;        // stable key for React reconciliation
   startTime: string; // "HH:mm"
   endTime: string;   // "HH:mm"
 };
+
+let _windowId = 0;
+function nextWindowId(): string {
+  return `w${++_windowId}`;
+}
 
 type DayState = {
   enabled: boolean;
@@ -24,31 +31,6 @@ interface WeeklyGridProps {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-// Generate time options in 15-minute increments (00:00 through 23:45)
-function generateTimeOptions(): string[] {
-  const options: string[] = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 15) {
-      const h = String(hour).padStart(2, "0");
-      const m = String(minute).padStart(2, "0");
-      options.push(`${h}:${m}`);
-    }
-  }
-  return options;
-}
-
-const TIME_OPTIONS = generateTimeOptions();
-
-// Format "09:00" to "9:00 AM"
-function formatTime(hhmm: string): string {
-  const [hStr, mStr] = hhmm.split(":");
-  const h = parseInt(hStr ?? "0", 10);
-  const m = mStr ?? "00";
-  const period = h < 12 ? "AM" : "PM";
-  const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${displayHour}:${m} ${period}`;
-}
 
 // ─── Toggle Switch ────────────────────────────────────────────────────────────
 
@@ -147,10 +129,10 @@ function buildDayState(availability: Availability[]): Record<number, DayState> {
   for (let day = 0; day < 7; day++) {
     const windows = availability
       .filter((a) => a.day === day)
-      .map((a) => ({ startTime: a.startTime, endTime: a.endTime }));
+      .map((a) => ({ id: nextWindowId(), startTime: a.startTime, endTime: a.endTime }));
     state[day] = {
       enabled: windows.length > 0,
-      windows: windows.length > 0 ? windows : [{ startTime: "09:00", endTime: "17:00" }],
+      windows: windows.length > 0 ? windows : [{ id: nextWindowId(), startTime: "09:00", endTime: "17:00" }],
     };
   }
   return state;
@@ -187,30 +169,30 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
   function handleAddWindow(day: number) {
     const current = dayState[day]!;
     updateDay(day, {
-      windows: [...current.windows, { startTime: "09:00", endTime: "17:00" }],
+      windows: [...current.windows, { id: nextWindowId(), startTime: "09:00", endTime: "17:00" }],
     });
   }
 
-  function handleRemoveWindow(day: number, index: number) {
+  function handleRemoveWindow(day: number, windowId: string) {
     const current = dayState[day]!;
-    const newWindows = current.windows.filter((_, i) => i !== index);
+    const newWindows = current.windows.filter((w) => w.id !== windowId);
     updateDay(day, {
-      windows: newWindows.length > 0 ? newWindows : [{ startTime: "09:00", endTime: "17:00" }],
+      windows: newWindows.length > 0 ? newWindows : [{ id: nextWindowId(), startTime: "09:00", endTime: "17:00" }],
     });
   }
 
-  function handleChangeStart(day: number, index: number, value: string) {
+  function handleChangeStart(day: number, windowId: string, value: string) {
     const current = dayState[day]!;
-    const newWindows = current.windows.map((w, i) =>
-      i === index ? { ...w, startTime: value } : w
+    const newWindows = current.windows.map((w) =>
+      w.id === windowId ? { ...w, startTime: value } : w
     );
     updateDay(day, { windows: newWindows });
   }
 
-  function handleChangeEnd(day: number, index: number, value: string) {
+  function handleChangeEnd(day: number, windowId: string, value: string) {
     const current = dayState[day]!;
-    const newWindows = current.windows.map((w, i) =>
-      i === index ? { ...w, endTime: value } : w
+    const newWindows = current.windows.map((w) =>
+      w.id === windowId ? { ...w, endTime: value } : w
     );
     updateDay(day, { windows: newWindows });
   }
@@ -302,13 +284,13 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
                 <div className="flex flex-col gap-2">
                   {ds.windows.map((win, index) => (
                     <TimeRangeRow
-                      key={index}
+                      key={win.id}
                       window={win}
                       index={index}
                       canRemove={ds.windows.length > 1}
-                      onChangeStart={(v) => handleChangeStart(day, index, v)}
-                      onChangeEnd={(v) => handleChangeEnd(day, index, v)}
-                      onRemove={() => handleRemoveWindow(day, index)}
+                      onChangeStart={(v) => handleChangeStart(day, win.id, v)}
+                      onChangeEnd={(v) => handleChangeEnd(day, win.id, v)}
+                      onRemove={() => handleRemoveWindow(day, win.id)}
                     />
                   ))}
                   <button
