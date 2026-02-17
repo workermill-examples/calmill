@@ -1,4 +1,4 @@
-import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaClient, Prisma } from "@/generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
 
@@ -43,11 +43,12 @@ async function main() {
 
   console.log(`✅ Created/found demo user: ${demoUser.email} (${demoUser.id})`);
 
-  // ─── SCHEDULES ──────────────────────────────────────────────────────────────
-
-  // Schedule 1: Business Hours (default) — Mon-Fri 09:00-17:00, America/New_York
+  // ─── SCHEDULE 1: Business Hours (default) ──────────────────────────
   let defaultSchedule = await prisma.schedule.findFirst({
-    where: { userId: demoUser.id, name: "Business Hours" },
+    where: {
+      userId: demoUser.id,
+      name: "Business Hours",
+    },
   });
 
   if (!defaultSchedule) {
@@ -59,35 +60,44 @@ async function main() {
         userId: demoUser.id,
       },
     });
-    console.log(`✅ Created default schedule: ${defaultSchedule.id}`);
+    console.log(`✅ Created schedule: ${defaultSchedule.name} (${defaultSchedule.id})`);
   } else {
-    console.log(`✅ Found existing default schedule: ${defaultSchedule.id}`);
+    console.log(`✅ Found existing schedule: ${defaultSchedule.name} (${defaultSchedule.id})`);
   }
 
   // Create availability for Business Hours (Monday-Friday 09:00-17:00)
-  const existingBizAvailability = await prisma.availability.findMany({
+  const existingAvailability = await prisma.availability.findMany({
     where: { scheduleId: defaultSchedule.id },
   });
 
-  if (existingBizAvailability.length === 0) {
-    for (const day of [1, 2, 3, 4, 5]) {
+  if (existingAvailability.length === 0) {
+    const weekdayAvailability = [
+      { day: 1, startTime: "09:00", endTime: "17:00" }, // Monday
+      { day: 2, startTime: "09:00", endTime: "17:00" }, // Tuesday
+      { day: 3, startTime: "09:00", endTime: "17:00" }, // Wednesday
+      { day: 4, startTime: "09:00", endTime: "17:00" }, // Thursday
+      { day: 5, startTime: "09:00", endTime: "17:00" }, // Friday
+    ];
+
+    for (const availability of weekdayAvailability) {
       await prisma.availability.create({
         data: {
-          day,
-          startTime: "09:00",
-          endTime: "17:00",
+          ...availability,
           scheduleId: defaultSchedule.id,
         },
       });
     }
-    console.log(`✅ Created availability (Mon-Fri 09:00-17:00)`);
+    console.log(`✅ Created availability for Business Hours (Mon-Fri 09:00-17:00)`);
   } else {
-    console.log(`✅ Found existing availability (${existingBizAvailability.length} entries)`);
+    console.log(`✅ Found existing availability (${existingAvailability.length} entries)`);
   }
 
-  // Schedule 2: Extended Hours — Mon-Fri 08:00-20:00, Sat 10:00-14:00
+  // ─── SCHEDULE 2: Extended Hours ────────────────────────────────────
   let extendedSchedule = await prisma.schedule.findFirst({
-    where: { userId: demoUser.id, name: "Extended Hours" },
+    where: {
+      userId: demoUser.id,
+      name: "Extended Hours",
+    },
   });
 
   if (!extendedSchedule) {
@@ -99,59 +109,136 @@ async function main() {
         userId: demoUser.id,
       },
     });
+    console.log(`✅ Created schedule: ${extendedSchedule.name} (${extendedSchedule.id})`);
+  } else {
+    console.log(`✅ Found existing schedule: ${extendedSchedule.name} (${extendedSchedule.id})`);
+  }
 
-    // Mon-Fri 08:00-20:00
-    for (const day of [1, 2, 3, 4, 5]) {
+  // Create availability for Extended Hours (Mon-Fri 08:00-20:00, Sat 10:00-14:00)
+  const existingExtendedAvailability = await prisma.availability.findMany({
+    where: { scheduleId: extendedSchedule.id },
+  });
+
+  if (existingExtendedAvailability.length === 0) {
+    const extendedAvailability = [
+      { day: 1, startTime: "08:00", endTime: "20:00" }, // Monday
+      { day: 2, startTime: "08:00", endTime: "20:00" }, // Tuesday
+      { day: 3, startTime: "08:00", endTime: "20:00" }, // Wednesday
+      { day: 4, startTime: "08:00", endTime: "20:00" }, // Thursday
+      { day: 5, startTime: "08:00", endTime: "20:00" }, // Friday
+      { day: 6, startTime: "10:00", endTime: "14:00" }, // Saturday
+    ];
+
+    for (const availability of extendedAvailability) {
       await prisma.availability.create({
         data: {
-          day,
-          startTime: "08:00",
-          endTime: "20:00",
+          ...availability,
           scheduleId: extendedSchedule.id,
         },
       });
     }
-    // Sat 10:00-14:00
-    await prisma.availability.create({
-      data: {
-        day: 6,
-        startTime: "10:00",
-        endTime: "14:00",
-        scheduleId: extendedSchedule.id,
-      },
-    });
-    console.log(`✅ Created Extended Hours schedule: ${extendedSchedule.id}`);
+    console.log(`✅ Created availability for Extended Hours (Mon-Fri 08:00-20:00, Sat 10:00-14:00)`);
   } else {
-    console.log(`✅ Found existing Extended Hours schedule: ${extendedSchedule.id}`);
+    console.log(`✅ Found existing extended availability (${existingExtendedAvailability.length} entries)`);
   }
 
-  // ─── EVENT TYPES ────────────────────────────────────────────────────────────
+  // ─── DATE OVERRIDES ────────────────────────────────────────────────
+  // Helper to get a future date
+  const now = new Date();
+  const futureDate1 = new Date(now);
+  futureDate1.setDate(now.getDate() + 10); // 10 days from now — blocked all day
+  futureDate1.setHours(0, 0, 0, 0);
 
-  // 1. Quick Chat — 15min, no confirmation, free
-  const eventTypeQuick = await prisma.eventType.upsert({
-    where: { userId_slug: { userId: demoUser.id, slug: "quick-chat" } },
+  const futureDate2 = new Date(now);
+  futureDate2.setDate(now.getDate() + 20); // 20 days from now — modified hours
+  futureDate2.setHours(0, 0, 0, 0);
+
+  // Date override 1: Blocked day on Business Hours schedule
+  const existingOverride1 = await prisma.dateOverride.findFirst({
+    where: {
+      scheduleId: defaultSchedule.id,
+      isUnavailable: true,
+    },
+  });
+
+  if (!existingOverride1) {
+    await prisma.dateOverride.create({
+      data: {
+        date: futureDate1,
+        isUnavailable: true,
+        scheduleId: defaultSchedule.id,
+      },
+    });
+    console.log(`✅ Created date override: blocked day (${futureDate1.toISOString().split("T")[0]})`);
+  } else {
+    console.log(`✅ Found existing blocked day override`);
+  }
+
+  // Date override 2: Modified hours on Business Hours schedule
+  const existingOverride2 = await prisma.dateOverride.findFirst({
+    where: {
+      scheduleId: defaultSchedule.id,
+      isUnavailable: false,
+    },
+  });
+
+  if (!existingOverride2) {
+    await prisma.dateOverride.create({
+      data: {
+        date: futureDate2,
+        startTime: "10:00",
+        endTime: "14:00",
+        isUnavailable: false,
+        scheduleId: defaultSchedule.id,
+      },
+    });
+    console.log(`✅ Created date override: modified hours (${futureDate2.toISOString().split("T")[0]}, 10:00-14:00)`);
+  } else {
+    console.log(`✅ Found existing modified hours override`);
+  }
+
+  // ─── EVENT TYPES ────────────────────────────────────────────────────
+
+  // 1. Quick Chat (15min, no confirmation, free)
+  const eventTypeQuickChat = await prisma.eventType.upsert({
+    where: {
+      userId_slug: {
+        userId: demoUser.id,
+        slug: "quick-chat",
+      },
+    },
     update: {},
     create: {
       title: "Quick Chat",
       slug: "quick-chat",
-      description: "A quick 15 minute chat to connect.",
+      description: "A quick 15 minute chat to connect and discuss anything on your mind.",
       duration: 15,
       isActive: true,
       requiresConfirmation: false,
       price: 0,
       currency: "USD",
+      minimumNotice: 30, // 30 minutes
+      futureLimit: 30,
       userId: demoUser.id,
       scheduleId: defaultSchedule.id,
-      minimumNotice: 60,
-      futureLimit: 60,
-      locations: [{ type: "link", value: "Google Meet link will be provided" }],
+      locations: [
+        {
+          type: "link",
+          value: "Google Meet link will be provided",
+        },
+      ],
     },
   });
-  console.log(`✅ Created/found event type: ${eventTypeQuick.title}`);
+  console.log(`✅ Created/found event type: ${eventTypeQuickChat.title} (${eventTypeQuickChat.id})`);
 
-  // 2. 30 Minute Meeting — 30min, no confirmation, free
+  // 2. 30 Minute Meeting (existing)
   const eventType30 = await prisma.eventType.upsert({
-    where: { userId_slug: { userId: demoUser.id, slug: "30min" } },
+    where: {
+      userId_slug: {
+        userId: demoUser.id,
+        slug: "30min",
+      },
+    },
     update: {},
     create: {
       title: "30 Minute Meeting",
@@ -162,18 +249,28 @@ async function main() {
       requiresConfirmation: false,
       price: 0,
       currency: "USD",
+      minimumNotice: 120, // 2 hours
+      futureLimit: 60, // 60 days
       userId: demoUser.id,
       scheduleId: defaultSchedule.id,
-      minimumNotice: 120,
-      futureLimit: 60,
-      locations: [{ type: "link", value: "Google Meet link will be provided" }],
+      locations: [
+        {
+          type: "link",
+          value: "Google Meet link will be provided",
+        },
+      ],
     },
   });
-  console.log(`✅ Created/found event type: ${eventType30.title}`);
+  console.log(`✅ Created/found event type: ${eventType30.title} (${eventType30.id})`);
 
-  // 3. 60 Minute Consultation — 60min, requires confirmation, free
+  // 3. 60 Minute Consultation (existing, requires confirmation)
   const eventType60 = await prisma.eventType.upsert({
-    where: { userId_slug: { userId: demoUser.id, slug: "60min" } },
+    where: {
+      userId_slug: {
+        userId: demoUser.id,
+        slug: "60min",
+      },
+    },
     update: {},
     create: {
       title: "60 Minute Consultation",
@@ -184,335 +281,380 @@ async function main() {
       requiresConfirmation: true,
       price: 0,
       currency: "USD",
+      minimumNotice: 240, // 4 hours
+      futureLimit: 60, // 60 days
       userId: demoUser.id,
       scheduleId: defaultSchedule.id,
-      minimumNotice: 240,
-      futureLimit: 60,
-      locations: [{ type: "link", value: "Zoom link will be provided" }],
+      locations: [
+        {
+          type: "link",
+          value: "Zoom link will be provided",
+        },
+      ],
     },
   });
-  console.log(`✅ Created/found event type: ${eventType60.title}`);
+  console.log(`✅ Created/found event type: ${eventType60.title} (${eventType60.id})`);
 
-  // 4. Technical Interview — 45min, requires confirmation, 24h minimum notice
-  const eventTypeInterview = await prisma.eventType.upsert({
-    where: { userId_slug: { userId: demoUser.id, slug: "technical-interview" } },
+  // 4. Technical Interview (45min, requires confirmation, 24h minimum notice)
+  const eventTypeTechInterview = await prisma.eventType.upsert({
+    where: {
+      userId_slug: {
+        userId: demoUser.id,
+        slug: "technical-interview",
+      },
+    },
     update: {},
     create: {
       title: "Technical Interview",
       slug: "technical-interview",
-      description: "A 45 minute technical interview session.",
+      description:
+        "A structured 45 minute technical interview. Please be prepared to discuss your experience and solve coding challenges.",
       duration: 45,
       isActive: true,
       requiresConfirmation: true,
       price: 0,
       currency: "USD",
+      minimumNotice: 1440, // 24 hours
+      futureLimit: 30,
       userId: demoUser.id,
       scheduleId: defaultSchedule.id,
-      minimumNotice: 1440, // 24 hours
-      futureLimit: 60,
-      locations: [{ type: "link", value: "Video call link will be provided" }],
+      locations: [
+        {
+          type: "link",
+          value: "Zoom link will be provided",
+        },
+      ],
+      customQuestions: [
+        {
+          id: "years-experience",
+          label: "Years of professional experience",
+          type: "select",
+          required: true,
+          options: ["0-1 years", "1-3 years", "3-5 years", "5+ years"],
+        },
+        {
+          id: "primary-language",
+          label: "Primary programming language",
+          type: "text",
+          required: true,
+        },
+      ],
     },
   });
-  console.log(`✅ Created/found event type: ${eventTypeInterview.title}`);
+  console.log(`✅ Created/found event type: ${eventTypeTechInterview.title} (${eventTypeTechInterview.id})`);
 
-  // 5. Pair Programming — 90min, link location, 2h buffer after
-  const eventTypePair = await prisma.eventType.upsert({
-    where: { userId_slug: { userId: demoUser.id, slug: "pair-programming" } },
+  // 5. Pair Programming (90min, link location, 2h buffer after)
+  const eventTypePairProgramming = await prisma.eventType.upsert({
+    where: {
+      userId_slug: {
+        userId: demoUser.id,
+        slug: "pair-programming",
+      },
+    },
     update: {},
     create: {
       title: "Pair Programming",
       slug: "pair-programming",
-      description: "A 90 minute pair programming session.",
+      description:
+        "A 90 minute collaborative coding session. We will work together on your code using screen sharing.",
       duration: 90,
       isActive: true,
       requiresConfirmation: false,
       price: 0,
       currency: "USD",
-      userId: demoUser.id,
-      scheduleId: defaultSchedule.id,
-      minimumNotice: 120,
-      futureLimit: 60,
+      minimumNotice: 120, // 2 hours
       afterBuffer: 120, // 2 hours buffer after
-      locations: [{ type: "link", value: "Google Meet link will be provided" }],
+      futureLimit: 30,
+      userId: demoUser.id,
+      scheduleId: extendedSchedule.id,
+      locations: [
+        {
+          type: "link",
+          value: "https://meet.google.com/stub-pair-programming",
+        },
+      ],
     },
   });
-  console.log(`✅ Created/found event type: ${eventTypePair.title}`);
+  console.log(`✅ Created/found event type: ${eventTypePairProgramming.title} (${eventTypePairProgramming.id})`);
 
-  // 6. Coffee Chat — 20min, in-person, free, inactive
-  const eventTypeCoffee = await prisma.eventType.upsert({
-    where: { userId_slug: { userId: demoUser.id, slug: "coffee-chat" } },
+  // 6. Coffee Chat (20min, in-person, inactive)
+  const eventTypeCoffeeChat = await prisma.eventType.upsert({
+    where: {
+      userId_slug: {
+        userId: demoUser.id,
+        slug: "coffee-chat",
+      },
+    },
     update: {},
     create: {
       title: "Coffee Chat",
       slug: "coffee-chat",
-      description: "A casual 20 minute coffee chat.",
+      description: "A casual 20 minute coffee chat. Let us meet in person and get to know each other!",
       duration: 20,
       isActive: false, // inactive
       requiresConfirmation: false,
       price: 0,
       currency: "USD",
+      minimumNotice: 60, // 1 hour
+      futureLimit: 14,
       userId: demoUser.id,
       scheduleId: defaultSchedule.id,
-      minimumNotice: 60,
-      futureLimit: 30,
-      locations: [{ type: "inPerson", value: "123 Main St" }],
+      locations: [
+        {
+          type: "inPerson",
+          value: "123 Main St",
+        },
+      ],
     },
   });
-  console.log(`✅ Created/found event type: ${eventTypeCoffee.title}`);
+  console.log(`✅ Created/found event type: ${eventTypeCoffeeChat.title} (${eventTypeCoffeeChat.id})`);
 
-  // ─── DATE OVERRIDES ─────────────────────────────────────────────────────────
+  // ─── BOOKINGS ────────────────────────────────────────────────────────
+  // Generate 15 bookings spread across the next 30 days with mixed statuses
+  // 8 ACCEPTED, 3 PENDING, 2 CANCELLED, 2 past/completed
 
-  const now = new Date();
-
-  // Override 1: Block a specific date next week
-  const blockedDate = new Date(now);
-  blockedDate.setDate(now.getDate() + 8);
-  blockedDate.setHours(0, 0, 0, 0);
-
-  const existingBlockedOverride = await prisma.dateOverride.findFirst({
-    where: { scheduleId: defaultSchedule.id, date: blockedDate },
-  });
-
-  if (!existingBlockedOverride) {
-    await prisma.dateOverride.create({
-      data: {
-        scheduleId: defaultSchedule.id,
-        date: blockedDate,
-        isUnavailable: true,
-      },
-    });
-    console.log(`✅ Created blocked date override for ${blockedDate.toISOString().slice(0, 10)}`);
-  }
-
-  // Override 2: Modified hours two weeks from now (shorter day)
-  const modifiedDate = new Date(now);
-  modifiedDate.setDate(now.getDate() + 15);
-  modifiedDate.setHours(0, 0, 0, 0);
-
-  const existingModifiedOverride = await prisma.dateOverride.findFirst({
-    where: { scheduleId: defaultSchedule.id, date: modifiedDate },
-  });
-
-  if (!existingModifiedOverride) {
-    await prisma.dateOverride.create({
-      data: {
-        scheduleId: defaultSchedule.id,
-        date: modifiedDate,
-        startTime: "10:00",
-        endTime: "14:00",
-        isUnavailable: false,
-      },
-    });
-    console.log(`✅ Created modified hours override for ${modifiedDate.toISOString().slice(0, 10)}`);
-  }
-
-  // ─── BOOKINGS ───────────────────────────────────────────────────────────────
-
-  // Helper to create a booking time relative to now (in days offset)
-  function bookingTime(daysOffset: number, hour: number, minute = 0): Date {
-    const d = new Date(now);
-    d.setDate(now.getDate() + daysOffset);
-    d.setHours(hour, minute, 0, 0);
-    return d;
-  }
-
-  const bookingsData = [
-    // 8 ACCEPTED bookings — future
+  const bookingData = [
+    // Past bookings (completed - ~2 weeks ago and ~1 week ago)
     {
-      uid: "booking-accepted-001",
-      eventTypeId: eventType30.id,
-      startTime: bookingTime(2, 10, 0),
-      endTime: bookingTime(2, 10, 30),
-      status: "ACCEPTED" as const,
+      daysOffset: -14,
+      hour: 10,
+      eventType: eventType30,
       attendeeName: "Sarah Johnson",
-      attendeeEmail: "sarah@example.com",
-      attendeeTimezone: "America/Los_Angeles",
+      attendeeEmail: "sarah.johnson@example.com",
+      attendeeTimezone: "America/Chicago",
+      status: "ACCEPTED" as const,
+      title: "30 Minute Meeting with Sarah Johnson",
+      description: "Discussing project requirements and timeline.",
     },
     {
-      uid: "booking-accepted-002",
-      eventTypeId: eventType30.id,
-      startTime: bookingTime(3, 14, 0),
-      endTime: bookingTime(3, 14, 30),
-      status: "ACCEPTED" as const,
+      daysOffset: -7,
+      hour: 14,
+      eventType: eventType60,
       attendeeName: "Michael Chen",
-      attendeeEmail: "michael@example.com",
-      attendeeTimezone: "America/Chicago",
-    },
-    {
-      uid: "booking-accepted-003",
-      eventTypeId: eventType60.id,
-      startTime: bookingTime(5, 11, 0),
-      endTime: bookingTime(5, 12, 0),
-      status: "ACCEPTED" as const,
-      attendeeName: "Emma Wilson",
-      attendeeEmail: "emma@example.com",
-      attendeeTimezone: "Europe/London",
-    },
-    {
-      uid: "booking-accepted-004",
-      eventTypeId: eventTypeInterview.id,
-      startTime: bookingTime(7, 9, 0),
-      endTime: bookingTime(7, 9, 45),
-      status: "ACCEPTED" as const,
-      attendeeName: "James Rodriguez",
-      attendeeEmail: "james@example.com",
-      attendeeTimezone: "America/New_York",
-    },
-    {
-      uid: "booking-accepted-005",
-      eventTypeId: eventTypeQuick.id,
-      startTime: bookingTime(10, 15, 0),
-      endTime: bookingTime(10, 15, 15),
-      status: "ACCEPTED" as const,
-      attendeeName: "Priya Patel",
-      attendeeEmail: "priya@example.com",
-      attendeeTimezone: "Asia/Kolkata",
-    },
-    {
-      uid: "booking-accepted-006",
-      eventTypeId: eventType30.id,
-      startTime: bookingTime(12, 13, 0),
-      endTime: bookingTime(12, 13, 30),
-      status: "ACCEPTED" as const,
-      attendeeName: "Lucas Müller",
-      attendeeEmail: "lucas@example.com",
-      attendeeTimezone: "Europe/Berlin",
-    },
-    {
-      uid: "booking-accepted-007",
-      eventTypeId: eventTypePair.id,
-      startTime: bookingTime(14, 10, 0),
-      endTime: bookingTime(14, 11, 30),
-      status: "ACCEPTED" as const,
-      attendeeName: "Yuki Tanaka",
-      attendeeEmail: "yuki@example.com",
-      attendeeTimezone: "Asia/Tokyo",
-    },
-    {
-      uid: "booking-accepted-008",
-      eventTypeId: eventType60.id,
-      startTime: bookingTime(20, 9, 0),
-      endTime: bookingTime(20, 10, 0),
-      status: "ACCEPTED" as const,
-      attendeeName: "Aisha Hassan",
-      attendeeEmail: "aisha@example.com",
-      attendeeTimezone: "Africa/Cairo",
-    },
-    // 3 PENDING bookings — future
-    {
-      uid: "booking-pending-001",
-      eventTypeId: eventType60.id,
-      startTime: bookingTime(6, 14, 0),
-      endTime: bookingTime(6, 15, 0),
-      status: "PENDING" as const,
-      attendeeName: "Robert Kim",
-      attendeeEmail: "robert@example.com",
+      attendeeEmail: "michael.chen@example.com",
       attendeeTimezone: "America/Los_Angeles",
+      status: "ACCEPTED" as const,
+      title: "60 Minute Consultation with Michael Chen",
+      description: "Full consultation session about system architecture.",
+    },
+    // Upcoming ACCEPTED bookings
+    {
+      daysOffset: 1,
+      hour: 9,
+      eventType: eventTypeQuickChat,
+      attendeeName: "Emma Williams",
+      attendeeEmail: "emma.williams@example.com",
+      attendeeTimezone: "Europe/London",
+      status: "ACCEPTED" as const,
+      title: "Quick Chat with Emma Williams",
+      description: "Quick sync about onboarding questions.",
     },
     {
-      uid: "booking-pending-002",
-      eventTypeId: eventTypeInterview.id,
-      startTime: bookingTime(9, 11, 0),
-      endTime: bookingTime(9, 11, 45),
-      status: "PENDING" as const,
-      attendeeName: "Clara Dupont",
-      attendeeEmail: "clara@example.com",
-      attendeeTimezone: "Europe/Paris",
-    },
-    {
-      uid: "booking-pending-003",
-      eventTypeId: eventType30.id,
-      startTime: bookingTime(11, 16, 0),
-      endTime: bookingTime(11, 16, 30),
-      status: "PENDING" as const,
-      attendeeName: "David Okonkwo",
-      attendeeEmail: "david@example.com",
-      attendeeTimezone: "Africa/Lagos",
-    },
-    // 2 CANCELLED bookings — future
-    {
-      uid: "booking-cancelled-001",
-      eventTypeId: eventType30.id,
-      startTime: bookingTime(4, 10, 0),
-      endTime: bookingTime(4, 10, 30),
-      status: "CANCELLED" as const,
-      attendeeName: "Sophie Martin",
-      attendeeEmail: "sophie@example.com",
-      attendeeTimezone: "Europe/Paris",
-      cancellationReason: "Schedule conflict",
-    },
-    {
-      uid: "booking-cancelled-002",
-      eventTypeId: eventType60.id,
-      startTime: bookingTime(8, 13, 0),
-      endTime: bookingTime(8, 14, 0),
-      status: "CANCELLED" as const,
-      attendeeName: "Tom Williams",
-      attendeeEmail: "tom@example.com",
+      daysOffset: 2,
+      hour: 11,
+      eventType: eventType30,
+      attendeeName: "James Rodriguez",
+      attendeeEmail: "james.rodriguez@example.com",
       attendeeTimezone: "America/Chicago",
-      cancellationReason: "No longer needed",
-    },
-    // 2 past/completed bookings (negative offset)
-    {
-      uid: "booking-past-001",
-      eventTypeId: eventType30.id,
-      startTime: bookingTime(-5, 10, 0),
-      endTime: bookingTime(-5, 10, 30),
       status: "ACCEPTED" as const,
-      attendeeName: "Nina Kowalski",
-      attendeeEmail: "nina@example.com",
-      attendeeTimezone: "Europe/Warsaw",
+      title: "30 Minute Meeting with James Rodriguez",
+      description: "Follow-up on last week's proposal.",
     },
     {
-      uid: "booking-past-002",
-      eventTypeId: eventType60.id,
-      startTime: bookingTime(-10, 14, 0),
-      endTime: bookingTime(-10, 15, 0),
+      daysOffset: 3,
+      hour: 13,
+      eventType: eventTypeTechInterview,
+      attendeeName: "Aisha Patel",
+      attendeeEmail: "aisha.patel@example.com",
+      attendeeTimezone: "America/New_York",
       status: "ACCEPTED" as const,
-      attendeeName: "Carlos Mendez",
-      attendeeEmail: "carlos@example.com",
+      title: "Technical Interview with Aisha Patel",
+      description: "Senior backend engineer candidate interview.",
+      responses: {
+        "years-experience": "3-5 years",
+        "primary-language": "TypeScript",
+      },
+    },
+    {
+      daysOffset: 5,
+      hour: 10,
+      eventType: eventType60,
+      attendeeName: "David Kim",
+      attendeeEmail: "david.kim@example.com",
+      attendeeTimezone: "America/Los_Angeles",
+      status: "ACCEPTED" as const,
+      title: "60 Minute Consultation with David Kim",
+      description: "API design consultation for mobile app backend.",
+    },
+    {
+      daysOffset: 8,
+      hour: 15,
+      eventType: eventTypePairProgramming,
+      attendeeName: "Olivia Smith",
+      attendeeEmail: "olivia.smith@example.com",
+      attendeeTimezone: "America/New_York",
+      status: "ACCEPTED" as const,
+      title: "Pair Programming with Olivia Smith",
+      description: "Working on React component refactoring.",
+    },
+    {
+      daysOffset: 12,
+      hour: 9,
+      eventType: eventType30,
+      attendeeName: "Lucas Brown",
+      attendeeEmail: "lucas.brown@example.com",
+      attendeeTimezone: "Europe/Berlin",
+      status: "ACCEPTED" as const,
+      title: "30 Minute Meeting with Lucas Brown",
+      description: "Discussing partnership opportunities.",
+    },
+    // Upcoming PENDING bookings
+    {
+      daysOffset: 4,
+      hour: 14,
+      eventType: eventType60,
+      attendeeName: "Sophia Martinez",
+      attendeeEmail: "sophia.martinez@example.com",
       attendeeTimezone: "America/Mexico_City",
+      status: "PENDING" as const,
+      title: "60 Minute Consultation with Sophia Martinez",
+      description: "Product strategy consultation. Awaiting confirmation.",
+    },
+    {
+      daysOffset: 7,
+      hour: 11,
+      eventType: eventTypeTechInterview,
+      attendeeName: "Ethan Davis",
+      attendeeEmail: "ethan.davis@example.com",
+      attendeeTimezone: "America/Chicago",
+      status: "PENDING" as const,
+      title: "Technical Interview with Ethan Davis",
+      description: "Full-stack developer candidate. Interview pending confirmation.",
+      responses: {
+        "years-experience": "1-3 years",
+        "primary-language": "JavaScript",
+      },
+    },
+    {
+      daysOffset: 15,
+      hour: 10,
+      eventType: eventTypeTechInterview,
+      attendeeName: "Isabella Wilson",
+      attendeeEmail: "isabella.wilson@example.com",
+      attendeeTimezone: "America/Denver",
+      status: "PENDING" as const,
+      title: "Technical Interview with Isabella Wilson",
+      description: "Frontend engineer candidate. Interview pending confirmation.",
+      responses: {
+        "years-experience": "3-5 years",
+        "primary-language": "React",
+      },
+    },
+    // CANCELLED bookings
+    {
+      daysOffset: 6,
+      hour: 13,
+      eventType: eventType30,
+      attendeeName: "Noah Anderson",
+      attendeeEmail: "noah.anderson@example.com",
+      attendeeTimezone: "America/New_York",
+      status: "CANCELLED" as const,
+      title: "30 Minute Meeting with Noah Anderson",
+      description: "Meeting cancelled by attendee.",
+      cancellationReason: "Attendee had a scheduling conflict.",
+    },
+    {
+      daysOffset: 9,
+      hour: 10,
+      eventType: eventTypeQuickChat,
+      attendeeName: "Mia Thompson",
+      attendeeEmail: "mia.thompson@example.com",
+      attendeeTimezone: "America/Los_Angeles",
+      status: "CANCELLED" as const,
+      title: "Quick Chat with Mia Thompson",
+      description: "Quick chat cancelled.",
+      cancellationReason: "No longer needed.",
+    },
+    // Additional ACCEPTED future bookings to reach 15 total
+    {
+      daysOffset: 18,
+      hour: 14,
+      eventType: eventType30,
+      attendeeName: "Liam Garcia",
+      attendeeEmail: "liam.garcia@example.com",
+      attendeeTimezone: "America/Phoenix",
+      status: "ACCEPTED" as const,
+      title: "30 Minute Meeting with Liam Garcia",
+      description: "Quarterly business review meeting.",
+    },
+    {
+      daysOffset: 25,
+      hour: 11,
+      eventType: eventTypePairProgramming,
+      attendeeName: "Charlotte Lee",
+      attendeeEmail: "charlotte.lee@example.com",
+      attendeeTimezone: "America/New_York",
+      status: "ACCEPTED" as const,
+      title: "Pair Programming with Charlotte Lee",
+      description: "Database optimization session.",
     },
   ];
 
-  // Build a lookup map from eventTypeId to title for the booking title field
-  const eventTypeTitleMap: Record<string, string> = {};
-  for (const et of [eventTypeQuick, eventType30, eventType60, eventTypeInterview, eventTypePair, eventTypeCoffee]) {
-    eventTypeTitleMap[et.id] = et.title;
-  }
+  let bookingCount = 0;
+  for (const booking of bookingData) {
+    const startTime = new Date(now);
+    startTime.setDate(now.getDate() + booking.daysOffset);
+    startTime.setHours(booking.hour, 0, 0, 0);
 
-  for (const booking of bookingsData) {
-    const existing = await prisma.booking.findUnique({
-      where: { uid: booking.uid },
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + booking.eventType.duration);
+
+    // Check if booking already exists for this attendee + event type + time
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        eventTypeId: booking.eventType.id,
+        attendeeEmail: booking.attendeeEmail,
+        startTime: startTime,
+      },
     });
 
-    if (!existing) {
+    if (!existingBooking) {
+      const cancelledAt =
+        booking.status === "CANCELLED" ? new Date() : null;
+
       await prisma.booking.create({
         data: {
-          uid: booking.uid,
-          title: eventTypeTitleMap[booking.eventTypeId] ?? "Meeting",
-          eventTypeId: booking.eventTypeId,
-          userId: demoUser.id,
-          startTime: booking.startTime,
-          endTime: booking.endTime,
+          title: booking.title,
+          description: booking.description,
+          startTime,
+          endTime,
           status: booking.status,
           attendeeName: booking.attendeeName,
           attendeeEmail: booking.attendeeEmail,
           attendeeTimezone: booking.attendeeTimezone,
-          cancellationReason: "cancellationReason" in booking ? booking.cancellationReason : undefined,
+          responses: booking.responses ?? Prisma.DbNull,
+          cancellationReason: booking.cancellationReason ?? null,
+          cancelledAt,
+          userId: demoUser.id,
+          eventTypeId: booking.eventType.id,
         },
       });
+      bookingCount++;
     }
   }
 
-  console.log(`✅ Created/found ${bookingsData.length} bookings`);
+  console.log(`✅ Created ${bookingCount} bookings (15 total planned: 8 ACCEPTED, 3 PENDING, 2 CANCELLED, 2 past)`);
 
   console.log("\n🎉 Database seeding completed!");
   console.log("\n📝 Demo credentials:");
   console.log(`   Email: ${demoEmail}`);
   console.log(`   Password: ${demoPassword}`);
   console.log(`   Username: ${demoUsername}`);
-  console.log(`   Public Profile: /demo`);
+  console.log("\n📅 Seed summary:");
+  console.log(`   Schedules: Business Hours (default), Extended Hours`);
+  console.log(`   Event Types: Quick Chat, 30min Meeting, 60min Consultation, Technical Interview, Pair Programming, Coffee Chat (inactive)`);
+  console.log(`   Bookings: 15 total (8 ACCEPTED, 3 PENDING, 2 CANCELLED, 2 past)`);
+  console.log(`   Date Overrides: 1 blocked day, 1 modified hours`);
 }
 
 main()
