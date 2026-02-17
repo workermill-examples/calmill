@@ -36,7 +36,7 @@ export default async function GettingStartedPage() {
             Welcome to CalMill, {session.user.name}!
           </h1>
           <p className="mt-2 text-lg text-gray-600">
-            Your account is ready. Let's get you set up.
+            Your account is ready. Let&apos;s get you set up.
           </p>
         </div>
 
@@ -54,7 +54,7 @@ export default async function GettingStartedPage() {
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">Set up your availability</h3>
                   <p className="mt-1 text-sm text-gray-600">
-                    Configure when you're available for meetings. We've created a default
+                    Configure when you&apos;re available for meetings. We&apos;ve created a default
                     Monday-Friday 9-5 schedule to get you started.
                   </p>
                   <Link href="/availability" className="mt-2 inline-block">
@@ -73,7 +73,7 @@ export default async function GettingStartedPage() {
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">Create event types</h3>
                   <p className="mt-1 text-sm text-gray-600">
-                    We've created two sample event types (30min and 60min). Customize them or
+                    We&apos;ve created two sample event types (30min and 60min). Customize them or
                     create new ones.
                   </p>
                   <Link href="/event-types" className="mt-2 inline-block">
