@@ -85,6 +85,10 @@ export async function GET(_request: Request, { params }: Params) {
 export async function PATCH(request: Request, { params }: Params) {
   const { uid } = await params;
 
+  // Read cancelFuture query param (only applies to cancel action)
+  const { searchParams } = new URL(request.url);
+  const cancelFuture = searchParams.get("cancelFuture") === "true";
+
   try {
     const body = await request.json();
     const validated = bookingActionSchema.parse(body);
@@ -134,33 +138,91 @@ export async function PATCH(request: Request, { params }: Params) {
       updateData.cancellationReason = validated.reason ?? null;
     }
 
-    const updated = await prisma.booking.update({
-      where: { uid },
-      data: updateData,
-      include: {
-        eventType: {
+    const eventTypeInclude = {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        duration: true,
+        locations: true,
+        color: true,
+        requiresConfirmation: true,
+        user: {
           select: {
             id: true,
-            title: true,
-            slug: true,
-            duration: true,
-            locations: true,
-            color: true,
-            requiresConfirmation: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-                timezone: true,
-                avatarUrl: true,
-                bio: true,
-              },
-            },
+            name: true,
+            email: true,
+            username: true,
+            timezone: true,
+            avatarUrl: true,
+            bio: true,
           },
         },
       },
+    };
+
+    // ── Cancel future occurrences in the same recurring series ───────────────
+    if (cancelFuture && nextStatus === "CANCELLED" && booking.recurringEventId) {
+      const cancelledAt = new Date();
+      const cancelUpdateData = {
+        status: "CANCELLED" as const,
+        cancellationReason: validated.reason ?? null,
+        cancelledAt,
+      };
+
+      // Cancel this booking and all future bookings in the series
+      await prisma.booking.updateMany({
+        where: {
+          recurringEventId: booking.recurringEventId,
+          startTime: { gte: booking.startTime },
+          status: { in: ["PENDING", "ACCEPTED"] },
+        },
+        data: cancelUpdateData,
+      });
+
+      // Fetch the updated booking for the response
+      const updated = await prisma.booking.findUnique({
+        where: { uid },
+        include: { eventType: eventTypeInclude },
+      });
+
+      if (!updated) {
+        return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      }
+
+      void sendStatusChangeEmails(updated, nextStatus, validated.reason).catch((err) => {
+        console.error("[Bookings] Status change email notification failed:", err);
+      });
+
+      void deliverWebhookEvent({
+        userId: updated.userId,
+        eventType: "BOOKING_CANCELLED",
+        payload: buildBookingPayload("BOOKING_CANCELLED", {
+          uid: updated.uid,
+          title: updated.title,
+          startTime: updated.startTime,
+          endTime: updated.endTime,
+          status: updated.status,
+          attendeeName: updated.attendeeName,
+          attendeeEmail: updated.attendeeEmail,
+          attendeeTimezone: updated.attendeeTimezone,
+          eventType: {
+            title: updated.eventType.title,
+            slug: updated.eventType.slug,
+            duration: updated.eventType.duration,
+          },
+        }),
+      }).catch((err) => {
+        console.error("[Webhooks] BOOKING_CANCELLED delivery failed:", err);
+      });
+
+      return NextResponse.json({ success: true, data: updated });
+    }
+
+    const updated = await prisma.booking.update({
+      where: { uid },
+      data: updateData,
+      include: { eventType: eventTypeInclude },
     });
 
     // ── Fire-and-forget email notifications ──────────────────────────────────
