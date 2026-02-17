@@ -73,7 +73,7 @@ export function generateSlug(text: string): string {
  * @returns Username (part before @)
  */
 export function generateUsername(email: string): string {
-  const localPart = email.split("@")[0];
+  const localPart = email.split("@")[0] ?? email;
   return generateSlug(localPart);
 }
 
@@ -129,9 +129,14 @@ export function isValidEmail(email: string): boolean {
  * @returns Initials (max 2 characters)
  */
 export function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) {
-    return parts[0].charAt(0).toUpperCase();
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "";
   }
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  if (parts.length === 1) {
+    return parts[0]?.charAt(0).toUpperCase() ?? "";
+  }
+  const first = parts[0]?.charAt(0) ?? "";
+  const last = parts[parts.length - 1]?.charAt(0) ?? "";
+  return (first + last).toUpperCase();
 }

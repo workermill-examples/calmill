@@ -7,8 +7,6 @@ import type {
   DateOverride,
   Team,
   TeamMember,
-  CalendarConnection,
-  Webhook,
   BookingStatus,
   SchedulingType,
   TeamRole,
