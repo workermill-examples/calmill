@@ -1,0 +1,59 @@
+{
+  "name": "calmill",
+  "version": "1.0.0",
+  "description": "Open scheduling platform built by autonomous AI workers",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "next": "^16.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "next-auth": "5.0.0-beta.30",
+    "@auth/prisma-adapter": "latest",
+    "@prisma/adapter-neon": "^7.4.0",
+    "@neondatabase/serverless": "^0.10.0",
+    "zod": "^4.3.0",
+    "date-fns": "^4.1.0",
+    "@date-fns/tz": "latest",
+    "bcryptjs": "^3.0.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "prisma": "^7.4.0",
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "vitest": "^4.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
+    "@playwright/test": "^1.58.0",
+    "eslint": "^9.0.0",
+    "@eslint/eslintrc": "^3.0.0",
+    "eslint-config-next": "^16.1.0",
+    "prettier": "^3.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/bcryptjs": "^2.4.0",
+    "tsx": "^4.0.0"
+  }
+}
