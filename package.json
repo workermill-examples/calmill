@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Open scheduling platform built by autonomous AI workers",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -10,7 +11,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -45,6 +47,7 @@
     "@vitest/coverage-v8": "^4.0.0",
     "@playwright/test": "^1.58.0",
     "eslint": "^9.0.0",
+    "@eslint/eslintrc": "^3.0.0",
     "eslint-config-next": "^16.1.0",
     "prettier": "^3.0.0",
     "@types/node": "^22.0.0",
