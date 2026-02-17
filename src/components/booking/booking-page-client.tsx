@@ -31,8 +31,18 @@ export interface BookingPageClientProps {
   weekStart?: 0 | 1;
   /** Optional pre-selected date from query param (YYYY-MM-DD) */
   initialDate?: string | null;
+  /** Optional pre-set timezone (IANA string). Overrides browser detection when provided. */
+  initialTimezone?: string | null;
   /** Override the "Back to profile" link href. Defaults to /{username}. */
   backHref?: string;
+  /**
+   * Override the default booking success handler.
+   * When provided, called instead of router.push("/booking/[uid]").
+   * Used by the embed variant to send postMessage before navigating.
+   */
+  onBookingSuccess?: (booking: Record<string, unknown>) => void;
+  /** When true, hides the "Back to profile" link (used in embed mode). */
+  isEmbed?: boolean;
 }
 
 // ─── BOOKING FLOW STATE ──────────────────────────────────────
@@ -252,12 +262,17 @@ export function BookingPageClient({
   customQuestions,
   weekStart = 0,
   initialDate,
+  initialTimezone,
   backHref,
+  onBookingSuccess,
+  isEmbed = false,
 }: BookingPageClientProps) {
   const router = useRouter();
 
   // ── Timezone state ─────────────────────────────────────────
-  const [timezone, setTimezone] = React.useState<string>(() => detectTimezone());
+  const [timezone, setTimezone] = React.useState<string>(
+    () => initialTimezone ?? detectTimezone()
+  );
 
   // ── Date selection ──────────────────────────────────────────
   const [selectedDate, setSelectedDate] = React.useState<string | null>(
@@ -337,6 +352,10 @@ export function BookingPageClient({
   };
 
   const handleBookingSuccess = (booking: Record<string, unknown>) => {
+    if (onBookingSuccess) {
+      onBookingSuccess(booking);
+      return;
+    }
     const uid = booking.uid as string;
     if (uid) {
       router.push(`/booking/${uid}`);
@@ -371,16 +390,18 @@ export function BookingPageClient({
           aria-hidden="true"
         />
 
-        {/* Back to profile */}
-        <div className="mb-4">
-          <a
-            href={backHref ?? `/${username}`}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <ChevronLeftIcon />
-            Back to profile
-          </a>
-        </div>
+        {/* Back to profile — hidden in embed mode */}
+        {!isEmbed && (
+          <div className="mb-4">
+            <a
+              href={backHref ?? `/${username}`}
+              className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <ChevronLeftIcon />
+              Back to profile
+            </a>
+          </div>
+        )}
 
         {/* Event info summary */}
         <div className="mb-6 space-y-1">
@@ -419,14 +440,16 @@ export function BookingPageClient({
 
       {/* Back link + event info */}
       <div className="mb-6">
-        <a
-          href={backHref ?? `/${username}`}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <ChevronLeftIcon />
-          Back to profile
-        </a>
-        <div className="mt-3 space-y-1">
+        {!isEmbed && (
+          <a
+            href={backHref ?? `/${username}`}
+            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <ChevronLeftIcon />
+            Back to profile
+          </a>
+        )}
+        <div className={isEmbed ? "space-y-1" : "mt-3 space-y-1"}>
           <h1 className="text-2xl font-semibold text-gray-900">{eventTypeTitle}</h1>
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
