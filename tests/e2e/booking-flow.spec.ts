@@ -843,9 +843,7 @@ test.describe("Public Booking Flow", () => {
 
       await goToBookingPage(page);
 
-      // The calendar loading skeleton should be visible briefly
-      const loadingSkeleton = page.locator('[aria-label="Loading calendar"]');
-      // It may or may not be visible depending on timing, but page should load
+      // The calendar loading skeleton may or may not be visible depending on timing, but page should load
       await waitForCalendarToLoad(page);
       await expect(getCalendar(page)).toBeVisible();
     });

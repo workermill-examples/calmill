@@ -69,8 +69,8 @@ export async function clickEventTypeCard(page: Page, title: string) {
  */
 export async function goToBookingPage(
   page: Page,
-  username = DEMO_USER.username,
-  slug = EVENT_30MIN.slug
+  username: string = DEMO_USER.username,
+  slug: string = EVENT_30MIN.slug
 ) {
   await page.goto(`/${username}/${slug}`);
 }
