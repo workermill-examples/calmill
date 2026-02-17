@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CalMill Embed Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 0 24px;
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      color: inherit;
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: rgba(99,102,241,0.25);
+      color: #a5b4fc;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      color: white;
+      padding: 80px 24px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: #94a3b8;
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+    .hero-chips {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #cbd5e1;
+    }
+    .chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .chip-dot-green  { background: #4ade80; }
+    .chip-dot-blue   { background: #60a5fa; }
+    .chip-dot-purple { background: #a78bfa; }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    /* ── Section headers ── */
+    .section {
+      margin-bottom: 72px;
+    }
+    .section-header {
+      margin-bottom: 32px;
+    }
+    .section-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6366f1;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .section-desc {
+      font-size: 1rem;
+      color: #64748b;
+      max-width: 560px;
+    }
+
+    /* ── Code snippet ── */
+    .code-block {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      position: relative;
+    }
+    .code-block pre {
+      font-family: "Fira Code", "Cascadia Code", ui-monospace, monospace;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      line-height: 1.7;
+      white-space: pre;
+    }
+    .code-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+    .token-tag  { color: #f87171; }
+    .token-attr { color: #fbbf24; }
+    .token-val  { color: #86efac; }
+    .token-comment { color: #475569; font-style: italic; }
+
+    /* ── Inline embed container ── */
+    .embed-wrapper {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .embed-wrapper-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+    }
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .window-dot-red    { background: #f87171; }
+    .window-dot-yellow { background: #fbbf24; }
+    .window-dot-green  { background: #4ade80; }
+    .embed-wrapper-body {
+      padding: 0;
+    }
+
+    /* ── Popup section ── */
+    .popup-demo-area {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 48px 24px;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .popup-demo-area p {
+      color: #64748b;
+      margin-bottom: 24px;
+      font-size: 1rem;
+    }
+
+    /* ── Popup trigger buttons ── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: white;
+      color: #6366f1;
+      border: 2px solid #6366f1;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+      text-decoration: none;
+    }
+    .btn-outline:hover {
+      background: #eef2ff;
+      transform: translateY(-1px);
+    }
+    .btn-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── Event log ── */
+    .event-log {
+      margin-top: 24px;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 24px;
+      text-align: left;
+    }
+    .event-log-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+    #event-log-entries {
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      color: #475569;
+      min-height: 40px;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .log-entry {
+      margin-bottom: 4px;
+    }
+    .log-entry:last-child { margin-bottom: 0; }
+    .log-time { color: #94a3b8; }
+    .log-event { color: #6366f1; font-weight: 600; }
+
+    /* ── How it works ── */
+    .how-it-works {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+    .how-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 28px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .how-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    .how-icon-blue   { background: #eff6ff; }
+    .how-icon-purple { background: #f5f3ff; }
+    .how-icon-green  { background: #f0fdf4; }
+    .how-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .how-card p {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: #0f172a;
+      color: #64748b;
+      padding: 32px 24px;
+      text-align: center;
+      font-size: 0.875rem;
+    }
+    footer a { color: #818cf8; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer .footer-inner { max-width: 1100px; margin: 0 auto; }
+
+    /* ── Divider ── */
+    hr.section-divider {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 0 0 72px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">📅</span>
+        CalMill
+      </a>
+      <span class="badge">Embed Demo</span>
+    </div>
+  </header>
+
+  <!-- ── Hero ── -->
+  <div class="hero">
+    <h1>Add scheduling to any website</h1>
+    <p>
+      Drop CalMill's booking widget anywhere with a single script tag.
+      Inline or popup — no iframes to configure, no backend to run.
+    </p>
+    <div class="hero-chips">
+      <span class="chip"><span class="chip-dot chip-dot-green"></span>Works cross-origin</span>
+      <span class="chip"><span class="chip-dot chip-dot-blue"></span>Auto-resizes</span>
+      <span class="chip"><span class="chip-dot chip-dot-purple"></span>postMessage events</span>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- ═══ SECTION 1: Inline embed ═══ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-eyebrow">Inline Widget</div>
+        <h2 class="section-title">Booking form, right in your page</h2>
+        <p class="section-desc">
+          Add a <code>&lt;div data-calmill-embed&gt;</code> and one script tag.
+          The widget renders a full booking flow without any page navigation.
+        </p>
+      </div>
+
+      <div class="code-label">Embed code</div>
+      <div class="code-block">
+        <pre><span class="token-comment">&lt;!-- Drop this where you want the booking widget --&gt;</span>
+<span class="token-tag">&lt;div</span> <span class="token-attr">data-calmill-embed</span>=<span class="token-val">"demo/30min"</span>
+     <span class="token-attr">data-calmill-theme</span>=<span class="token-val">"light"</span><span class="token-tag">&gt;&lt;/div&gt;</span>
+
+<span class="token-comment">&lt;!-- Load once anywhere on the page --&gt;</span>
+<span class="token-tag">&lt;script</span> <span class="token-attr">src</span>=<span class="token-val">"https://calmill.workermill.com/embed/calmill-embed.js"</span> <span class="token-attr">async</span><span class="token-tag">&gt;&lt;/script&gt;</span></pre>
+      </div>
+
+      <div class="embed-wrapper">
+        <div class="embed-wrapper-header">
+          <span class="window-dot window-dot-red"></span>
+          <span class="window-dot window-dot-yellow"></span>
+          <span class="window-dot window-dot-green"></span>
+        </div>
+        <div class="embed-wrapper-body">
+          <!-- LIVE INLINE EMBED — 30 Minute Meeting -->
+          <div data-calmill-embed="demo/30min" data-calmill-theme="light"></div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- ═══ SECTION 2: Popup embed ═══ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-eyebrow">Popup Widget</div>
+        <h2 class="section-title">Open booking as a modal overlay</h2>
+        <p class="section-desc">
+          Add <code>data-calmill-popup</code> to any element — button, link, or div.
+          Clicking it opens a full-screen overlay with the booking form.
+          Press Escape or click outside to close.
+        </p>
+      </div>
+
+      <div class="code-label">Embed code</div>
+      <div class="code-block">
+        <pre><span class="token-comment">&lt;!-- Add data-calmill-popup to any element --&gt;</span>
+<span class="token-tag">&lt;button</span> <span class="token-attr">data-calmill-popup</span>=<span class="token-val">"demo/30min"</span><span class="token-tag">&gt;</span>Book a 30 min meeting<span class="token-tag">&lt;/button&gt;</span>
+
+<span class="token-tag">&lt;a</span> <span class="token-attr">href</span>=<span class="token-val">"#"</span> <span class="token-attr">data-calmill-popup</span>=<span class="token-val">"demo/quick-chat"</span><span class="token-tag">&gt;</span>Schedule a quick chat<span class="token-tag">&lt;/a&gt;</span>
+
+<span class="token-comment">&lt;!-- Load once anywhere on the page --&gt;</span>
+<span class="token-tag">&lt;script</span> <span class="token-attr">src</span>=<span class="token-val">"https://calmill.workermill.com/embed/calmill-embed.js"</span> <span class="token-attr">async</span><span class="token-tag">&gt;&lt;/script&gt;</span></pre>
+      </div>
+
+      <div class="popup-demo-area">
+        <p>Click a button below to open the booking popup overlay:</p>
+        <div class="btn-group">
+          <!-- LIVE POPUP TRIGGER — 30 Minute Meeting -->
+          <button class="btn-primary" data-calmill-popup="demo/30min">
+            📅 Book a 30 min meeting
+          </button>
+          <!-- LIVE POPUP TRIGGER — Quick Chat -->
+          <a class="btn-outline" href="#" data-calmill-popup="demo/quick-chat">
+            💬 Schedule a quick chat
+          </a>
+        </div>
+
+        <div class="event-log">
+          <div class="event-log-title">postMessage event log</div>
+          <div id="event-log-entries">
+            <div class="log-entry" style="color:#94a3b8; font-style:italic;">
+              Waiting for booking events…
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- ═══ SECTION 3: How it works ═══ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-eyebrow">How it works</div>
+        <h2 class="section-title">Simple, reliable, cross-origin</h2>
+      </div>
+      <div class="how-it-works">
+        <div class="how-card">
+          <div class="how-icon how-icon-blue">📦</div>
+          <h3>One script tag</h3>
+          <p>
+            Load <code>calmill-embed.js</code> once. It scans the page for
+            <code>data-calmill-embed</code> and <code>data-calmill-popup</code>
+            attributes and initialises each widget automatically.
+          </p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon how-icon-purple">↔️</div>
+          <h3>Auto-resizing iframes</h3>
+          <p>
+            The embed page sends <code>postMessage({ type: "calmill:resize" })</code>
+            whenever the content height changes — calendar view, time selection,
+            form, and confirmation all resize smoothly.
+          </p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon how-icon-green">🔔</div>
+          <h3>Booking events</h3>
+          <p>
+            On successful booking, a <code>calmill:booked</code> CustomEvent is
+            dispatched on <code>document</code>. Listen with
+            <code>document.addEventListener('calmill:booked', handler)</code>
+            to trigger follow-up actions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ SECTION 4: Event listener example ═══ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-eyebrow">Developer API</div>
+        <h2 class="section-title">React to booking events</h2>
+        <p class="section-desc">
+          Listen for <code>calmill:booked</code> on <code>document</code> to
+          trigger analytics, show a thank-you message, or redirect the user.
+        </p>
+      </div>
+      <div class="code-block">
+        <pre><span class="token-comment">// Listen for successful bookings from any CalMill embed on the page</span>
+document.addEventListener(<span class="token-val">'calmill:booked'</span>, <span class="token-tag">function</span>(event) {
+  const booking = event.detail;
+  console.log(<span class="token-val">'Booking confirmed!'</span>, booking);
+
+  <span class="token-comment">// booking.uid       — unique booking ID</span>
+  <span class="token-comment">// booking.title     — event title</span>
+  <span class="token-comment">// booking.startTime — ISO 8601 start time</span>
+
+  <span class="token-comment">// Example: send to analytics</span>
+  analytics.track(<span class="token-val">'Meeting Booked'</span>, {
+    bookingId: booking.uid,
+    eventTitle: booking.title,
+    startTime: booking.startTime,
+  });
+});
+
+<span class="token-comment">// Programmatically open a popup</span>
+window.CalMill.openPopup(<span class="token-val">'demo/30min'</span>, { theme: <span class="token-val">'light'</span> });</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="footer-inner">
+      <p>
+        Built with <a href="https://workermill.com" target="_blank" rel="noopener">WorkerMill</a>
+        &nbsp;·&nbsp;
+        <a href="https://calmill.workermill.com" target="_blank" rel="noopener">CalMill</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/workermill-examples/calmill" target="_blank" rel="noopener">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- ── Embed script ── -->
+  <script src="/embed/calmill-embed.js" async></script>
+
+  <!-- ── Event log listener ── -->
+  <script>
+    (function () {
+      var logEl = document.getElementById('event-log-entries');
+      var hasFirstEvent = false;
+
+      function formatTime(d) {
+        return d.toLocaleTimeString('en-US', { hour12: false });
+      }
+
+      function appendLog(type, detail) {
+        if (!hasFirstEvent) {
+          logEl.innerHTML = '';
+          hasFirstEvent = true;
+        }
+        var entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML =
+          '<span class="log-time">[' + formatTime(new Date()) + ']</span> ' +
+          '<span class="log-event">' + type + '</span> ' +
+          JSON.stringify(detail);
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      // Listen for calmill:booked CustomEvent
+      document.addEventListener('calmill:booked', function (e) {
+        appendLog('calmill:booked', e.detail);
+      });
+
+      // Also intercept raw postMessage for resize logging
+      window.addEventListener('message', function (e) {
+        if (!e.data || typeof e.data !== 'object') return;
+        if (e.data.type === 'calmill:resize') {
+          appendLog('calmill:resize', { height: e.data.height });
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>
