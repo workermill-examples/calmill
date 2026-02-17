@@ -9,6 +9,7 @@ import { formatDateInTimezone } from "@/lib/utils";
 import { buildGoogleCalendarUrl } from "@/lib/ics";
 import { BookingAcceptedEmail } from "@/emails/booking-accepted";
 import { BookingCancelledEmail } from "@/emails/booking-cancelled";
+import { deliverWebhookEvent, buildBookingPayload, type WebhookEventType } from "@/lib/webhooks";
 import React from "react";
 
 type Params = { params: Promise<{ uid: string }> };
@@ -141,6 +142,7 @@ export async function PATCH(request: Request, { params }: Params) {
           select: {
             id: true,
             title: true,
+            slug: true,
             duration: true,
             locations: true,
             color: true,
@@ -165,6 +167,37 @@ export async function PATCH(request: Request, { params }: Params) {
     void sendStatusChangeEmails(updated, nextStatus, validated.reason).catch((err) => {
       console.error("[Bookings] Status change email notification failed:", err);
     });
+
+    // ── Fire-and-forget webhook delivery ─────────────────────────────────────
+    const webhookEventMap: Record<string, WebhookEventType> = {
+      ACCEPTED: "BOOKING_ACCEPTED",
+      REJECTED: "BOOKING_REJECTED",
+      CANCELLED: "BOOKING_CANCELLED",
+    };
+    const webhookEvent = webhookEventMap[nextStatus];
+    if (webhookEvent) {
+      void deliverWebhookEvent({
+        userId: updated.userId,
+        eventType: webhookEvent,
+        payload: buildBookingPayload(webhookEvent, {
+          uid: updated.uid,
+          title: updated.title,
+          startTime: updated.startTime,
+          endTime: updated.endTime,
+          status: updated.status,
+          attendeeName: updated.attendeeName,
+          attendeeEmail: updated.attendeeEmail,
+          attendeeTimezone: updated.attendeeTimezone,
+          eventType: {
+            title: updated.eventType.title,
+            slug: updated.eventType.slug,
+            duration: updated.eventType.duration,
+          },
+        }),
+      }).catch((err) => {
+        console.error(`[Webhooks] ${webhookEvent} delivery failed:`, err);
+      });
+    }
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
@@ -291,6 +324,7 @@ export async function PUT(request: Request, { params }: Params) {
             select: {
               id: true,
               title: true,
+              slug: true,
               duration: true,
               locations: true,
               color: true,
@@ -308,6 +342,29 @@ export async function PUT(request: Request, { params }: Params) {
         },
       }),
     ]);
+
+    // ── Fire-and-forget webhook delivery ─────────────────────────────────────
+    void deliverWebhookEvent({
+      userId: booking.userId,
+      eventType: "BOOKING_RESCHEDULED",
+      payload: buildBookingPayload("BOOKING_RESCHEDULED", {
+        uid: newBooking.uid,
+        title: newBooking.title,
+        startTime: newBooking.startTime,
+        endTime: newBooking.endTime,
+        status: newBooking.status,
+        attendeeName: newBooking.attendeeName,
+        attendeeEmail: newBooking.attendeeEmail,
+        attendeeTimezone: newBooking.attendeeTimezone,
+        eventType: {
+          title: newBooking.eventType.title,
+          slug: newBooking.eventType.slug,
+          duration: newBooking.eventType.duration,
+        },
+      }),
+    }).catch((err) => {
+      console.error("[Webhooks] BOOKING_RESCHEDULED delivery failed:", err);
+    });
 
     return NextResponse.json({ success: true, data: newBooking }, { status: 201 });
   } catch (error) {
@@ -344,6 +401,7 @@ type UpdatedBooking = {
   eventType: {
     id: string;
     title: string;
+    slug: string;
     duration: number;
     requiresConfirmation: boolean;
     user: {

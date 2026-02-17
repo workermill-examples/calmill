@@ -235,6 +235,16 @@ export const inviteTeamMemberSchema = z.object({
 
 // ─── WEBHOOK SCHEMAS ────────────────────────────────────────
 
+export const WEBHOOK_EVENT_TRIGGERS = [
+  "BOOKING_CREATED",
+  "BOOKING_CANCELLED",
+  "BOOKING_RESCHEDULED",
+  "BOOKING_ACCEPTED",
+  "BOOKING_REJECTED",
+] as const;
+
+export type WebhookEventTrigger = (typeof WEBHOOK_EVENT_TRIGGERS)[number];
+
 export const webhookSchema = z.object({
   url: z.string().url("Invalid webhook URL"),
   eventTriggers: z
@@ -242,6 +252,23 @@ export const webhookSchema = z.object({
     .min(1, "At least one event trigger is required"),
   active: z.boolean().default(true),
   secret: z.string().min(16, "Secret must be at least 16 characters").optional(),
+});
+
+export const webhookCreateSchema = z.object({
+  url: z.string().url("Invalid webhook URL"),
+  eventTriggers: z
+    .array(z.enum(WEBHOOK_EVENT_TRIGGERS))
+    .min(1, "At least one event trigger is required"),
+  active: z.boolean().optional().default(true),
+});
+
+export const webhookUpdateSchema = z.object({
+  url: z.string().url("Invalid webhook URL").optional(),
+  eventTriggers: z
+    .array(z.enum(WEBHOOK_EVENT_TRIGGERS))
+    .min(1, "At least one event trigger is required")
+    .optional(),
+  active: z.boolean().optional(),
 });
 
 // ─── API-SPECIFIC EVENT TYPE SCHEMAS ────────────────────────
@@ -379,3 +406,5 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type TeamInput = z.infer<typeof teamSchema>;
 export type InviteTeamMemberInput = z.infer<typeof inviteTeamMemberSchema>;
 export type WebhookInput = z.infer<typeof webhookSchema>;
+export type WebhookCreateInput = z.infer<typeof webhookCreateSchema>;
+export type WebhookUpdateInput = z.infer<typeof webhookUpdateSchema>;
