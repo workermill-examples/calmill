@@ -68,11 +68,11 @@ export async function getCollectiveSlots(params: TeamSlotParams): Promise<Availa
   );
 
   // Intersection: slot is available only if ALL members have it
-  const firstSlots = memberSlotSets[0];
+  const firstSlots = memberSlotSets[0]!;
   let intersection = new Set<string>(firstSlots.map((s) => s.time));
 
   for (let i = 1; i < memberSlotSets.length; i++) {
-    const memberTimes = new Set(memberSlotSets[i].map((s) => s.time));
+    const memberTimes = new Set(memberSlotSets[i]!.map((s) => s.time));
     intersection = new Set([...intersection].filter((t) => memberTimes.has(t)));
   }
 
@@ -133,7 +133,7 @@ export async function getRoundRobinAssignment(params: {
   }
 
   if (availableIds.length === 1) {
-    return availableIds[0];
+    return availableIds[0] ?? null;
   }
 
   // Get booking counts in the last 30 days for load balancing
@@ -143,7 +143,7 @@ export async function getRoundRobinAssignment(params: {
   const tied = availableIds.filter((id) => (bookingCounts.get(id) ?? 0) === minCount);
 
   if (tied.length === 1) {
-    return tied[0];
+    return tied[0] ?? null;
   }
 
   // Tiebreaker: pick the member who was assigned least recently
