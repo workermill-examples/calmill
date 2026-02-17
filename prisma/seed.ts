@@ -645,6 +645,304 @@ async function main() {
 
   console.log(`✅ Created ${bookingCount} bookings (15 total planned: 8 ACCEPTED, 3 PENDING, 2 CANCELLED, 2 past)`);
 
+  // ─── ADDITIONAL USERS: Alice & Bob ─────────────────────────────────
+
+  const alicePassword = await bcrypt.hash("alice1234", 12);
+  const bobPassword = await bcrypt.hash("bob1234", 12);
+
+  const aliceUser = await prisma.user.upsert({
+    where: { email: "alice@workermill.com" },
+    update: {},
+    create: {
+      email: "alice@workermill.com",
+      passwordHash: alicePassword,
+      username: "alice",
+      name: "Alice Cooper",
+      timezone: "America/Chicago",
+      weekStart: 1, // Monday
+      theme: "light",
+      emailVerified: new Date(),
+    },
+  });
+  console.log(`✅ Created/found user: ${aliceUser.email} (${aliceUser.id})`);
+
+  const bobUser = await prisma.user.upsert({
+    where: { email: "bob@workermill.com" },
+    update: {},
+    create: {
+      email: "bob@workermill.com",
+      passwordHash: bobPassword,
+      username: "bob",
+      name: "Bob Builder",
+      timezone: "America/Los_Angeles",
+      weekStart: 1, // Monday
+      theme: "light",
+      emailVerified: new Date(),
+    },
+  });
+  console.log(`✅ Created/found user: ${bobUser.email} (${bobUser.id})`);
+
+  // Alice's schedule: Mon-Fri 09:00-17:00 Central
+  let aliceSchedule = await prisma.schedule.findFirst({
+    where: { userId: aliceUser.id, name: "Business Hours" },
+  });
+  if (!aliceSchedule) {
+    aliceSchedule = await prisma.schedule.create({
+      data: {
+        name: "Business Hours",
+        isDefault: true,
+        timezone: "America/Chicago",
+        userId: aliceUser.id,
+      },
+    });
+    const weekdays = [1, 2, 3, 4, 5]; // Mon-Fri
+    for (const day of weekdays) {
+      await prisma.availability.create({
+        data: { day, startTime: "09:00", endTime: "17:00", scheduleId: aliceSchedule.id },
+      });
+    }
+    console.log(`✅ Created schedule for Alice: Business Hours`);
+  } else {
+    console.log(`✅ Found existing schedule for Alice`);
+  }
+
+  // Bob's schedule: Mon-Fri 09:00-17:00 Pacific
+  let bobSchedule = await prisma.schedule.findFirst({
+    where: { userId: bobUser.id, name: "Business Hours" },
+  });
+  if (!bobSchedule) {
+    bobSchedule = await prisma.schedule.create({
+      data: {
+        name: "Business Hours",
+        isDefault: true,
+        timezone: "America/Los_Angeles",
+        userId: bobUser.id,
+      },
+    });
+    const weekdays = [1, 2, 3, 4, 5]; // Mon-Fri
+    for (const day of weekdays) {
+      await prisma.availability.create({
+        data: { day, startTime: "09:00", endTime: "17:00", scheduleId: bobSchedule.id },
+      });
+    }
+    console.log(`✅ Created schedule for Bob: Business Hours`);
+  } else {
+    console.log(`✅ Found existing schedule for Bob`);
+  }
+
+  // ─── TEAM: CalMill Demo Team ────────────────────────────────────────
+
+  let demoTeam = await prisma.team.findFirst({
+    where: { slug: "calmill-demo-team" },
+  });
+
+  if (!demoTeam) {
+    demoTeam = await prisma.team.create({
+      data: {
+        name: "CalMill Demo Team",
+        slug: "calmill-demo-team",
+        bio: "The CalMill showcase team demonstrating round-robin and collective scheduling.",
+        logoUrl: null,
+      },
+    });
+    console.log(`✅ Created team: ${demoTeam.name} (${demoTeam.id})`);
+  } else {
+    console.log(`✅ Found existing team: ${demoTeam.name} (${demoTeam.id})`);
+  }
+
+  // Team members: demo user as OWNER, Alice and Bob as MEMBER (accepted)
+  const teamMembersData = [
+    { userId: demoUser.id, role: "OWNER" as const },
+    { userId: aliceUser.id, role: "MEMBER" as const },
+    { userId: bobUser.id, role: "MEMBER" as const },
+  ];
+
+  for (const memberData of teamMembersData) {
+    const existingMember = await prisma.teamMember.findFirst({
+      where: { teamId: demoTeam.id, userId: memberData.userId },
+    });
+    if (!existingMember) {
+      await prisma.teamMember.create({
+        data: {
+          teamId: demoTeam.id,
+          userId: memberData.userId,
+          role: memberData.role,
+          accepted: true,
+        },
+      });
+    }
+  }
+  console.log(`✅ Created/found team members (OWNER: demo, MEMBER: alice, bob)`);
+
+  // ─── TEAM EVENT TYPES ───────────────────────────────────────────────
+
+  // 1. Team Standup — 15min, ROUND_ROBIN, no confirmation
+  let teamStandup = await prisma.eventType.findFirst({
+    where: { teamId: demoTeam.id, slug: "team-standup" },
+  });
+  if (!teamStandup) {
+    teamStandup = await prisma.eventType.create({
+      data: {
+        title: "Team Standup",
+        slug: "team-standup",
+        description: "A quick 15 minute team standup. Distributed round-robin across team members.",
+        duration: 15,
+        isActive: true,
+        requiresConfirmation: false,
+        price: 0,
+        currency: "USD",
+        minimumNotice: 30,
+        futureLimit: 30,
+        schedulingType: "ROUND_ROBIN",
+        userId: demoUser.id,
+        teamId: demoTeam.id,
+        scheduleId: defaultSchedule.id,
+        locations: [{ type: "link", value: "Google Meet link will be provided" }],
+      },
+    });
+    console.log(`✅ Created team event type: ${teamStandup.title} (${teamStandup.id})`);
+  } else {
+    console.log(`✅ Found existing team event type: ${teamStandup.title}`);
+  }
+
+  // 2. Group Demo — 30min, COLLECTIVE, requires confirmation
+  let groupDemo = await prisma.eventType.findFirst({
+    where: { teamId: demoTeam.id, slug: "group-demo" },
+  });
+  if (!groupDemo) {
+    groupDemo = await prisma.eventType.create({
+      data: {
+        title: "Group Demo",
+        slug: "group-demo",
+        description: "A 30 minute group demo with the full team. All members must be available.",
+        duration: 30,
+        isActive: true,
+        requiresConfirmation: true,
+        price: 0,
+        currency: "USD",
+        minimumNotice: 120,
+        futureLimit: 60,
+        schedulingType: "COLLECTIVE",
+        userId: demoUser.id,
+        teamId: demoTeam.id,
+        scheduleId: defaultSchedule.id,
+        locations: [{ type: "link", value: "Zoom link will be provided" }],
+      },
+    });
+    console.log(`✅ Created team event type: ${groupDemo.title} (${groupDemo.id})`);
+  } else {
+    console.log(`✅ Found existing team event type: ${groupDemo.title}`);
+  }
+
+  // ─── TEAM BOOKINGS ──────────────────────────────────────────────────
+  // 5 bookings: 3 round-robin (assigned to different members), 2 collective
+
+  const teamBookingsData = [
+    // Round-robin booking #1 — assigned to demo user (Alex)
+    {
+      daysOffset: 2,
+      hour: 10,
+      eventType: teamStandup,
+      assignedUserId: demoUser.id,
+      attendeeName: "Rachel Green",
+      attendeeEmail: "rachel.green@example.com",
+      attendeeTimezone: "America/New_York",
+      status: "ACCEPTED" as const,
+      title: "Team Standup with Rachel Green",
+      description: "Round-robin standup — assigned to Alex Demo.",
+    },
+    // Round-robin booking #2 — assigned to Alice
+    {
+      daysOffset: 3,
+      hour: 11,
+      eventType: teamStandup,
+      assignedUserId: aliceUser.id,
+      attendeeName: "Ross Geller",
+      attendeeEmail: "ross.geller@example.com",
+      attendeeTimezone: "America/Chicago",
+      status: "ACCEPTED" as const,
+      title: "Team Standup with Ross Geller",
+      description: "Round-robin standup — assigned to Alice Cooper.",
+    },
+    // Round-robin booking #3 — assigned to Bob
+    {
+      daysOffset: 4,
+      hour: 9,
+      eventType: teamStandup,
+      assignedUserId: bobUser.id,
+      attendeeName: "Monica Geller",
+      attendeeEmail: "monica.geller@example.com",
+      attendeeTimezone: "America/Los_Angeles",
+      status: "ACCEPTED" as const,
+      title: "Team Standup with Monica Geller",
+      description: "Round-robin standup — assigned to Bob Builder.",
+    },
+    // Collective booking #1 — assigned to demo user (creator/administrative owner)
+    {
+      daysOffset: 6,
+      hour: 14,
+      eventType: groupDemo,
+      assignedUserId: demoUser.id,
+      attendeeName: "Joey Tribbiani",
+      attendeeEmail: "joey.tribbiani@example.com",
+      attendeeTimezone: "America/New_York",
+      status: "PENDING" as const,
+      title: "Group Demo with Joey Tribbiani",
+      description: "Collective demo — all team members attending.",
+    },
+    // Collective booking #2 — assigned to demo user (creator/administrative owner)
+    {
+      daysOffset: 10,
+      hour: 15,
+      eventType: groupDemo,
+      assignedUserId: demoUser.id,
+      attendeeName: "Chandler Bing",
+      attendeeEmail: "chandler.bing@example.com",
+      attendeeTimezone: "America/Chicago",
+      status: "ACCEPTED" as const,
+      title: "Group Demo with Chandler Bing",
+      description: "Collective demo — all team members attending.",
+    },
+  ];
+
+  let teamBookingCount = 0;
+  for (const booking of teamBookingsData) {
+    const startTime = new Date(now);
+    startTime.setDate(now.getDate() + booking.daysOffset);
+    startTime.setHours(booking.hour, 0, 0, 0);
+
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + booking.eventType.duration);
+
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        eventTypeId: booking.eventType.id,
+        attendeeEmail: booking.attendeeEmail,
+        startTime,
+      },
+    });
+
+    if (!existingBooking) {
+      await prisma.booking.create({
+        data: {
+          title: booking.title,
+          description: booking.description,
+          startTime,
+          endTime,
+          status: booking.status,
+          attendeeName: booking.attendeeName,
+          attendeeEmail: booking.attendeeEmail,
+          attendeeTimezone: booking.attendeeTimezone,
+          responses: Prisma.DbNull,
+          userId: booking.assignedUserId,
+          eventTypeId: booking.eventType.id,
+        },
+      });
+      teamBookingCount++;
+    }
+  }
+  console.log(`✅ Created ${teamBookingCount} team bookings (3 round-robin, 2 collective)`);
+
   console.log("\n🎉 Database seeding completed!");
   console.log("\n📝 Demo credentials:");
   console.log(`   Email: ${demoEmail}`);
@@ -655,6 +953,10 @@ async function main() {
   console.log(`   Event Types: Quick Chat, 30min Meeting, 60min Consultation, Technical Interview, Pair Programming, Coffee Chat (inactive)`);
   console.log(`   Bookings: 15 total (8 ACCEPTED, 3 PENDING, 2 CANCELLED, 2 past)`);
   console.log(`   Date Overrides: 1 blocked day, 1 modified hours`);
+  console.log(`   Team: CalMill Demo Team (slug: calmill-demo-team)`);
+  console.log(`   Team Members: Alex Demo (OWNER), Alice Cooper (MEMBER), Bob Builder (MEMBER)`);
+  console.log(`   Team Event Types: Team Standup (ROUND_ROBIN), Group Demo (COLLECTIVE)`);
+  console.log(`   Team Bookings: 5 total (3 round-robin ACCEPTED, 1 collective PENDING, 1 collective ACCEPTED)`);
 }
 
 main()

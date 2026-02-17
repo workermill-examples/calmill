@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/api-auth";
 import { bookingCreateSchema } from "@/lib/validations";
 import { getAvailableSlots } from "@/lib/slots";
+import { getRoundRobinSlots, getCollectiveSlots, getRoundRobinAssignment } from "@/lib/team-slots";
 import { sendEmail } from "@/lib/email";
 import { formatDateInTimezone } from "@/lib/utils";
 import { buildGoogleCalendarUrl } from "@/lib/ics";
@@ -120,15 +121,24 @@ export async function POST(request: Request) {
     const startTime = new Date(validated.startTime);
     const endTime = new Date(startTime.getTime() + eventType.duration * 60 * 1000);
 
-    // Re-verify the requested slot is still available
+    // Re-verify the requested slot is still available (dispatches to correct algorithm)
     const startDateStr = startTime.toISOString().slice(0, 10);
     const endDateStr = startDateStr;
-    const availableSlots = await getAvailableSlots({
+    const slotParams = {
       eventTypeId: validated.eventTypeId,
       startDate: startDateStr,
       endDate: endDateStr,
       timezone: validated.attendeeTimezone,
-    });
+    };
+
+    let availableSlots;
+    if (eventType.schedulingType === "ROUND_ROBIN") {
+      availableSlots = await getRoundRobinSlots(slotParams);
+    } else if (eventType.schedulingType === "COLLECTIVE") {
+      availableSlots = await getCollectiveSlots(slotParams);
+    } else {
+      availableSlots = await getAvailableSlots(slotParams);
+    }
 
     const isAvailable = availableSlots.some(
       (slot) => new Date(slot.time).getTime() === startTime.getTime()
@@ -141,11 +151,61 @@ export async function POST(request: Request) {
       );
     }
 
+    // Determine which user owns this booking and any extra notification recipients
+    let bookingUserId = eventType.userId;
+    let extraNotificationEmails: string[] = [];
+
+    if (eventType.schedulingType === "ROUND_ROBIN" && eventType.teamId) {
+      // Re-evaluate assignment at booking time to handle races
+      const assignedUserId = await getRoundRobinAssignment({
+        eventTypeId: eventType.id,
+        slotTime: startTime.toISOString(),
+        startDate: startDateStr,
+        endDate: endDateStr,
+        timezone: validated.attendeeTimezone,
+      });
+
+      if (!assignedUserId) {
+        return NextResponse.json(
+          { error: "The requested time slot is no longer available" },
+          { status: 409 }
+        );
+      }
+
+      bookingUserId = assignedUserId;
+      // Notification goes only to the assigned member (handled via bookingUserId below)
+    } else if (eventType.schedulingType === "COLLECTIVE" && eventType.teamId) {
+      // For collective: booking userId stays as event type creator (administrative owner)
+      // Notify ALL accepted team members
+      const teamMembers = await prisma.teamMember.findMany({
+        where: { teamId: eventType.teamId, accepted: true },
+        include: {
+          user: { select: { email: true } },
+        },
+      });
+
+      extraNotificationEmails = teamMembers
+        .map((m) => m.user.email)
+        .filter((email) => email !== eventType.user.email);
+    }
+
     // Determine initial status
     const status = eventType.requiresConfirmation ? "PENDING" : "ACCEPTED";
 
-    // Build booking title
-    const title = `${validated.attendeeName} <> ${eventType.user.name ?? eventType.user.email}`;
+    // Build booking title — use the assigned/creator user for display
+    const bookingUser =
+      bookingUserId === eventType.userId
+        ? eventType.user
+        : await prisma.user.findUnique({
+            where: { id: bookingUserId },
+            select: { id: true, name: true, email: true, timezone: true, username: true },
+          });
+
+    if (!bookingUser) {
+      return NextResponse.json({ error: "Assigned host not found" }, { status: 500 });
+    }
+
+    const title = `${validated.attendeeName} <> ${bookingUser.name ?? bookingUser.email}`;
 
     const booking = await prisma.booking.create({
       data: {
@@ -159,7 +219,7 @@ export async function POST(request: Request) {
         attendeeNotes: validated.attendeeNotes,
         location: validated.location,
         responses: validated.responses ?? undefined,
-        userId: eventType.userId,
+        userId: bookingUserId,
         eventTypeId: eventType.id,
       },
       include: {
@@ -185,7 +245,7 @@ export async function POST(request: Request) {
     });
 
     // ── Fire-and-forget email notifications ──────────────────────────────────
-    void sendBookingEmails(booking, eventType, status).catch((err) => {
+    void sendBookingEmails(booking, eventType, status, bookingUser, extraNotificationEmails).catch((err) => {
       console.error("[Bookings] Email notification failed:", err);
     });
 
@@ -239,13 +299,24 @@ type EventTypeEmailContext = {
   };
 };
 
+type HostUser = {
+  id: string;
+  name: string | null;
+  email: string;
+  timezone: string;
+  username: string;
+};
+
 async function sendBookingEmails(
   booking: BookingEmailContext,
   eventType: EventTypeEmailContext,
-  status: string
+  status: string,
+  hostUser?: HostUser,
+  extraNotificationEmails: string[] = []
 ): Promise<void> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://calmill.workermill.com";
-  const host = eventType.user;
+  // Use the assigned/override host if provided, otherwise fall back to event type creator
+  const host = hostUser ?? eventType.user;
   const hostName = host.name ?? host.email;
   const hostTimezone = host.timezone;
   const attendeeTimezone = booking.attendeeTimezone;
@@ -319,6 +390,31 @@ async function sendBookingEmails(
           rescheduleUrl,
           cancelUrl,
           notes: booking.attendeeNotes ?? undefined,
+        }),
+      })
+    );
+  }
+
+  // For collective bookings: also notify all other team members
+  for (const email of extraNotificationEmails) {
+    emailPromises.push(
+      sendEmail({
+        to: email,
+        subject: `New booking: ${booking.attendeeName} – ${eventType.title}`,
+        template: React.createElement(BookingNotificationEmail, {
+          hostName,
+          attendeeName: booking.attendeeName,
+          attendeeEmail: booking.attendeeEmail,
+          eventTypeTitle: eventType.title,
+          duration: eventType.duration,
+          startTime: startTimeForHost,
+          endTime: endTimeForHost,
+          timezone: hostTimezone,
+          location: booking.location ?? undefined,
+          notes: booking.attendeeNotes ?? undefined,
+          responses,
+          bookingUrl,
+          requiresConfirmation: eventType.requiresConfirmation,
         }),
       })
     );
