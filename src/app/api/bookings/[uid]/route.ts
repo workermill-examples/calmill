@@ -4,6 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/api-auth";
 import { bookingActionSchema, bookingRescheduleSchema } from "@/lib/validations";
 import { getAvailableSlots } from "@/lib/slots";
+import { sendEmail } from "@/lib/email";
+import { formatDateInTimezone } from "@/lib/utils";
+import { buildGoogleCalendarUrl } from "@/lib/ics";
+import { BookingAcceptedEmail } from "@/emails/booking-accepted";
+import { BookingCancelledEmail } from "@/emails/booking-cancelled";
+import React from "react";
 
 type Params = { params: Promise<{ uid: string }> };
 
@@ -138,11 +144,14 @@ export async function PATCH(request: Request, { params }: Params) {
             duration: true,
             locations: true,
             color: true,
+            requiresConfirmation: true,
             user: {
               select: {
                 id: true,
                 name: true,
+                email: true,
                 username: true,
+                timezone: true,
                 avatarUrl: true,
                 bio: true,
               },
@@ -150,6 +159,11 @@ export async function PATCH(request: Request, { params }: Params) {
           },
         },
       },
+    });
+
+    // ── Fire-and-forget email notifications ──────────────────────────────────
+    void sendStatusChangeEmails(updated, nextStatus, validated.reason).catch((err) => {
+      console.error("[Bookings] Status change email notification failed:", err);
     });
 
     return NextResponse.json({ success: true, data: updated });
@@ -313,4 +327,136 @@ export async function PUT(request: Request, { params }: Params) {
     console.error("PUT /api/bookings/[uid] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+}
+
+// ─── EMAIL HELPERS ────────────────────────────────────────────────────────────
+
+type UpdatedBooking = {
+  uid: string;
+  title: string;
+  startTime: Date;
+  endTime: Date;
+  attendeeName: string;
+  attendeeEmail: string;
+  attendeeTimezone: string;
+  location: string | null;
+  cancellationReason: string | null;
+  eventType: {
+    id: string;
+    title: string;
+    duration: number;
+    requiresConfirmation: boolean;
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+      username: string;
+      timezone: string;
+    };
+  };
+};
+
+async function sendStatusChangeEmails(
+  booking: UpdatedBooking,
+  nextStatus: string,
+  reason?: string | null
+): Promise<void> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://calmill.workermill.com";
+  const host = booking.eventType.user;
+  const hostName = host.name ?? host.email;
+  const hostTimezone = host.timezone;
+  const attendeeTimezone = booking.attendeeTimezone;
+
+  const DATE_FORMAT = "MMM d, yyyy 'at' h:mm a";
+  const startTimeForAttendee = formatDateInTimezone(booking.startTime, attendeeTimezone, DATE_FORMAT);
+  const endTimeForAttendee = formatDateInTimezone(booking.endTime, attendeeTimezone, "h:mm a");
+  const startTimeForHost = formatDateInTimezone(booking.startTime, hostTimezone, DATE_FORMAT);
+  const endTimeForHost = formatDateInTimezone(booking.endTime, hostTimezone, "h:mm a");
+
+  const rescheduleUrl = `${appUrl}/${host.username}/${booking.eventType.id}?reschedule=${booking.uid}`;
+  const cancelUrl = `${appUrl}/api/bookings/${booking.uid}`;
+  const rebookUrl = `${appUrl}/${host.username}/${booking.eventType.id}`;
+
+  const googleCalendarUrl = buildGoogleCalendarUrl({
+    uid: booking.uid,
+    title: booking.title,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    location: booking.location ?? undefined,
+  });
+
+  const emailPromises: Promise<void>[] = [];
+
+  if (nextStatus === "ACCEPTED") {
+    // Attendee gets the "meeting confirmed by host" email
+    emailPromises.push(
+      sendEmail({
+        to: booking.attendeeEmail,
+        subject: `Meeting confirmed: ${booking.eventType.title} with ${hostName}`,
+        template: React.createElement(BookingAcceptedEmail, {
+          hostName,
+          attendeeName: booking.attendeeName,
+          eventTypeTitle: booking.eventType.title,
+          duration: booking.eventType.duration,
+          startTime: startTimeForAttendee,
+          endTime: endTimeForAttendee,
+          timezone: attendeeTimezone,
+          location: booking.location ?? undefined,
+          googleCalendarUrl,
+          rescheduleUrl,
+          cancelUrl,
+        }),
+      })
+    );
+  } else if (nextStatus === "CANCELLED" || nextStatus === "REJECTED") {
+    const isRejection = nextStatus === "REJECTED";
+    const cancellationReason = reason ?? booking.cancellationReason ?? undefined;
+
+    // Attendee gets cancellation/rejection email
+    emailPromises.push(
+      sendEmail({
+        to: booking.attendeeEmail,
+        subject: isRejection
+          ? `Meeting request declined: ${booking.eventType.title}`
+          : `Meeting cancelled: ${booking.eventType.title}`,
+        template: React.createElement(BookingCancelledEmail, {
+          recipientName: booking.attendeeName,
+          hostName,
+          attendeeName: booking.attendeeName,
+          isHost: false,
+          eventTypeTitle: booking.eventType.title,
+          startTime: startTimeForAttendee,
+          endTime: endTimeForAttendee,
+          timezone: attendeeTimezone,
+          cancellationReason,
+          isRejection,
+          rebookUrl,
+        }),
+      })
+    );
+
+    // Host gets cancellation notification (but not rejection — they initiated it)
+    if (!isRejection) {
+      emailPromises.push(
+        sendEmail({
+          to: host.email,
+          subject: `Meeting cancelled: ${booking.eventType.title} with ${booking.attendeeName}`,
+          template: React.createElement(BookingCancelledEmail, {
+            recipientName: hostName,
+            hostName,
+            attendeeName: booking.attendeeName,
+            isHost: true,
+            eventTypeTitle: booking.eventType.title,
+            startTime: startTimeForHost,
+            endTime: endTimeForHost,
+            timezone: hostTimezone,
+            cancellationReason,
+            isRejection: false,
+          }),
+        })
+      );
+    }
+  }
+
+  await Promise.allSettled(emailPromises);
 }
