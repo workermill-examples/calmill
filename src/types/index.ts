@@ -67,8 +67,25 @@ export type BookingSlot = {
 };
 
 export type AvailableSlot = {
-  time: string; // ISO string
-  available: boolean;
+  time: string;      // ISO 8601 datetime in UTC
+  localTime: string; // HH:mm in attendee's timezone
+  duration: number;  // minutes
+};
+
+export type BookingWithDetails = Booking & {
+  eventType: Pick<EventType, "id" | "title" | "duration" | "locations" | "color"> & {
+    user: PublicUser;
+  };
+};
+
+export type EventTypeWithSchedule = EventType & {
+  schedule: (Schedule & {
+    availability: Availability[];
+    dateOverrides: DateOverride[];
+  }) | null;
+  _count?: {
+    bookings: number;
+  };
 };
 
 // ─── SCHEDULE TYPES ─────────────────────────────────────────
