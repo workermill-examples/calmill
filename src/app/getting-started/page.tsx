@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/copy-button";
 
 export default async function GettingStartedPage() {
   const session = await auth();
@@ -98,17 +99,9 @@ export default async function GettingStartedPage() {
                       {process.env.NEXT_PUBLIC_APP_URL || "https://calmill.workermill.com"}/
                       {session.user.username}
                     </code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          `${process.env.NEXT_PUBLIC_APP_URL || "https://calmill.workermill.com"}/${session.user.username}`
-                        );
-                      }}
-                    >
-                      Copy
-                    </Button>
+                    <CopyButton
+                      text={`${process.env.NEXT_PUBLIC_APP_URL || "https://calmill.workermill.com"}/${session.user.username}`}
+                    />
                   </div>
                 </div>
               </div>
