@@ -121,7 +121,6 @@ interface TimezoneOption {
 function buildTimezoneOptions(): TimezoneOption[] {
   let timezones: string[] = [];
   try {
-    // @ts-expect-error — Intl.supportedValuesOf is available in modern environments
     timezones = Intl.supportedValuesOf("timeZone") as string[];
   } catch {
     // Fallback to a minimal list if the API isn't available

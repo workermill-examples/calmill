@@ -176,6 +176,7 @@ function LocationDisplay({ locations }: { locations: EventTypeLocation[] | null 
   if (!locations || locations.length === 0) return null;
 
   const loc = locations[0];
+  if (!loc) return null;
   const Icon =
     loc.type === "link" ? VideoIcon : loc.type === "phone" ? PhoneIcon : MapPinIcon;
 
