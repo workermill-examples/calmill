@@ -373,38 +373,16 @@ export function isSlotConflicting(
   beforeBuffer: number,
   afterBuffer: number
 ): boolean {
-  const slotWithBufferStart = addMinutes(slotStart, -beforeBuffer);
-  const slotWithBufferEnd = addMinutes(slotEnd, afterBuffer);
-
   for (const booking of existingBookings) {
-    const bookingConflictStart = addMinutes(booking.startTime, -beforeBuffer);
-    const bookingConflictEnd = addMinutes(booking.endTime, afterBuffer);
+    // Only expand the existing booking by its buffers to create the blocked zone.
+    // The candidate slot is checked as-is against that blocked zone.
+    const blockedStart = addMinutes(booking.startTime, -beforeBuffer);
+    const blockedEnd = addMinutes(booking.endTime, afterBuffer);
 
     // Check overlap: two intervals [A,B] and [C,D] overlap if A < D && C < B
-    if (
-      slotWithBufferStart < bookingConflictEnd &&
-      bookingConflictStart < slotWithBufferEnd
-    ) {
+    if (slotStart < blockedEnd && blockedStart < slotEnd) {
       return true;
     }
   }
   return false;
-}
-
-// ─── HELPER: Count bookings for a specific calendar day ─────────────────────
-
-export function countBookingsForDay(bookings: ExistingBooking[], dayStart: Date, dayEnd: Date): number {
-  return bookings.filter(
-    (b) => b.startTime < dayEnd && b.endTime > dayStart
-  ).length;
-}
-
-// ─── HELPER: Count bookings for a specific week (Mon-Sun) ───────────────────
-
-export function countBookingsForWeek(bookings: ExistingBooking[], anyDayInWeek: Date): number {
-  const weekStart = startOfWeek(anyDayInWeek, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(anyDayInWeek, { weekStartsOn: 1 });
-  return bookings.filter(
-    (b) => b.startTime < weekEnd && b.endTime > weekStart
-  ).length;
 }
