@@ -1,6 +1,5 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import { Pool } from "@neondatabase/serverless";
 
 // Prevent multiple PrismaClient instances in development
 // This is critical for serverless environments and hot-reloading
@@ -19,11 +18,8 @@ function createPrismaClient() {
     );
   }
 
-  // Create Neon connection pool
-  const pool = new Pool({ connectionString });
-
-  // Create Prisma adapter for Neon
-  const adapter = new PrismaNeon(pool);
+  // Create Prisma adapter for Neon (pass connectionString directly)
+  const adapter = new PrismaNeon({ connectionString });
 
   // Initialize PrismaClient with the adapter
   return new PrismaClient({
