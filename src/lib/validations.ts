@@ -244,17 +244,136 @@ export const webhookSchema = z.object({
   secret: z.string().min(16, "Secret must be at least 16 characters").optional(),
 });
 
+// ─── API-SPECIFIC EVENT TYPE SCHEMAS ────────────────────────
+
+export const eventTypeCreateSchema = z.object({
+  title: z.string().min(1).max(100),
+  slug: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
+  duration: z.number().int().min(5).max(720),
+  locations: z
+    .array(
+      z.object({
+        type: z.enum(["inPerson", "link", "phone"]),
+        value: z.string(),
+      })
+    )
+    .optional(),
+  requiresConfirmation: z.boolean().optional(),
+  price: z.number().int().min(0).optional(),
+  currency: z.string().length(3).optional(),
+  minimumNotice: z.number().int().min(0).optional(),
+  beforeBuffer: z.number().int().min(0).max(120).optional(),
+  afterBuffer: z.number().int().min(0).max(120).optional(),
+  slotInterval: z.number().int().min(5).max(120).optional(),
+  maxBookingsPerDay: z.number().int().min(1).optional(),
+  maxBookingsPerWeek: z.number().int().min(1).optional(),
+  futureLimit: z.number().int().min(1).max(365).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
+  customQuestions: z
+    .array(
+      z.object({
+        id: z.string(),
+        label: z.string().min(1),
+        type: z.enum(["text", "textarea", "select", "radio", "checkbox", "phone"]),
+        required: z.boolean(),
+        options: z.array(z.string()).optional(),
+      })
+    )
+    .optional(),
+  scheduleId: z.string().cuid().optional(),
+  recurringEnabled: z.boolean().optional(),
+  recurringMaxOccurrences: z.number().int().min(1).max(52).optional(),
+  recurringFrequency: z.enum(["weekly", "biweekly", "monthly"]).optional(),
+});
+
+export const eventTypeUpdateSchema = eventTypeCreateSchema.partial();
+
+// ─── API-SPECIFIC SCHEDULE SCHEMA ───────────────────────────
+
+export const scheduleCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  timezone: z.string().min(1),
+  isDefault: z.boolean().optional(),
+  availability: z
+    .array(
+      z.object({
+        day: z.number().int().min(0).max(6),
+        startTime: z.string().regex(/^\d{2}:\d{2}$/),
+        endTime: z.string().regex(/^\d{2}:\d{2}$/),
+      })
+    )
+    .min(1),
+});
+
+export const scheduleUpdateSchema = scheduleCreateSchema.partial().extend({
+  availability: z
+    .array(
+      z.object({
+        day: z.number().int().min(0).max(6),
+        startTime: z.string().regex(/^\d{2}:\d{2}$/),
+        endTime: z.string().regex(/^\d{2}:\d{2}$/),
+      })
+    )
+    .min(1)
+    .optional(),
+});
+
+// ─── API-SPECIFIC BOOKING SCHEMAS ───────────────────────────
+
+export const bookingCreateSchema = z.object({
+  eventTypeId: z.string().cuid(),
+  startTime: z.string().datetime(),
+  attendeeName: z.string().min(1).max(100),
+  attendeeEmail: z.string().email(),
+  attendeeTimezone: z.string(),
+  attendeeNotes: z.string().max(1000).optional(),
+  location: z.string().optional(),
+  responses: z.record(z.string(), z.any()).optional(),
+  recurringCount: z.number().int().min(1).max(52).optional(),
+});
+
+export const bookingActionSchema = z.object({
+  action: z.enum(["accept", "reject", "cancel"]),
+  reason: z.string().max(500).optional(),
+});
+
+export const bookingRescheduleSchema = z.object({
+  startTime: z.string().datetime(),
+  reason: z.string().max(500).optional(),
+});
+
+// ─── SLOT QUERY SCHEMA ───────────────────────────────────────
+
+export const slotQuerySchema = z.object({
+  eventTypeId: z.string().cuid(),
+  startDate: z.string().date(),
+  endDate: z.string().date(),
+  timezone: z.string().min(1),
+});
+
 // ─── TYPE EXPORTS ───────────────────────────────────────────
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type EventTypeInput = z.infer<typeof eventTypeSchema>;
+export type EventTypeCreateInput = z.infer<typeof eventTypeCreateSchema>;
+export type EventTypeUpdateInput = z.infer<typeof eventTypeUpdateSchema>;
 export type BookingInput = z.infer<typeof bookingSchema>;
+export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;
+export type BookingActionInput = z.infer<typeof bookingActionSchema>;
+export type BookingRescheduleInput = z.infer<typeof bookingRescheduleSchema>;
 export type CancelBookingInput = z.infer<typeof cancelBookingSchema>;
 export type RescheduleBookingInput = z.infer<typeof rescheduleBookingSchema>;
 export type AvailabilityInput = z.infer<typeof availabilitySchema>;
 export type ScheduleInput = z.infer<typeof scheduleSchema>;
+export type ScheduleCreateInput = z.infer<typeof scheduleCreateSchema>;
+export type ScheduleUpdateInput = z.infer<typeof scheduleUpdateSchema>;
 export type DateOverrideInput = z.infer<typeof dateOverrideSchema>;
+export type SlotQueryInput = z.infer<typeof slotQuerySchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type TeamInput = z.infer<typeof teamSchema>;
