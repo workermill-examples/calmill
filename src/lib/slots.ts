@@ -3,6 +3,7 @@ import { TZDate } from "@date-fns/tz";
 import { prisma } from "@/lib/prisma";
 import type { AvailableSlot } from "@/types";
 import type { Availability, DateOverride } from "@/generated/prisma/client";
+import { GoogleCalendarService } from "@/lib/google-calendar";
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
   const futureLimitDate = addDays(now, eventType.futureLimit);
 
   // 3. Load existing bookings in the range (PENDING and ACCEPTED only)
-  const existingBookings: ExistingBooking[] = await prisma.booking.findMany({
+  const calMillBookings: ExistingBooking[] = await prisma.booking.findMany({
     where: {
       eventTypeId: eventTypeId,
       startTime: { lte: new Date(rangeEnd.getTime()) },
@@ -74,6 +75,40 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
       endTime: true,
     },
   });
+
+  // 3b. Fetch busy times from connected Google Calendars and merge with bookings
+  const calendarConnections = await prisma.calendarConnection.findMany({
+    where: { userId: eventType.userId },
+  });
+
+  let calendarBusyTimes: ExistingBooking[] = [];
+  if (calendarConnections.length > 0) {
+    const busyTimeResults = await Promise.allSettled(
+      calendarConnections.map(async (connection) => {
+        const service = new GoogleCalendarService(connection);
+        return service.getBusyTimes(
+          new Date(rangeStart.getTime()),
+          new Date(rangeEnd.getTime())
+        );
+      })
+    );
+
+    for (const result of busyTimeResults) {
+      if (result.status === "fulfilled") {
+        // Convert BusyTime { start, end } to ExistingBooking { startTime, endTime }
+        const converted: ExistingBooking[] = result.value.map((bt) => ({
+          startTime: bt.start,
+          endTime: bt.end,
+        }));
+        calendarBusyTimes = calendarBusyTimes.concat(converted);
+      } else {
+        console.warn("[Slots] Failed to fetch Google Calendar busy times:", result.reason);
+      }
+    }
+  }
+
+  // Merge internal bookings with external calendar busy times
+  const existingBookings: ExistingBooking[] = [...calMillBookings, ...calendarBusyTimes];
 
   // 4. Build date overrides map (keyed by YYYY-MM-DD in the schedule's timezone)
   // @db.Date comes back as UTC midnight; we reformat it in the schedule's timezone
