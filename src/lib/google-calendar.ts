@@ -252,7 +252,8 @@ export class GoogleCalendarService {
       }
     );
 
-    if (!response.ok) {
+    // 404 means the event is already gone — treat as success (idempotent delete)
+    if (!response.ok && response.status !== 404) {
       const error = await response.json().catch(() => ({}));
       throw new Error(
         `Failed to delete Google Calendar event: ${response.status} ${JSON.stringify(error)}`
