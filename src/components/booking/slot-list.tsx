@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { cn, formatDateInTimezone } from "@/lib/utils";
 import type { AvailableSlot } from "@/types";
 
