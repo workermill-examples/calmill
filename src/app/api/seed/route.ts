@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -22,7 +23,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!token || token !== expectedToken) {
+    if (
+      !token ||
+      !crypto.timingSafeEqual(
+        Buffer.from(token),
+        Buffer.from(expectedToken)
+      )
+    ) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
