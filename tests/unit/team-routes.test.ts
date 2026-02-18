@@ -28,10 +28,10 @@ vi.mock("next/server", () => ({
 import { GET as _listTeams, POST as _createTeam } from "@/app/api/teams/route";
 import {
   GET as _getTeam,
-  PUT as updateTeamHandler,
+  PUT as _updateTeam,
   DELETE as _deleteTeam,
 } from "@/app/api/teams/[slug]/route";
-import { GET as listMembersHandler, POST as _inviteMember } from "@/app/api/teams/[slug]/members/route";
+import { GET as _listMembers, POST as _inviteMember } from "@/app/api/teams/[slug]/members/route";
 import {
   PUT as _updateMemberRole,
   DELETE as _removeMember,
@@ -45,11 +45,7 @@ const createTeam = _createTeam as (...args: any[]) => Promise<any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getTeam = _getTeam as (...args: any[]) => Promise<any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const _updateTeam = updateTeamHandler as (...args: any[]) => Promise<any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const deleteTeam = _deleteTeam as (...args: any[]) => Promise<any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const _listMembers = listMembersHandler as (...args: any[]) => Promise<any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const inviteMember = _inviteMember as (...args: any[]) => Promise<any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,7 +184,7 @@ describe("POST /api/teams", () => {
 
     await createTeam(makeRequest({ name: "My Team" }, "POST"), makeSlugContext(""));
 
-    const createCall = mockPrismaClient.team.create.mock.calls[0][0];
+    const createCall = mockPrismaClient.team.create.mock.calls[0]![0];
     // Slug should be derived from "My Team" → "my-team"
     expect(createCall.data.slug).toBe("my-team");
   });
@@ -205,7 +201,7 @@ describe("POST /api/teams", () => {
 
     await createTeam(makeRequest({ name: "Test Team" }, "POST"), makeSlugContext(""));
 
-    const createCall = mockPrismaClient.team.create.mock.calls[0][0];
+    const createCall = mockPrismaClient.team.create.mock.calls[0]![0];
     expect(createCall.data.slug).toBe("test-team-2");
   });
 
@@ -301,7 +297,7 @@ describe("DELETE /api/teams/[slug]", () => {
     mockPrismaClient.teamMember.findFirst.mockResolvedValue(null);
 
     const response = await deleteTeam(makeRequest(undefined, "DELETE"), makeSlugContext("no-such-team"));
-    const _data = await response.json();
+    await response.json();
 
     expect(response.status).toBe(404);
   });
@@ -621,7 +617,7 @@ describe("GET /api/teams/invitations", () => {
 
     await listInvitations(makeRequest(), { params: Promise.resolve({}) });
 
-    const callArgs = mockPrismaClient.teamMember.findMany.mock.calls[0][0];
+    const callArgs = mockPrismaClient.teamMember.findMany.mock.calls[0]![0];
     expect(callArgs.where).toMatchObject({ accepted: false });
   });
 });
