@@ -230,7 +230,7 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
         // For "upcoming" tab (PENDING+ACCEPTED), we fetch without status filter
         // then filter client-side.
         if (tabConfig.statuses.length === 1) {
-          params.set("status", tabConfig.statuses[0]);
+          params.set("status", tabConfig.statuses[0]!);
           const res = await fetch(`/api/bookings?${params.toString()}`);
           if (res.ok) {
             const data = await res.json();
@@ -315,11 +315,6 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
     setSearch("");
     setStartDate("");
     setEndDate("");
-  }
-
-  function handleSearch(value: string) {
-    setSearch(value);
-    fetchBookings(activeTab, page, value, startDate, endDate);
   }
 
   function handleApplyFilters() {

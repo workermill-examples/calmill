@@ -18,6 +18,7 @@ const ROLE_TIER: Record<TeamRole, number> = {
 export const GET = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
+    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     // Require accepted membership to view member list
     const actorMembership = await prisma.teamMember.findFirst({
@@ -56,6 +57,7 @@ export const GET = withAuth(async (_request, context, user) => {
 export const POST = withAuth(async (request, context, user) => {
   try {
     const { slug } = await context.params;
+    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     // Require ADMIN or OWNER role (verifyTeamRole currently allows pending members — we need accepted check)
     const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
