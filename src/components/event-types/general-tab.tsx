@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { cn, generateSlug } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -52,22 +52,21 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
     (PRESET_COLORS as readonly string[]).includes(eventType.color ?? "#3b82f6") ? "" : (eventType.color ?? "")
   );
 
-  // Sync slug preview when title changes (but only if slug matches the old generated slug)
+  // Derive slug from title when not manually edited
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-  useEffect(() => {
-    if (!slugManuallyEdited && title) {
-      setSlug(generateSlug(title));
-    }
-  }, [title, slugManuallyEdited]);
+  const derivedSlug = useMemo(
+    () => (slugManuallyEdited || !title ? slug : generateSlug(title)),
+    [title, slug, slugManuallyEdited]
+  );
 
   function handleTitleBlur() {
     if (!title.trim()) return;
     onTitleChange(title.trim());
-    onSave({ title: title.trim(), ...(slugManuallyEdited ? {} : { slug }) });
+    onSave({ title: title.trim(), ...(slugManuallyEdited ? {} : { slug: derivedSlug }) });
   }
 
   function handleSlugBlur() {
-    if (slug) onSave({ slug });
+    if (derivedSlug) onSave({ slug: derivedSlug });
   }
 
   function handleDescriptionBlur() {
@@ -154,7 +153,7 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
             <input
               id="et-slug"
               type="text"
-              value={slug}
+              value={derivedSlug}
               onChange={(e) => {
                 setSlug(e.target.value);
                 setSlugManuallyEdited(true);
@@ -165,7 +164,7 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
             />
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            Public booking URL: /{username}/{slug}
+            Public booking URL: /{username}/{derivedSlug}
           </p>
         </div>
 

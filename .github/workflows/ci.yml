@@ -148,6 +148,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/calmill_e2e
       DIRECT_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/calmill_e2e
       AUTH_SECRET: test-secret-for-e2e
+      SEED_TOKEN: test-seed-token-for-e2e
       NEXTAUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
 
