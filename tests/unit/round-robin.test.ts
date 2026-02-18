@@ -61,7 +61,7 @@ function setupTeamEventType(memberIds: string[]) {
 }
 
 /** Sets up getMemberAvailableSlots: creator uses team event type, others use their own */
-function setupMemberEventTypeLookup(creatorId: string, otherIds: string[]) {
+function setupMemberEventTypeLookup(_creatorId: string, _otherIds: string[]) {
   // For non-creator members, findUnique returns same team event type, findFirst returns null
   // (so they fall back to the team event type themselves)
   // We control what slots getMemberAvailableSlots returns via mockGetAvailableSlots
@@ -130,8 +130,8 @@ describe("getRoundRobinSlots", () => {
     });
 
     expect(result).toHaveLength(2);
-    expect(result[0].time).toBe("2026-03-01T09:00:00Z");
-    expect(result[1].time).toBe("2026-03-01T09:30:00Z");
+    expect(result[0]!.time).toBe("2026-03-01T09:00:00Z");
+    expect(result[1]!.time).toBe("2026-03-01T09:30:00Z");
   });
 
   it("unions slots from multiple members (slot available if ANY member is free)", async () => {
@@ -193,9 +193,9 @@ describe("getRoundRobinSlots", () => {
       timezone: "UTC",
     });
 
-    expect(result[0].time).toBe("2026-03-01T09:00:00Z");
-    expect(result[1].time).toBe("2026-03-01T10:00:00Z");
-    expect(result[2].time).toBe("2026-03-01T11:00:00Z");
+    expect(result[0]!.time).toBe("2026-03-01T09:00:00Z");
+    expect(result[1]!.time).toBe("2026-03-01T10:00:00Z");
+    expect(result[2]!.time).toBe("2026-03-01T11:00:00Z");
   });
 
   it("returns empty array when all members have no availability", async () => {
@@ -417,7 +417,7 @@ describe("getBookingCountByMember", () => {
 
     await getBookingCountByMember(EVENT_TYPE_ID, [MEMBER_A], 30);
 
-    const callArgs = mockBookingGroupBy.mock.calls[0][0];
+    const callArgs = mockBookingGroupBy.mock.calls[0]![0];
     const since = callArgs.where.createdAt.gte;
     const daysDiff = Math.round((Date.now() - since.getTime()) / (1000 * 60 * 60 * 24));
     expect(daysDiff).toBeCloseTo(30, 0);
@@ -428,7 +428,7 @@ describe("getBookingCountByMember", () => {
 
     await getBookingCountByMember(EVENT_TYPE_ID, [MEMBER_A], 30);
 
-    const callArgs = mockBookingGroupBy.mock.calls[0][0];
+    const callArgs = mockBookingGroupBy.mock.calls[0]![0];
     expect(callArgs.where.status).toEqual({ in: ["PENDING", "ACCEPTED"] });
   });
 });

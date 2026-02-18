@@ -10,6 +10,7 @@ import { verifyTeamMembership, verifyTeamRole } from "@/lib/team-auth";
 export const GET = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
+    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     // Verify the user is a member
     const memberResult = await verifyTeamMembership(user.id, slug);
@@ -55,6 +56,7 @@ export const GET = withAuth(async (_request, context, user) => {
 export const PUT = withAuth(async (request, context, user) => {
   try {
     const { slug } = await context.params;
+    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     // Require ADMIN or OWNER role
     const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
@@ -152,6 +154,7 @@ export const PUT = withAuth(async (request, context, user) => {
 export const DELETE = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
+    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     // Require OWNER role
     const roleResult = await verifyTeamRole(user.id, slug, "OWNER");
