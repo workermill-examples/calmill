@@ -1,8 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { signIn } from "@/lib/auth";
+import { auth, signIn } from "@/lib/auth";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
+
+  if (session?.user) {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Header */}

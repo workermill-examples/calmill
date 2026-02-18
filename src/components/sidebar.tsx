@@ -14,7 +14,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     label: 'Dashboard',
-    href: '/',
+    href: '/dashboard',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
@@ -143,9 +143,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <nav className="flex-1 space-y-1 px-3 py-4">
             {navItems.map((item) => {
               const isActive =
-                item.href === '/'
-                  ? pathname === '/'
-                  : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                pathname === item.href || pathname?.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}
