@@ -61,7 +61,7 @@ function setupTeamEventType(memberIds: string[]) {
 }
 
 /** Sets up getMemberAvailableSlots: creator uses team event type, others use their own */
-function setupMemberEventTypeLookup(creatorId: string, otherIds: string[]) {
+function setupMemberEventTypeLookup(_creatorId: string, _otherIds: string[]) {
   // For non-creator members, findUnique returns same team event type, findFirst returns null
   // (so they fall back to the team event type themselves)
   // We control what slots getMemberAvailableSlots returns via mockGetAvailableSlots

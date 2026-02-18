@@ -10,7 +10,6 @@ jobs:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     # Only deploy if CI passes
-    needs: []
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -53,6 +52,9 @@ jobs:
 
       - name: Pull Vercel environment information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: TypeScript type check
+        run: npm run typecheck
 
       - name: Build project artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
