@@ -7,6 +7,7 @@ import { verifyTeamRole } from "@/lib/team-auth";
 export const DELETE = withAuth(async (_request, context, user) => {
   try {
     const { slug, eventTypeId } = await context.params;
+    if (!slug || !eventTypeId) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
     if (roleResult.error) return roleResult.error;
