@@ -128,7 +128,7 @@ export const GET = withAuth(async (_request, _context, user) => {
     // Determine most popular event type
     const popularEventType =
       bookingsByEventType.length > 0
-        ? { title: bookingsByEventType[0].title, count: bookingsByEventType[0].count }
+        ? { title: bookingsByEventType[0]!.title, count: bookingsByEventType[0]!.count }
         : null;
 
     return NextResponse.json({
