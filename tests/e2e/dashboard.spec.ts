@@ -30,12 +30,8 @@ import {
   getNewEventTypeButton,
   openCreateEventTypeDialog,
   editEventType,
-  toggleEventTypeActive,
-  clickDeleteEventType,
   confirmDelete,
   clickEditorTab,
-  fillEventTypeTitle,
-  waitForSaved,
   clickBookingsTab,
   saveAvailability,
   updateProfileName,
@@ -444,8 +440,6 @@ test.describe("Dashboard Flows", () => {
     test("clicking Accept on a pending booking updates its status", async ({ page }) => {
       const acceptButton = page.locator("button", { hasText: "Accept" }).first();
       if (await acceptButton.count() > 0) {
-        // Note the surrounding card to check status change
-        const card = acceptButton.locator("../..").locator("../..");
         await acceptButton.click();
         await page.waitForTimeout(2000);
 
