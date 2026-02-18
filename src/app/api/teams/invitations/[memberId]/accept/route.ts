@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
 
 // POST /api/teams/invitations/[memberId]/accept — Accept a team invitation.
 export const POST = withAuth(async (_request, context, user) => {
@@ -19,7 +19,7 @@ export const POST = withAuth(async (_request, context, user) => {
 
     if (!invitation) {
       return NextResponse.json(
-        { error: "Invitation not found or already accepted" },
+        { error: 'Invitation not found or already accepted' },
         { status: 404 }
       );
     }
@@ -36,7 +36,7 @@ export const POST = withAuth(async (_request, context, user) => {
 
     return NextResponse.json({ success: true, data: accepted });
   } catch (error) {
-    console.error("POST /api/teams/invitations/[memberId]/accept error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('POST /api/teams/invitations/[memberId]/accept error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

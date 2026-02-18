@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,11 +19,7 @@ interface CalendarConnection {
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={cn("h-5 w-5", className)}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg className={cn('h-5 w-5', className)} viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
         fill="#4285F4"
@@ -52,15 +48,12 @@ interface CalendarCardProps {
   isDisconnecting: boolean;
 }
 
-function CalendarCard({
-  connection,
-  onDisconnect,
-  isDisconnecting,
-}: CalendarCardProps) {
-  const connectedDate = new Date(connection.createdAt).toLocaleDateString(
-    "en-US",
-    { year: "numeric", month: "long", day: "numeric" }
-  );
+function CalendarCard({ connection, onDisconnect, isDisconnecting }: CalendarCardProps) {
+  const connectedDate = new Date(connection.createdAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4">
@@ -70,18 +63,14 @@ function CalendarCard({
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-gray-900">
-              {connection.email}
-            </p>
+            <p className="text-sm font-medium text-gray-900">{connection.email}</p>
             {connection.isPrimary && (
               <span className="inline-flex items-center rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700 border border-primary-200">
                 Primary
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Connected {connectedDate}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">Connected {connectedDate}</p>
         </div>
       </div>
       <Button
@@ -109,19 +98,19 @@ function CalendarsSettingsContent() {
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const justConnected = searchParams.get("connected") === "true";
+  const justConnected = searchParams.get('connected') === 'true';
 
   // Fetch connected calendars
   const fetchConnections = useCallback(async () => {
     try {
-      const res = await fetch("/api/integrations/google/calendars");
+      const res = await fetch('/api/integrations/google/calendars');
       if (!res.ok) {
-        throw new Error("Failed to load calendar connections");
+        throw new Error('Failed to load calendar connections');
       }
       const data = await res.json();
       setConnections(data.data ?? []);
     } catch {
-      setError("Failed to load calendar connections. Please refresh the page.");
+      setError('Failed to load calendar connections. Please refresh the page.');
     } finally {
       setIsLoading(false);
     }
@@ -135,7 +124,7 @@ function CalendarsSettingsContent() {
   useEffect(() => {
     if (justConnected) {
       const timeout = setTimeout(() => {
-        router.replace("/settings/calendars", { scroll: false });
+        router.replace('/settings/calendars', { scroll: false });
       }, 5000);
       return () => clearTimeout(timeout);
     }
@@ -147,10 +136,10 @@ function CalendarsSettingsContent() {
     setError(null);
 
     try {
-      const res = await fetch("/api/integrations/google/connect");
+      const res = await fetch('/api/integrations/google/connect');
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error ?? "Failed to start Google Calendar connection");
+        setError(data.error ?? 'Failed to start Google Calendar connection');
         return;
       }
 
@@ -159,8 +148,8 @@ function CalendarsSettingsContent() {
       // Open OAuth popup
       const popup = window.open(
         url,
-        "google-oauth",
-        "width=600,height=700,scrollbars=yes,resizable=yes"
+        'google-oauth',
+        'width=600,height=700,scrollbars=yes,resizable=yes'
       );
 
       if (!popup) {
@@ -178,7 +167,7 @@ function CalendarsSettingsContent() {
         }
       }, 500);
     } catch {
-      setError("Failed to connect Google Calendar. Please try again.");
+      setError('Failed to connect Google Calendar. Please try again.');
       setIsConnecting(false);
     }
   };
@@ -189,20 +178,20 @@ function CalendarsSettingsContent() {
     setError(null);
 
     try {
-      const res = await fetch("/api/integrations/google/disconnect", {
-        method: "DELETE",
+      const res = await fetch('/api/integrations/google/disconnect', {
+        method: 'DELETE',
       });
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error ?? "Failed to disconnect calendar");
+        setError(data.error ?? 'Failed to disconnect calendar');
         return;
       }
 
       // Remove from local state
       setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     } catch {
-      setError("Failed to disconnect calendar. Please try again.");
+      setError('Failed to disconnect calendar. Please try again.');
     } finally {
       setDisconnectingId(null);
     }
@@ -212,12 +201,10 @@ function CalendarsSettingsContent() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h2 className="text-2xl font-semibold text-gray-900">
-          Calendar Integrations
-        </h2>
+        <h2 className="text-2xl font-semibold text-gray-900">Calendar Integrations</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Connect your calendars so CalMill can check your availability when
-          calculating open time slots.
+          Connect your calendars so CalMill can check your availability when calculating open time
+          slots.
         </p>
       </div>
 
@@ -243,8 +230,8 @@ function CalendarsSettingsContent() {
               Google Calendar connected successfully
             </p>
             <p className="text-sm text-green-700 mt-0.5">
-              CalMill will now check your Google Calendar for conflicts when
-              showing available time slots.
+              CalMill will now check your Google Calendar for conflicts when showing available time
+              slots.
             </p>
           </div>
         </div>
@@ -275,12 +262,8 @@ function CalendarsSettingsContent() {
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">
-              Connected Calendars
-            </h3>
-            <p className="mt-0.5 text-sm text-gray-500">
-              Your connected calendar accounts
-            </p>
+            <h3 className="text-base font-semibold text-gray-900">Connected Calendars</h3>
+            <p className="mt-0.5 text-sm text-gray-500">Your connected calendar accounts</p>
           </div>
           <Button
             variant="primary"
@@ -346,12 +329,9 @@ function CalendarsSettingsContent() {
                   />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-gray-900">
-                No calendars connected
-              </p>
+              <p className="text-sm font-medium text-gray-900">No calendars connected</p>
               <p className="mt-1 text-sm text-gray-500 max-w-sm">
-                Connect your Google Calendar to automatically check for
-                scheduling conflicts.
+                Connect your Google Calendar to automatically check for scheduling conflicts.
               </p>
               <Button
                 variant="outline"
@@ -384,9 +364,7 @@ function CalendarsSettingsContent() {
 
       {/* Explanation section */}
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
-        <h3 className="text-sm font-semibold text-gray-900">
-          How calendar integration works
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900">How calendar integration works</h3>
         <ul className="mt-3 space-y-2 text-sm text-gray-600">
           <li className="flex items-start gap-2">
             <svg
@@ -403,8 +381,8 @@ function CalendarsSettingsContent() {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            CalMill reads your calendar to find busy times and hides those slots
-            from your booking page.
+            CalMill reads your calendar to find busy times and hides those slots from your booking
+            page.
           </li>
           <li className="flex items-start gap-2">
             <svg
@@ -421,8 +399,7 @@ function CalendarsSettingsContent() {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            When a booking is confirmed, CalMill creates an event on your
-            calendar automatically.
+            When a booking is confirmed, CalMill creates an event on your calendar automatically.
           </li>
           <li className="flex items-start gap-2">
             <svg
@@ -439,8 +416,8 @@ function CalendarsSettingsContent() {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            CalMill only requests calendar access — it never modifies or deletes
-            events you didn&apos;t create through CalMill.
+            CalMill only requests calendar access — it never modifies or deletes events you
+            didn&apos;t create through CalMill.
           </li>
         </ul>
       </div>

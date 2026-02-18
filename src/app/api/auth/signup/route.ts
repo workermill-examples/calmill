@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { signupSchema } from "@/lib/validations";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { hash } from 'bcryptjs';
+import { prisma } from '@/lib/prisma';
+import { signupSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,10 +18,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingEmail) {
-      return NextResponse.json(
-        { error: "Email already registered" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
     }
 
     // Check if username already exists
@@ -31,10 +28,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingUsername) {
-      return NextResponse.json(
-        { error: "Username already taken" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
     }
 
     // Hash password
@@ -50,17 +44,17 @@ export async function POST(req: NextRequest) {
         emailVerified: null, // Will be set after email verification
         schedules: {
           create: {
-            name: "Business Hours",
-            timezone: "America/New_York",
+            name: 'Business Hours',
+            timezone: 'America/New_York',
             isDefault: true,
             availability: {
               create: [
                 // Monday - Friday: 9 AM - 5 PM
-                { day: 1, startTime: "09:00", endTime: "17:00" },
-                { day: 2, startTime: "09:00", endTime: "17:00" },
-                { day: 3, startTime: "09:00", endTime: "17:00" },
-                { day: 4, startTime: "09:00", endTime: "17:00" },
-                { day: 5, startTime: "09:00", endTime: "17:00" },
+                { day: 1, startTime: '09:00', endTime: '17:00' },
+                { day: 2, startTime: '09:00', endTime: '17:00' },
+                { day: 3, startTime: '09:00', endTime: '17:00' },
+                { day: 4, startTime: '09:00', endTime: '17:00' },
+                { day: 5, startTime: '09:00', endTime: '17:00' },
               ],
             },
           },
@@ -92,15 +86,15 @@ export async function POST(req: NextRequest) {
       await prisma.eventType.createMany({
         data: [
           {
-            title: "30 Minute Meeting",
-            slug: "30min",
+            title: '30 Minute Meeting',
+            slug: '30min',
             duration: 30,
             userId: user.id,
             scheduleId: schedule.id,
           },
           {
-            title: "60 Minute Consultation",
-            slug: "60min",
+            title: '60 Minute Consultation',
+            slug: '60min',
             duration: 60,
             userId: user.id,
             scheduleId: schedule.id,
@@ -112,7 +106,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         user,
-        message: "Account created successfully",
+        message: 'Account created successfully',
       },
       { status: 201 }
     );
@@ -120,9 +114,9 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -130,10 +124,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.error("Signup error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('Signup error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface CopyButtonProps {
   text: string;
@@ -18,7 +18,7 @@ export function CopyButton({ text }: CopyButtonProps) {
 
   return (
     <Button variant="ghost" size="sm" onClick={handleCopy}>
-      {copied ? "Copied!" : "Copy"}
+      {copied ? 'Copied!' : 'Copy'}
     </Button>
   );
 }

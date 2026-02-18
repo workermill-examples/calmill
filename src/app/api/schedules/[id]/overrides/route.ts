@@ -1,12 +1,18 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth, verifyOwnership } from "@/lib/api-auth";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth, verifyOwnership } from '@/lib/api-auth';
 
 const dateOverrideCreateSchema = z.object({
   date: z.string().date(), // YYYY-MM-DD
-  startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  startTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional(),
+  endTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional(),
   isUnavailable: z.boolean().optional(),
 });
 
@@ -21,7 +27,7 @@ export const GET = withAuth(async (_request, context, user) => {
     });
 
     if (!schedule) {
-      return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, schedule.userId);
@@ -29,16 +35,13 @@ export const GET = withAuth(async (_request, context, user) => {
 
     const overrides = await prisma.dateOverride.findMany({
       where: { scheduleId: id },
-      orderBy: { date: "asc" },
+      orderBy: { date: 'asc' },
     });
 
     return NextResponse.json({ success: true, data: overrides });
   } catch (error) {
-    console.error("GET /api/schedules/[id]/overrides error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('GET /api/schedules/[id]/overrides error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -53,7 +56,7 @@ export const POST = withAuth(async (request, context, user) => {
     });
 
     if (!schedule) {
-      return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, schedule.userId);
@@ -67,10 +70,7 @@ export const POST = withAuth(async (request, context, user) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (overrideDate < today) {
-      return NextResponse.json(
-        { error: "Date override must be in the future" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Date override must be in the future' }, { status: 400 });
     }
 
     // Prevent duplicate overrides for the same date
@@ -83,7 +83,7 @@ export const POST = withAuth(async (request, context, user) => {
 
     if (existing) {
       return NextResponse.json(
-        { error: "A date override already exists for this date" },
+        { error: 'A date override already exists for this date' },
         { status: 409 }
       );
     }
@@ -103,9 +103,9 @@ export const POST = withAuth(async (request, context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -113,10 +113,7 @@ export const POST = withAuth(async (request, context, user) => {
       );
     }
 
-    console.error("POST /api/schedules/[id]/overrides error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('POST /api/schedules/[id]/overrides error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { formatDateInTimezone } from "@/lib/utils";
-import type { EventTypeLocation } from "@/types";
-import ReschedulePageClient from "./reschedule-client";
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { formatDateInTimezone } from '@/lib/utils';
+import type { EventTypeLocation } from '@/types';
+import ReschedulePageClient from './reschedule-client';
 
 interface ReschedulePageProps {
   params: Promise<{ uid: string }>;
@@ -40,7 +40,7 @@ export default async function ReschedulePage({ params }: ReschedulePageProps) {
   }
 
   // Only PENDING or ACCEPTED bookings can be rescheduled
-  if (booking.status !== "PENDING" && booking.status !== "ACCEPTED") {
+  if (booking.status !== 'PENDING' && booking.status !== 'ACCEPTED') {
     notFound();
   }
 

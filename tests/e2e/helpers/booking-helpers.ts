@@ -5,37 +5,37 @@
  * experience without coupling tests to brittle CSS selectors.
  */
 
-import type { Page, Locator } from "@playwright/test";
-import { expect } from "@playwright/test";
+import type { Page, Locator } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 /** Demo user credentials and slug set up by prisma/seed.ts */
 export const DEMO_USER = {
-  username: "demo",
-  name: "Alex Demo",
-  email: "demo@workermill.com",
+  username: 'demo',
+  name: 'Alex Demo',
+  email: 'demo@workermill.com',
 } as const;
 
 /** The 30-minute event type created by the seed script */
 export const EVENT_30MIN = {
-  slug: "30min",
-  title: "30 Minute Meeting",
+  slug: '30min',
+  title: '30 Minute Meeting',
   duration: 30,
 } as const;
 
 /** The 60-minute event type created by the seed script */
 export const EVENT_60MIN = {
-  slug: "60min",
-  title: "60 Minute Consultation",
+  slug: '60min',
+  title: '60 Minute Consultation',
   duration: 60,
 } as const;
 
 /** Sample attendee data used for booking form submission */
 export const ATTENDEE = {
-  name: "Test Attendee",
-  email: "testattendee@example.com",
-  notes: "These are test notes for the booking",
+  name: 'Test Attendee',
+  email: 'testattendee@example.com',
+  notes: 'These are test notes for the booking',
 } as const;
 
 // ─── PROFILE PAGE HELPERS ─────────────────────────────────────────────────────
@@ -80,9 +80,11 @@ export async function goToBookingPage(
  */
 export async function waitForCalendarToLoad(page: Page) {
   // The loading skeleton has role="status" with aria-label="Loading calendar"
-  await page.locator('[aria-label="Loading calendar"]').waitFor({ state: "hidden", timeout: 15_000 });
+  await page
+    .locator('[aria-label="Loading calendar"]')
+    .waitFor({ state: 'hidden', timeout: 15_000 });
   // Then the real calendar should be visible
-  await page.locator('[aria-label^="Calendar"]').waitFor({ state: "visible", timeout: 10_000 });
+  await page.locator('[aria-label^="Calendar"]').waitFor({ state: 'visible', timeout: 10_000 });
 }
 
 /**
@@ -132,15 +134,15 @@ export async function selectFirstAvailableDay(page: Page): Promise<string> {
 
   const count = await availableButtons.count();
   if (count === 0) {
-    throw new Error("No available days found in the calendar");
+    throw new Error('No available days found in the calendar');
   }
 
   // Click first available day
   const firstButton = availableButtons.first();
-  const ariaLabel = await firstButton.getAttribute("aria-label");
+  const ariaLabel = await firstButton.getAttribute('aria-label');
   await firstButton.click();
 
-  return ariaLabel ?? "";
+  return ariaLabel ?? '';
 }
 
 // ─── SLOT LIST HELPERS ────────────────────────────────────────────────────────
@@ -152,7 +154,7 @@ export async function waitForSlots(page: Page) {
   // Slot list uses role="listbox" aria-label="Available time slots"
   await page
     .locator('[aria-label="Available time slots"]')
-    .waitFor({ state: "visible", timeout: 10_000 });
+    .waitFor({ state: 'visible', timeout: 10_000 });
 }
 
 /**
@@ -173,16 +175,16 @@ export async function selectFirstSlotAndConfirm(page: Page): Promise<string> {
   const count = await slots.count();
 
   if (count === 0) {
-    throw new Error("No time slots found in slot list");
+    throw new Error('No time slots found in slot list');
   }
 
   const firstSlot = slots.first();
-  const slotText = (await firstSlot.textContent()) ?? "";
+  const slotText = (await firstSlot.textContent()) ?? '';
   await firstSlot.click();
 
   // After clicking a slot, a confirm button should appear
   const confirmButton = page.locator(`button[aria-label^="Confirm "]`).first();
-  await confirmButton.waitFor({ state: "visible", timeout: 5_000 });
+  await confirmButton.waitFor({ state: 'visible', timeout: 5_000 });
   await confirmButton.click();
 
   return slotText.trim();
@@ -213,9 +215,7 @@ export async function searchTimezone(page: Page, searchText: string) {
  * Wait for the booking form to become visible (after slot confirmation).
  */
 export async function waitForBookingForm(page: Page) {
-  await page
-    .locator('form button[type="submit"]')
-    .waitFor({ state: "visible", timeout: 10_000 });
+  await page.locator('form button[type="submit"]').waitFor({ state: 'visible', timeout: 10_000 });
 }
 
 /**
@@ -238,7 +238,7 @@ export async function fillAttendeeDetails(
  * Submit the booking form by clicking "Schedule Meeting".
  */
 export async function submitBookingForm(page: Page) {
-  await page.locator('button[type="submit"]', { hasText: "Schedule Meeting" }).click();
+  await page.locator('button[type="submit"]', { hasText: 'Schedule Meeting' }).click();
 }
 
 /**
@@ -259,7 +259,7 @@ export async function completeBookingForm(
 
   const url = page.url();
   const match = url.match(/\/booking\/([^/]+)$/);
-  return match?.[1] ?? "";
+  return match?.[1] ?? '';
 }
 
 // ─── CONFIRMATION PAGE HELPERS ────────────────────────────────────────────────
@@ -275,7 +275,7 @@ export async function goToConfirmationPage(page: Page, uid: string) {
  * Get the "Add to Calendar" section locator.
  */
 export function getAddToCalendarSection(page: Page): Locator {
-  return page.locator('h3', { hasText: "Add to Calendar" });
+  return page.locator('h3', { hasText: 'Add to Calendar' });
 }
 
 /**
@@ -299,9 +299,9 @@ export async function goToCancelPage(page: Page, uid: string) {
  */
 export async function submitCancellation(page: Page, reason?: string) {
   if (reason) {
-    await page.locator("textarea#cancel-reason").fill(reason);
+    await page.locator('textarea#cancel-reason').fill(reason);
   }
-  await page.locator('button', { hasText: "Cancel Meeting" }).click();
+  await page.locator('button', { hasText: 'Cancel Meeting' }).click();
 }
 
 // ─── RESCHEDULE PAGE HELPERS ──────────────────────────────────────────────────
@@ -339,9 +339,12 @@ export async function setDesktopViewport(page: Page) {
  * demo data in the database.
  */
 export async function triggerDatabaseSeed(page: Page) {
-  const token = process.env.SEED_TOKEN ?? "calmill-seed-token-dev";
+  const token = process.env.SEED_TOKEN;
+  if (!token) {
+    throw new Error('SEED_TOKEN environment variable is required for E2E tests');
+  }
   const response = await page.request.post(`/api/seed`, {
-    headers: { "x-seed-token": token },
+    headers: { 'x-seed-token': token },
   });
   return response;
 }
@@ -354,9 +357,7 @@ export async function hasAvailableSlots(page: Page, eventTypeId: string): Promis
   const today = new Date();
   const startDate = today.toISOString().slice(0, 10);
   // Look 30 days ahead
-  const endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  const endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   const response = await page.request.get(
     `/api/slots?eventTypeId=${eventTypeId}&startDate=${startDate}&endDate=${endDate}&timezone=America%2FNew_York`
@@ -388,12 +389,12 @@ export async function assertEventTypeCardsVisible(page: Page) {
  * Assert the confirmation page shows "scheduled" success state.
  */
 export async function assertBookingConfirmed(page: Page) {
-  await expect(page.locator("h1", { hasText: "Your meeting has been scheduled!" })).toBeVisible();
+  await expect(page.locator('h1', { hasText: 'Your meeting has been scheduled!' })).toBeVisible();
 }
 
 /**
  * Assert the booking was cancelled.
  */
 export async function assertBookingCancelled(page: Page) {
-  await expect(page.locator("h1", { hasText: "Meeting Cancelled" })).toBeVisible();
+  await expect(page.locator('h1', { hasText: 'Meeting Cancelled' })).toBeVisible();
 }

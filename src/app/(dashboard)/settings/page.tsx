@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { SettingsClient } from "@/components/settings/settings-client";
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { SettingsClient } from '@/components/settings/settings-client';
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -44,7 +44,7 @@ export default async function SettingsPage() {
         hasPassword: !!passwordHash,
         defaultSchedule: dbUser.schedules[0] ?? null,
       }}
-      appUrl={process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}
+      appUrl={process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}
     />
   );
 }

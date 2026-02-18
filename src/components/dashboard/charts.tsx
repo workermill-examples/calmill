@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   LineChart,
@@ -13,8 +13,8 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts";
-import { formatDate } from "@/lib/utils";
+} from 'recharts';
+import { formatDate } from '@/lib/utils';
 
 interface BookingsByDay {
   date: string;
@@ -39,27 +39,21 @@ interface DashboardChartsProps {
 }
 
 const STATUS_COLORS = {
-  ACCEPTED: "#22c55e",
-  PENDING: "#f59e0b",
-  CANCELLED: "#ef4444",
+  ACCEPTED: '#22c55e',
+  PENDING: '#f59e0b',
+  CANCELLED: '#ef4444',
 };
 
 const STATUS_LABELS = {
-  ACCEPTED: "Confirmed",
-  PENDING: "Pending",
-  CANCELLED: "Cancelled",
+  ACCEPTED: 'Confirmed',
+  PENDING: 'Pending',
+  CANCELLED: 'Cancelled',
 };
 
-const LINE_COLOR = "#3b82f6";
-const BAR_COLOR = "#3b82f6";
+const LINE_COLOR = '#3b82f6';
+const BAR_COLOR = '#3b82f6';
 
-function ChartCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
       <h3 className="mb-4 text-sm font-semibold text-gray-900">{title}</h3>
@@ -104,8 +98,8 @@ export function DashboardCharts({
 
   // Show only every 5th label to avoid crowding
   const xAxisTickFormatter = (_: string, index: number) => {
-    if (index % 5 !== 0) return "";
-    return formatDate(bookingsByDay[index]?.date ?? "", "MMM d");
+    if (index % 5 !== 0) return '';
+    return formatDate(bookingsByDay[index]?.date ?? '', 'MMM d');
   };
 
   return (
@@ -117,33 +111,30 @@ export function DashboardCharts({
             <EmptyChart message="No bookings in the last 30 days" />
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <LineChart
-                data={bookingsByDay}
-                margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
-              >
+              <LineChart data={bookingsByDay} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis
                   dataKey="date"
                   tickFormatter={xAxisTickFormatter}
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
+                  tick={{ fontSize: 11, fill: '#6b7280' }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
+                  tick={{ fontSize: 11, fill: '#6b7280' }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
-                  formatter={(value) => [value, "Bookings"]}
+                  formatter={(value) => [value, 'Bookings']}
                   labelFormatter={(label) =>
-                    typeof label === "string" ? formatDate(label, "MMM d, yyyy") : String(label)
+                    typeof label === 'string' ? formatDate(label, 'MMM d, yyyy') : String(label)
                   }
                   contentStyle={{
-                    borderRadius: "0.5rem",
-                    border: "1px solid #e5e7eb",
-                    fontSize: "12px",
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '12px',
                   }}
                 />
                 <Line
@@ -186,9 +177,9 @@ export function DashboardCharts({
                 <Tooltip
                   formatter={(value, name) => [value, name]}
                   contentStyle={{
-                    borderRadius: "0.5rem",
-                    border: "1px solid #e5e7eb",
-                    fontSize: "12px",
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '12px',
                   }}
                 />
               </PieChart>
@@ -217,7 +208,10 @@ export function DashboardCharts({
           {bookingsByEventType.length === 0 ? (
             <EmptyChart message="No bookings yet" />
           ) : (
-            <ResponsiveContainer width="100%" height={Math.max(180, bookingsByEventType.length * 36)}>
+            <ResponsiveContainer
+              width="100%"
+              height={Math.max(180, bookingsByEventType.length * 36)}
+            >
               <BarChart
                 data={bookingsByEventType.slice(0, 10)}
                 layout="vertical"
@@ -227,7 +221,7 @@ export function DashboardCharts({
                 <XAxis
                   type="number"
                   allowDecimals={false}
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
+                  tick={{ fontSize: 11, fill: '#6b7280' }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -235,7 +229,7 @@ export function DashboardCharts({
                   type="category"
                   dataKey="title"
                   width={140}
-                  tick={{ fontSize: 11, fill: "#374151" }}
+                  tick={{ fontSize: 11, fill: '#374151' }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(value: string) =>
@@ -243,11 +237,11 @@ export function DashboardCharts({
                   }
                 />
                 <Tooltip
-                  formatter={(value) => [value, "Bookings"]}
+                  formatter={(value) => [value, 'Bookings']}
                   contentStyle={{
-                    borderRadius: "0.5rem",
-                    border: "1px solid #e5e7eb",
-                    fontSize: "12px",
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '12px',
                   }}
                 />
                 <Bar dataKey="count" fill={BAR_COLOR} radius={[0, 4, 4, 0]} />

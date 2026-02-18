@@ -1,7 +1,7 @@
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { BookingPageClient } from "@/components/booking/booking-page-client";
-import type { EventTypeLocation, CustomQuestion } from "@/types";
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { BookingPageClient } from '@/components/booking/booking-page-client';
+import type { EventTypeLocation, CustomQuestion } from '@/types';
 
 interface BookingPageProps {
   params: Promise<{ username: string; slug: string }>;

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { WeeklyGrid } from "./weekly-grid";
-import { DateOverrides } from "./date-overrides";
-import type { ScheduleWithRelations } from "@/types";
-import type { Availability, DateOverride } from "@/generated/prisma/client";
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { WeeklyGrid } from './weekly-grid';
+import { DateOverrides } from './date-overrides';
+import type { ScheduleWithRelations } from '@/types';
+import type { Availability, DateOverride } from '@/generated/prisma/client';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -15,50 +15,61 @@ interface AvailabilityEditorProps {
   userTimezone: string;
 }
 
-type SaveStatus = "idle" | "saving" | "saved" | "error";
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 // ─── Timezone list helper ─────────────────────────────────────────────────────
 
 const COMMON_TIMEZONES = [
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "America/Anchorage",
-  "America/Honolulu",
-  "America/Sao_Paulo",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Europe/Moscow",
-  "Africa/Cairo",
-  "Asia/Dubai",
-  "Asia/Kolkata",
-  "Asia/Bangkok",
-  "Asia/Singapore",
-  "Asia/Tokyo",
-  "Asia/Shanghai",
-  "Australia/Sydney",
-  "Pacific/Auckland",
-  "UTC",
+  'America/New_York',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'America/Anchorage',
+  'America/Honolulu',
+  'America/Sao_Paulo',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Europe/Moscow',
+  'Africa/Cairo',
+  'Asia/Dubai',
+  'Asia/Kolkata',
+  'Asia/Bangkok',
+  'Asia/Singapore',
+  'Asia/Tokyo',
+  'Asia/Shanghai',
+  'Australia/Sydney',
+  'Pacific/Auckland',
+  'UTC',
 ];
 
 // ─── SaveIndicator ────────────────────────────────────────────────────────────
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
-  if (status === "idle") return null;
-  if (status === "saving") {
+  if (status === 'idle') return null;
+  if (status === 'saving') {
     return (
       <span className="flex items-center gap-1.5 text-sm text-gray-500">
         <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
         </svg>
         Saving…
       </span>
     );
   }
-  if (status === "saved") {
+  if (status === 'saved') {
     return (
       <span className="flex items-center gap-1.5 text-sm text-green-600">
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,7 +82,12 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   return (
     <span className="flex items-center gap-1.5 text-sm text-red-600">
       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M6 18L18 6M6 6l12 12"
+        />
       </svg>
       Save failed
     </span>
@@ -89,22 +105,22 @@ function CreateScheduleDialog({
   onCancel: () => void;
   defaultTimezone: string;
 }) {
-  const [name, setName] = useState("New Schedule");
+  const [name, setName] = useState('New Schedule');
   const [timezone, setTimezone] = useState(defaultTimezone);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Name is required");
+      setError('Name is required');
       return;
     }
     setLoading(true);
     try {
       await onConfirm(name.trim(), timezone);
     } catch {
-      setError("Failed to create schedule");
+      setError('Failed to create schedule');
       setLoading(false);
     }
   }
@@ -148,7 +164,9 @@ function CreateScheduleDialog({
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             >
               {COMMON_TIMEZONES.map((tz) => (
-                <option key={tz} value={tz}>{tz}</option>
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
               ))}
             </select>
           </div>
@@ -166,7 +184,7 @@ function CreateScheduleDialog({
               disabled={loading}
               className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {loading ? "Creating…" : "Create"}
+              {loading ? 'Creating…' : 'Create'}
             </button>
           </div>
         </form>
@@ -203,7 +221,8 @@ function DeleteScheduleDialog({
           Delete &ldquo;{scheduleName}&rdquo;?
         </h3>
         <p className="mt-2 text-sm text-gray-600">
-          This will permanently delete this schedule and all its availability windows. This cannot be undone.
+          This will permanently delete this schedule and all its availability windows. This cannot
+          be undone.
         </p>
         {error && (
           <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
@@ -223,7 +242,7 @@ function DeleteScheduleDialog({
             disabled={loading}
             className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
           >
-            {loading ? "Deleting…" : "Delete"}
+            {loading ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>
@@ -234,8 +253,8 @@ function DeleteScheduleDialog({
 // Default Mon-Fri 9:00-17:00 availability for new schedules
 const DEFAULT_AVAILABILITY = [1, 2, 3, 4, 5].map((day) => ({
   day,
-  startTime: "09:00",
-  endTime: "17:00",
+  startTime: '09:00',
+  endTime: '17:00',
 }));
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -244,15 +263,15 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
   const router = useRouter();
   const [schedules, setSchedules] = useState<ScheduleWithRelations[]>(initialSchedules);
   const [selectedId, setSelectedId] = useState<string>(
-    initialSchedules.find((s) => s.isDefault)?.id ?? initialSchedules[0]?.id ?? ""
+    initialSchedules.find((s) => s.isDefault)?.id ?? initialSchedules[0]?.id ?? ''
   );
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState("");
+  const [nameValue, setNameValue] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
+  const [deleteError, setDeleteError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const selectedSchedule = schedules.find((s) => s.id === selectedId) ?? schedules[0];
@@ -260,34 +279,34 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
   // ─── Update selected schedule in local state ────────────────────────────────
 
   function updateScheduleInState(updated: ScheduleWithRelations) {
-    setSchedules((prev) =>
-      prev.map((s) => (s.id === updated.id ? updated : s))
-    );
+    setSchedules((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
   }
 
   // ─── Save availability ────────────────────────────────────────────────────
 
-  async function saveAvailability(availability: Array<Pick<Availability, "day" | "startTime" | "endTime">>) {
+  async function saveAvailability(
+    availability: Array<Pick<Availability, 'day' | 'startTime' | 'endTime'>>
+  ) {
     if (!selectedSchedule) return;
-    setSaveStatus("saving");
+    setSaveStatus('saving');
     try {
       const res = await fetch(`/api/schedules/${selectedSchedule.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ availability }),
       });
       if (res.ok) {
         const data = await res.json();
         updateScheduleInState(data.data);
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 2000);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
       } else {
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
       }
     } catch {
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     }
   }
 
@@ -303,25 +322,25 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
       setEditingName(false);
       return;
     }
-    setSaveStatus("saving");
+    setSaveStatus('saving');
     try {
       const res = await fetch(`/api/schedules/${selectedSchedule.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed }),
       });
       if (res.ok) {
         const data = await res.json();
         updateScheduleInState(data.data);
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 2000);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
       } else {
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
       }
     } catch {
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     }
     setEditingName(false);
   }
@@ -330,25 +349,25 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
 
   async function saveTimezone(timezone: string) {
     if (!selectedSchedule || timezone === selectedSchedule.timezone) return;
-    setSaveStatus("saving");
+    setSaveStatus('saving');
     try {
       const res = await fetch(`/api/schedules/${selectedSchedule.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone }),
       });
       if (res.ok) {
         const data = await res.json();
         updateScheduleInState(data.data);
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 2000);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
       } else {
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
       }
     } catch {
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     }
   }
 
@@ -356,11 +375,11 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
 
   async function saveIsDefault(isDefault: boolean) {
     if (!selectedSchedule) return;
-    setSaveStatus("saving");
+    setSaveStatus('saving');
     try {
       const res = await fetch(`/api/schedules/${selectedSchedule.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isDefault }),
       });
       if (res.ok) {
@@ -375,24 +394,24 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
           }))
         );
         updateScheduleInState(data.data);
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 2000);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
       } else {
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
       }
     } catch {
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     }
   }
 
   // ─── Create new schedule ──────────────────────────────────────────────────
 
   async function handleCreateSchedule(name: string, timezone: string) {
-    const res = await fetch("/api/schedules", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/schedules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name,
         timezone,
@@ -407,7 +426,7 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
       setSelectedId(newSchedule.id);
       setShowCreateDialog(false);
     } else {
-      throw new Error("Failed to create schedule");
+      throw new Error('Failed to create schedule');
     }
   }
 
@@ -416,23 +435,23 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
   async function handleDeleteSchedule() {
     if (!selectedSchedule) return;
     setDeleteLoading(true);
-    setDeleteError("");
+    setDeleteError('');
     try {
       const res = await fetch(`/api/schedules/${selectedSchedule.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       if (res.ok) {
         const remaining = schedules.filter((s) => s.id !== selectedSchedule.id);
         setSchedules(remaining);
-        setSelectedId(remaining[0]?.id ?? "");
+        setSelectedId(remaining[0]?.id ?? '');
         setShowDeleteDialog(false);
-        setDeleteError("");
+        setDeleteError('');
       } else {
         const data = await res.json();
-        setDeleteError(data.error ?? "Failed to delete schedule");
+        setDeleteError(data.error ?? 'Failed to delete schedule');
       }
     } catch {
-      setDeleteError("Failed to delete schedule");
+      setDeleteError('Failed to delete schedule');
     } finally {
       setDeleteLoading(false);
     }
@@ -445,7 +464,12 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
     setSchedules((prev) =>
       prev.map((s) =>
         s.id === selectedSchedule.id
-          ? { ...s, dateOverrides: [...s.dateOverrides, override].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) }
+          ? {
+              ...s,
+              dateOverrides: [...s.dateOverrides, override].sort(
+                (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+              ),
+            }
           : s
       )
     );
@@ -510,7 +534,7 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
         <select
           value={selectedId}
           onChange={(e) => {
-            if (e.target.value === "__create__") {
+            if (e.target.value === '__create__') {
               setShowCreateDialog(true);
             } else {
               setSelectedId(e.target.value);
@@ -522,7 +546,8 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
         >
           {schedules.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}{s.isDefault ? " (Default)" : ""}
+              {s.name}
+              {s.isDefault ? ' (Default)' : ''}
             </option>
           ))}
           <option value="__create__">+ Create New Schedule</option>
@@ -543,8 +568,8 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
                   onChange={(e) => setNameValue(e.target.value)}
                   onBlur={() => saveName(nameValue)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") saveName(nameValue);
-                    if (e.key === "Escape") setEditingName(false);
+                    if (e.key === 'Enter') saveName(nameValue);
+                    if (e.key === 'Escape') setEditingName(false);
                   }}
                   className="rounded-md border border-primary-300 px-2 py-1 text-sm font-medium text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                   maxLength={100}
@@ -568,7 +593,12 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
                     stroke="currentColor"
                     aria-hidden="true"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
                   </svg>
                 </button>
               )}
@@ -584,7 +614,9 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
                 aria-label="Schedule timezone"
               >
                 {COMMON_TIMEZONES.map((tz) => (
-                  <option key={tz} value={tz}>{tz}</option>
+                  <option key={tz} value={tz}>
+                    {tz}
+                  </option>
                 ))}
                 {/* Include current timezone if not in list */}
                 {!COMMON_TIMEZONES.includes(selectedSchedule.timezone) && (
@@ -599,23 +631,27 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
                 type="button"
                 role="switch"
                 aria-checked={selectedSchedule.isDefault}
-                aria-label={selectedSchedule.isDefault ? "Remove as default schedule" : "Set as default schedule"}
+                aria-label={
+                  selectedSchedule.isDefault
+                    ? 'Remove as default schedule'
+                    : 'Set as default schedule'
+                }
                 onClick={() => saveIsDefault(!selectedSchedule.isDefault)}
                 disabled={selectedSchedule.isDefault}
                 className={cn(
-                  "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:cursor-default",
-                  selectedSchedule.isDefault ? "bg-primary-600" : "bg-gray-200"
+                  'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:cursor-default',
+                  selectedSchedule.isDefault ? 'bg-primary-600' : 'bg-gray-200'
                 )}
               >
                 <span
                   className={cn(
-                    "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-                    selectedSchedule.isDefault ? "translate-x-4" : "translate-x-0.5"
+                    'inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                    selectedSchedule.isDefault ? 'translate-x-4' : 'translate-x-0.5'
                   )}
                 />
               </button>
               <span className="text-sm text-gray-500">
-                {selectedSchedule.isDefault ? "Default" : "Set as default"}
+                {selectedSchedule.isDefault ? 'Default' : 'Set as default'}
               </span>
             </div>
           </div>
@@ -623,10 +659,7 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
 
         {/* Weekly grid */}
         <div className="px-6 py-6">
-          <WeeklyGrid
-            availability={selectedSchedule.availability}
-            onSave={saveAvailability}
-          />
+          <WeeklyGrid availability={selectedSchedule.availability} onSave={saveAvailability} />
         </div>
       </div>
 
@@ -645,15 +678,18 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
             <p className="text-sm font-medium text-gray-900">Delete schedule</p>
             <p className="text-xs text-gray-500 mt-0.5">
               {schedules.length <= 1
-                ? "Cannot delete your only schedule"
+                ? 'Cannot delete your only schedule'
                 : selectedSchedule._count && selectedSchedule._count.eventTypes > 0
-                ? `This schedule is used by ${selectedSchedule._count.eventTypes} event type${selectedSchedule._count.eventTypes !== 1 ? "s" : ""} and cannot be deleted`
-                : "Permanently delete this schedule"}
+                  ? `This schedule is used by ${selectedSchedule._count.eventTypes} event type${selectedSchedule._count.eventTypes !== 1 ? 's' : ''} and cannot be deleted`
+                  : 'Permanently delete this schedule'}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => { setDeleteError(""); setShowDeleteDialog(true); }}
+            onClick={() => {
+              setDeleteError('');
+              setShowDeleteDialog(true);
+            }}
             disabled={
               schedules.length <= 1 ||
               (selectedSchedule._count !== undefined && selectedSchedule._count.eventTypes > 0)
@@ -677,7 +713,10 @@ export function AvailabilityEditor({ initialSchedules, userTimezone }: Availabil
         <DeleteScheduleDialog
           scheduleName={selectedSchedule.name}
           onConfirm={handleDeleteSchedule}
-          onCancel={() => { setShowDeleteDialog(false); setDeleteError(""); }}
+          onCancel={() => {
+            setShowDeleteDialog(false);
+            setDeleteError('');
+          }}
           loading={deleteLoading}
           error={deleteError}
         />

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,7 +15,7 @@ export interface TeamEventTypeCardData {
   duration: number;
   color?: string | null;
   isActive: boolean;
-  schedulingType: "ROUND_ROBIN" | "COLLECTIVE" | null;
+  schedulingType: 'ROUND_ROBIN' | 'COLLECTIVE' | null;
   _count?: { bookings: number };
 }
 
@@ -39,48 +39,86 @@ function formatDuration(minutes: number): string {
 
 function ClockIcon() {
   return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className="h-3.5 w-3.5"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
 
 function TrashIcon() {
   return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+      />
     </svg>
   );
 }
 
 function EditIcon() {
   return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+      />
     </svg>
   );
 }
 
 // ─── Scheduling Type Badge ─────────────────────────────────────────────────────
 
-function SchedulingTypeBadge({ type }: { type: "ROUND_ROBIN" | "COLLECTIVE" | null }) {
+function SchedulingTypeBadge({ type }: { type: 'ROUND_ROBIN' | 'COLLECTIVE' | null }) {
   if (!type) return null;
 
   const config = {
     ROUND_ROBIN: {
-      label: "Round Robin",
-      className: "bg-blue-50 text-blue-700 border border-blue-200",
+      label: 'Round Robin',
+      className: 'bg-blue-50 text-blue-700 border border-blue-200',
     },
     COLLECTIVE: {
-      label: "Collective",
-      className: "bg-purple-50 text-purple-700 border border-purple-200",
+      label: 'Collective',
+      className: 'bg-purple-50 text-purple-700 border border-purple-200',
     },
   };
 
   const { label, className } = config[type];
 
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", className)}>
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+        className
+      )}
+    >
       {label}
     </span>
   );
@@ -112,7 +150,8 @@ function DeleteConfirmDialog({
           Delete &ldquo;{title}&rdquo;?
         </h3>
         <p className="mt-2 text-sm text-gray-600">
-          This will permanently delete this event type and all associated bookings. This action cannot be undone.
+          This will permanently delete this event type and all associated bookings. This action
+          cannot be undone.
         </p>
         <div className="mt-5 flex justify-end gap-3">
           <button
@@ -129,7 +168,7 @@ function DeleteConfirmDialog({
             disabled={loading}
             className="rounded-md bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-red-600 focus-ring disabled:opacity-50"
           >
-            {loading ? "Deleting…" : "Delete"}
+            {loading ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>
@@ -145,25 +184,25 @@ export function TeamEventTypeCard({ eventType, teamSlug, appUrl }: TeamEventType
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const bookingUrl = `${appUrl}/team/${teamSlug}/${eventType.slug}`;
-  const barColor = eventType.color ?? "#8b5cf6";
+  const barColor = eventType.color ?? '#8b5cf6';
   const bookingCount = eventType._count?.bookings ?? 0;
 
   async function handleDelete() {
     setDeleteLoading(true);
     try {
       const res = await fetch(`/api/teams/${teamSlug}/event-types/${eventType.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       if (res.ok) {
         setShowDeleteConfirm(false);
         router.refresh();
       } else {
         const data = await res.json();
-        alert(data.error ?? "Failed to delete event type");
+        alert(data.error ?? 'Failed to delete event type');
         setShowDeleteConfirm(false);
       }
     } catch {
-      alert("Failed to delete event type");
+      alert('Failed to delete event type');
       setShowDeleteConfirm(false);
     } finally {
       setDeleteLoading(false);
@@ -174,9 +213,9 @@ export function TeamEventTypeCard({ eventType, teamSlug, appUrl }: TeamEventType
     <>
       <div
         className={cn(
-          "relative flex items-center gap-0 rounded-lg border border-gray-200 bg-white overflow-hidden",
-          "transition-shadow hover:shadow-md",
-          !eventType.isActive && "opacity-60"
+          'relative flex items-center gap-0 rounded-lg border border-gray-200 bg-white overflow-hidden',
+          'transition-shadow hover:shadow-md',
+          !eventType.isActive && 'opacity-60'
         )}
       >
         {/* Left color bar */}
@@ -212,7 +251,7 @@ export function TeamEventTypeCard({ eventType, teamSlug, appUrl }: TeamEventType
                 {formatDuration(eventType.duration)}
               </span>
               <span className="text-xs text-gray-400">
-                {bookingCount} booking{bookingCount !== 1 ? "s" : ""}
+                {bookingCount} booking{bookingCount !== 1 ? 's' : ''}
               </span>
             </div>
           </div>
@@ -227,8 +266,19 @@ export function TeamEventTypeCard({ eventType, teamSlug, appUrl }: TeamEventType
               aria-label={`Preview ${eventType.title} booking page`}
               className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-ring transition-colors"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
               </svg>
             </a>
 

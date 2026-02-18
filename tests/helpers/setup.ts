@@ -1,4 +1,4 @@
-import { vi, beforeEach, afterEach } from "vitest";
+import { vi, beforeEach, afterEach } from 'vitest';
 
 /**
  * Global test setup for Vitest.
@@ -154,11 +154,11 @@ const mockPrismaClient = {
   $disconnect: vi.fn(),
 };
 
-vi.mock("@/generated/prisma/client", () => ({
+vi.mock('@/generated/prisma/client', () => ({
   PrismaClient: vi.fn(() => mockPrismaClient),
   Prisma: {
-    DbNull: "DbNull",
-    JsonNull: "JsonNull",
+    DbNull: 'DbNull',
+    JsonNull: 'JsonNull',
   },
 }));
 
@@ -169,7 +169,7 @@ vi.mock("@/generated/prisma/client", () => ({
  *   const data = await response.json()
  *   const status = response.status
  */
-vi.mock("next/server", () => ({
+vi.mock('next/server', () => ({
   NextResponse: {
     json: vi.fn((data: unknown, init?: { status?: number }) => {
       const status = init?.status ?? 200;
@@ -197,34 +197,34 @@ vi.mock("next/server", () => ({
 
 const mockSession = {
   user: {
-    id: "demo-user-id",
-    email: "demo@workermill.com",
-    name: "Alex Demo",
-    username: "demo",
-    timezone: "America/New_York",
+    id: 'demo-user-id',
+    email: 'demo@workermill.com',
+    name: 'Alex Demo',
+    username: 'demo',
+    timezone: 'America/New_York',
   },
   expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
 };
 
-vi.mock("next-auth", () => ({
+vi.mock('next-auth', () => ({
   default: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock('@/lib/auth', () => ({
   auth: vi.fn(() => Promise.resolve(mockSession)),
   signIn: vi.fn(),
   signOut: vi.fn(),
   handlers: {},
 }));
 
-vi.mock("@/lib/prisma", () => ({
+vi.mock('@/lib/prisma', () => ({
   prisma: mockPrismaClient,
 }));
 
-vi.mock("next-auth/react", () => ({
+vi.mock('next-auth/react', () => ({
   useSession: vi.fn(() => ({
     data: mockSession,
-    status: "authenticated",
+    status: 'authenticated',
   })),
   signIn: vi.fn(),
   signOut: vi.fn(),

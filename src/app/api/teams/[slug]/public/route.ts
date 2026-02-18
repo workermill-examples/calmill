@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/teams/[slug]/public — Public team info: name, slug, logoUrl, bio, member names and avatars.
 // No auth required.
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ slug: string }> }
-) {
+export async function GET(_request: Request, context: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await context.params;
 
@@ -29,13 +26,13 @@ export async function GET(
               },
             },
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
       },
     });
 
     if (!team) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
     const members = team.members.map((m) => m.user);
@@ -52,7 +49,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("GET /api/teams/[slug]/public error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/teams/[slug]/public error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

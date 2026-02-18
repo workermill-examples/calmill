@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { updateUserSchema } from "@/lib/validations";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { updateUserSchema } from '@/lib/validations';
 
 // GET /api/user — Get current authenticated user's profile
 export const GET = withAuth(async (_request, _context, user) => {
@@ -35,7 +35,7 @@ export const GET = withAuth(async (_request, _context, user) => {
     });
 
     if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Don't expose passwordHash — just expose whether credentials auth is available
@@ -50,8 +50,8 @@ export const GET = withAuth(async (_request, _context, user) => {
       },
     });
   } catch (error) {
-    console.error("GET /api/user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/user error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -68,10 +68,7 @@ export const PATCH = withAuth(async (request, _context, user) => {
         select: { id: true },
       });
       if (existing) {
-        return NextResponse.json(
-          { error: "Username is already taken" },
-          { status: 409 }
-        );
+        return NextResponse.json({ error: 'Username is already taken' }, { status: 409 });
       }
     }
 
@@ -105,9 +102,9 @@ export const PATCH = withAuth(async (request, _context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -115,8 +112,8 @@ export const PATCH = withAuth(async (request, _context, user) => {
       );
     }
 
-    console.error("PATCH /api/user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('PATCH /api/user error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -126,7 +123,7 @@ export const DELETE = withAuth(async (_request, _context, user) => {
     await prisma.user.delete({ where: { id: user.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('DELETE /api/user error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

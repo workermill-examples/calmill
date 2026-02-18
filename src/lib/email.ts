@@ -1,5 +1,5 @@
-import { Resend } from "resend";
-import type { ReactElement } from "react";
+import { Resend } from 'resend';
+import type { ReactElement } from 'react';
 
 // ─── SEND EMAIL ──────────────────────────────────────────────────────────────
 
@@ -26,8 +26,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     return;
   }
 
-  const from =
-    process.env.EMAIL_FROM ?? "CalMill <noreply@calmill.workermill.com>";
+  const from = process.env.EMAIL_FROM ?? 'CalMill <noreply@calmill.workermill.com>';
 
   try {
     const client = new Resend(process.env.RESEND_API_KEY!);
@@ -39,10 +38,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     });
 
     if (result.error) {
-      console.error(
-        `[Email] Failed to send to ${to}: ${result.error.message}`,
-        result.error
-      );
+      console.error(`[Email] Failed to send to ${to}: ${result.error.message}`, result.error);
     } else {
       console.log(`[Email] Sent to ${to} (id: ${result.data?.id})`);
     }

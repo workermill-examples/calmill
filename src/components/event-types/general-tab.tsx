@@ -1,31 +1,31 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { cn, generateSlug } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import type { EditorEventType, EventTypeFields } from "./editor";
-import type { EventTypeLocation } from "@/types";
+import { useState, useMemo } from 'react';
+import { cn, generateSlug } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import type { EditorEventType, EventTypeFields } from './editor';
+import type { EventTypeLocation } from '@/types';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120] as const;
 
 const PRESET_COLORS = [
-  "#3b82f6", // blue
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#ef4444", // red
-  "#f97316", // orange
-  "#eab308", // yellow
-  "#22c55e", // green
-  "#14b8a6", // teal
+  '#3b82f6', // blue
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#ef4444', // red
+  '#f97316', // orange
+  '#eab308', // yellow
+  '#22c55e', // green
+  '#14b8a6', // teal
 ];
 
 const LOCATION_TYPES = [
-  { value: "link", label: "Video Link" },
-  { value: "inPerson", label: "In Person" },
-  { value: "phone", label: "Phone Call" },
+  { value: 'link', label: 'Video Link' },
+  { value: 'inPerson', label: 'In Person' },
+  { value: 'phone', label: 'Phone Call' },
 ] as const;
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -42,32 +42,31 @@ interface GeneralTabProps {
 export function GeneralTab({ eventType, username, onSave, onTitleChange }: GeneralTabProps) {
   const [title, setTitle] = useState(eventType.title);
   const [slug, setSlug] = useState(eventType.slug);
-  const [description, setDescription] = useState(eventType.description ?? "");
+  const [description, setDescription] = useState(eventType.description ?? '');
   const [duration, setDuration] = useState(eventType.duration);
-  const [locations, setLocations] = useState<EventTypeLocation[]>(
-    eventType.locations ?? []
-  );
-  const [color, setColor] = useState(eventType.color ?? "#3b82f6");
+  const [locations, setLocations] = useState<EventTypeLocation[]>(eventType.locations ?? []);
+  const [color, setColor] = useState(eventType.color ?? '#3b82f6');
   const [customHex, setCustomHex] = useState(
-    (PRESET_COLORS as readonly string[]).includes(eventType.color ?? "#3b82f6") ? "" : (eventType.color ?? "")
+    (PRESET_COLORS as readonly string[]).includes(eventType.color ?? '#3b82f6')
+      ? ''
+      : (eventType.color ?? '')
   );
 
-  // Sync slug preview when title changes (but only if slug matches the old generated slug)
+  // Derive slug from title when not manually edited
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-  useEffect(() => {
-    if (!slugManuallyEdited && title) {
-      setSlug(generateSlug(title));
-    }
-  }, [title, slugManuallyEdited]);
+  const derivedSlug = useMemo(
+    () => (slugManuallyEdited || !title ? slug : generateSlug(title)),
+    [title, slug, slugManuallyEdited]
+  );
 
   function handleTitleBlur() {
     if (!title.trim()) return;
     onTitleChange(title.trim());
-    onSave({ title: title.trim(), ...(slugManuallyEdited ? {} : { slug }) });
+    onSave({ title: title.trim(), ...(slugManuallyEdited ? {} : { slug: derivedSlug }) });
   }
 
   function handleSlugBlur() {
-    if (slug) onSave({ slug });
+    if (derivedSlug) onSave({ slug: derivedSlug });
   }
 
   function handleDescriptionBlur() {
@@ -87,12 +86,12 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
 
   function handleColorSelect(hex: string) {
     setColor(hex);
-    setCustomHex("");
+    setCustomHex('');
     onSave({ color: hex });
   }
 
   function handleCustomHexBlur() {
-    const hex = customHex.startsWith("#") ? customHex : `#${customHex}`;
+    const hex = customHex.startsWith('#') ? customHex : `#${customHex}`;
     if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
       setColor(hex);
       onSave({ color: hex });
@@ -100,7 +99,7 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
   }
 
   function addLocation() {
-    const newLoc: EventTypeLocation = { type: "link", value: "" };
+    const newLoc: EventTypeLocation = { type: 'link', value: '' };
     handleLocationsChange([...locations, newLoc]);
   }
 
@@ -108,14 +107,8 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
     handleLocationsChange(locations.filter((_, i) => i !== index));
   }
 
-  function updateLocationField(
-    index: number,
-    field: keyof EventTypeLocation,
-    value: string
-  ) {
-    const updated = locations.map((loc, i) =>
-      i === index ? { ...loc, [field]: value } : loc
-    );
+  function updateLocationField(index: number, field: keyof EventTypeLocation, value: string) {
+    const updated = locations.map((loc, i) => (i === index ? { ...loc, [field]: value } : loc));
     setLocations(updated);
   }
 
@@ -154,7 +147,7 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
             <input
               id="et-slug"
               type="text"
-              value={slug}
+              value={derivedSlug}
               onChange={(e) => {
                 setSlug(e.target.value);
                 setSlugManuallyEdited(true);
@@ -165,13 +158,16 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
             />
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            Public booking URL: /{username}/{slug}
+            Public booking URL: /{username}/{derivedSlug}
           </p>
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="et-description" className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label
+            htmlFor="et-description"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
             Description
           </label>
           <textarea
@@ -183,7 +179,7 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
             placeholder="Describe your event type…"
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors resize-none"
           />
-          <p className={cn("mt-1 text-xs", descCharsLeft < 50 ? "text-warning" : "text-gray-400")}>
+          <p className={cn('mt-1 text-xs', descCharsLeft < 50 ? 'text-warning' : 'text-gray-400')}>
             {descCharsLeft} characters remaining
           </p>
         </div>
@@ -204,10 +200,10 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
                   onSave({ duration: d });
                 }}
                 className={cn(
-                  "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-ring",
+                  'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-ring',
                   duration === d
-                    ? "border-primary-600 bg-primary-50 text-primary-700"
-                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    ? 'border-primary-600 bg-primary-50 text-primary-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                 )}
               >
                 {d} min
@@ -252,7 +248,7 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
               <div className="flex-shrink-0">
                 <select
                   value={loc.type}
-                  onChange={(e) => updateLocationField(index, "type", e.target.value)}
+                  onChange={(e) => updateLocationField(index, 'type', e.target.value)}
                   onBlur={saveLocations}
                   className="h-10 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                   aria-label="Location type"
@@ -268,14 +264,14 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
                 <input
                   type="text"
                   value={loc.value}
-                  onChange={(e) => updateLocationField(index, "value", e.target.value)}
+                  onChange={(e) => updateLocationField(index, 'value', e.target.value)}
                   onBlur={saveLocations}
                   placeholder={
-                    loc.type === "link"
-                      ? "https://meet.example.com/..."
-                      : loc.type === "inPerson"
-                      ? "123 Main St, City"
-                      : "+1 (555) 000-0000"
+                    loc.type === 'link'
+                      ? 'https://meet.example.com/...'
+                      : loc.type === 'inPerson'
+                        ? '123 Main St, City'
+                        : '+1 (555) 000-0000'
                   }
                   className="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                 />
@@ -286,8 +282,19 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
                 aria-label="Remove location"
                 className="mt-1.5 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-danger focus-ring transition-colors"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -306,8 +313,8 @@ export function GeneralTab({ eventType, username, onSave, onTitleChange }: Gener
               onClick={() => handleColorSelect(hex)}
               aria-label={`Select color ${hex}`}
               className={cn(
-                "h-8 w-8 rounded-full border-2 transition-all focus-ring",
-                color === hex ? "border-gray-900 scale-110" : "border-transparent hover:scale-105"
+                'h-8 w-8 rounded-full border-2 transition-all focus-ring',
+                color === hex ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105'
               )}
               style={{ backgroundColor: hex }}
             />

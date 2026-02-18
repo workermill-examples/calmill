@@ -1,17 +1,14 @@
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { BookingPageClient } from "@/components/booking/booking-page-client";
-import type { EventTypeLocation, CustomQuestion } from "@/types";
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { BookingPageClient } from '@/components/booking/booking-page-client';
+import type { EventTypeLocation, CustomQuestion } from '@/types';
 
 interface TeamBookingPageProps {
   params: Promise<{ slug: string; eventSlug: string }>;
   searchParams: Promise<{ date?: string }>;
 }
 
-export default async function TeamBookingPage({
-  params,
-  searchParams,
-}: TeamBookingPageProps) {
+export default async function TeamBookingPage({ params, searchParams }: TeamBookingPageProps) {
   const { slug, eventSlug } = await params;
   const { date: initialDate } = await searchParams;
 
@@ -39,7 +36,7 @@ export default async function TeamBookingPage({
       slug: eventSlug,
       isActive: true,
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
     select: {
       id: true,
       title: true,

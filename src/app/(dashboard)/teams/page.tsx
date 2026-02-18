@@ -1,11 +1,11 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { TeamsListClient } from "./teams-list";
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { TeamsListClient } from './teams-list';
 
 export default async function TeamsPage() {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session) redirect('/login');
   const userId = session.user.id;
 
   // Fetch teams the user belongs to (any role, including pending)
@@ -20,7 +20,7 @@ export default async function TeamsPage() {
         },
       },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
   });
 
   const teams = memberships.map((m) => ({
@@ -31,7 +31,7 @@ export default async function TeamsPage() {
     bio: m.team.bio,
     memberCount: m.team._count.members,
     eventTypeCount: m.team._count.eventTypes,
-    userRole: m.role as "OWNER" | "ADMIN" | "MEMBER",
+    userRole: m.role as 'OWNER' | 'ADMIN' | 'MEMBER',
     accepted: m.accepted,
   }));
 
@@ -42,13 +42,8 @@ export default async function TeamsPage() {
       id: m.id,
       teamName: m.team.name,
       teamSlug: m.team.slug,
-      role: m.role as "OWNER" | "ADMIN" | "MEMBER",
+      role: m.role as 'OWNER' | 'ADMIN' | 'MEMBER',
     }));
 
-  return (
-    <TeamsListClient
-      initialTeams={teams}
-      pendingInvitations={pendingInvitations}
-    />
-  );
+  return <TeamsListClient initialTeams={teams} pendingInvitations={pendingInvitations} />;
 }

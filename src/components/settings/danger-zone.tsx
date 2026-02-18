@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { signOut } from "next-auth/react";
+import { useState, useEffect, useRef } from 'react';
+import { signOut } from 'next-auth/react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,7 +21,7 @@ function DeleteAccountDialog({
   onConfirm: () => Promise<void>;
   onCancel: () => void;
 }) {
-  const [confirmInput, setConfirmInput] = useState("");
+  const [confirmInput, setConfirmInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,12 +30,12 @@ function DeleteAccountDialog({
   useEffect(() => {
     const timer = setTimeout(() => inputRef.current?.focus(), 50);
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onCancel();
+      if (e.key === 'Escape') onCancel();
     }
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       clearTimeout(timer);
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [onCancel]);
 
@@ -46,7 +46,7 @@ function DeleteAccountDialog({
     try {
       await onConfirm();
     } catch {
-      setError("Failed to delete account. Please try again.");
+      setError('Failed to delete account. Please try again.');
       setLoading(false);
     }
   }
@@ -59,18 +59,24 @@ function DeleteAccountDialog({
       aria-labelledby="delete-dialog-title"
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onCancel}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onCancel} aria-hidden="true" />
 
       {/* Panel */}
       <div className="relative z-10 w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-            <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="h-5 w-5 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
           <h3 id="delete-dialog-title" className="text-base font-semibold text-gray-900">
@@ -79,12 +85,17 @@ function DeleteAccountDialog({
         </div>
 
         <p className="mt-3 text-sm text-gray-600">
-          This action is <strong>permanent and irreversible</strong>. All your event types, bookings, schedules, and profile data will be permanently deleted.
+          This action is <strong>permanent and irreversible</strong>. All your event types,
+          bookings, schedules, and profile data will be permanently deleted.
         </p>
 
         <div className="mt-4">
-          <label htmlFor="confirm-username" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Type <span className="font-mono font-semibold text-gray-900">{username}</span> to confirm
+          <label
+            htmlFor="confirm-username"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            Type <span className="font-mono font-semibold text-gray-900">{username}</span> to
+            confirm
           </label>
           <input
             ref={inputRef}
@@ -118,7 +129,7 @@ function DeleteAccountDialog({
             disabled={confirmInput !== username || loading}
             className="rounded-md bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? "Deleting…" : "Delete my account"}
+            {loading ? 'Deleting…' : 'Delete my account'}
           </button>
         </div>
       </div>
@@ -132,10 +143,10 @@ export function DangerZone({ username, onDeleted }: DangerZoneProps) {
   const [showDialog, setShowDialog] = useState(false);
 
   async function handleDeleteAccount() {
-    const res = await fetch("/api/user", { method: "DELETE" });
+    const res = await fetch('/api/user', { method: 'DELETE' });
     if (!res.ok) {
       const data = await res.json();
-      throw new Error(data.error ?? "Failed to delete account");
+      throw new Error(data.error ?? 'Failed to delete account');
     }
     // Sign out and redirect
     await signOut({ redirect: false });

@@ -1,9 +1,9 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { formatDateInTimezone, getInitials } from "@/lib/utils";
-import { buildGoogleCalendarUrl, buildICSDataUri } from "@/lib/ics";
-import type { EventTypeLocation } from "@/types";
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { formatDateInTimezone, getInitials } from '@/lib/utils';
+import { buildGoogleCalendarUrl, buildICSDataUri } from '@/lib/ics';
+import type { EventTypeLocation } from '@/types';
 
 interface BookingConfirmationPageProps {
   params: Promise<{ uid: string }>;
@@ -11,7 +11,10 @@ interface BookingConfirmationPageProps {
 
 // ─── LOCATION DISPLAY ─────────────────────────────────────────────────────────
 
-function getLocationDisplay(location: string | null, locations: EventTypeLocation[] | null): string | null {
+function getLocationDisplay(
+  location: string | null,
+  locations: EventTypeLocation[] | null
+): string | null {
   // If there's a specific location set on the booking, use it
   if (location) return location;
   // Otherwise fall back to the first event type location
@@ -21,7 +24,9 @@ function getLocationDisplay(location: string | null, locations: EventTypeLocatio
   return null;
 }
 
-function getLocationType(locations: EventTypeLocation[] | null): "inPerson" | "link" | "phone" | null {
+function getLocationType(
+  locations: EventTypeLocation[] | null
+): 'inPerson' | 'link' | 'phone' | null {
   if (!locations || locations.length === 0) return null;
   return locations[0]?.type ?? null;
 }
@@ -50,7 +55,7 @@ function CheckCircleIcon() {
 function CalendarIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? "h-5 w-5"}
+      className={className ?? 'h-5 w-5'}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -69,7 +74,7 @@ function CalendarIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? "h-5 w-5"}
+      className={className ?? 'h-5 w-5'}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -88,7 +93,7 @@ function ClockIcon({ className }: { className?: string }) {
 function VideoIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? "h-5 w-5"}
+      className={className ?? 'h-5 w-5'}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -107,7 +112,7 @@ function VideoIcon({ className }: { className?: string }) {
 function MapPinIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? "h-5 w-5"}
+      className={className ?? 'h-5 w-5'}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -132,7 +137,7 @@ function MapPinIcon({ className }: { className?: string }) {
 function PhoneIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? "h-5 w-5"}
+      className={className ?? 'h-5 w-5'}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -151,7 +156,7 @@ function PhoneIcon({ className }: { className?: string }) {
 function UserIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? "h-5 w-5"}
+      className={className ?? 'h-5 w-5'}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -170,7 +175,7 @@ function UserIcon({ className }: { className?: string }) {
 function MailIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? "h-5 w-5"}
+      className={className ?? 'h-5 w-5'}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -226,7 +231,7 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
   const locationType = getLocationType(locations);
   const hostInitials = eventType.user.name
     ? getInitials(eventType.user.name)
-    : (eventType.user.username ?? "H").charAt(0).toUpperCase();
+    : (eventType.user.username ?? 'H').charAt(0).toUpperCase();
 
   // Format date/time in attendee's timezone
   const formattedDateTime = formatDateInTimezone(
@@ -237,11 +242,12 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
 
   const formattedDuration =
     eventType.duration >= 60
-      ? `${eventType.duration / 60} hr${eventType.duration > 60 ? "s" : ""}`
+      ? `${eventType.duration / 60} hr${eventType.duration > 60 ? 's' : ''}`
       : `${eventType.duration} min`;
 
   // Build calendar add options
-  const calendarTitle = booking.title || `${eventType.title} with ${eventType.user.name ?? eventType.user.username}`;
+  const calendarTitle =
+    booking.title || `${eventType.title} with ${eventType.user.name ?? eventType.user.username}`;
   const icsOptions = {
     uid: booking.uid,
     title: calendarTitle,
@@ -256,12 +262,12 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
 
   const googleCalendarUrl = buildGoogleCalendarUrl(icsOptions);
   const icsDataUri = buildICSDataUri(icsOptions);
-  const icsFilename = `${eventType.title.replace(/\s+/g, "-")}.ics`;
+  const icsFilename = `${eventType.title.replace(/\s+/g, '-')}.ics`;
 
   // Status-specific display
-  const isPending = booking.status === "PENDING";
-  const isCancelled = booking.status === "CANCELLED";
-  const isRescheduled = booking.status === "RESCHEDULED";
+  const isPending = booking.status === 'PENDING';
+  const isCancelled = booking.status === 'CANCELLED';
+  const isRescheduled = booking.status === 'RESCHEDULED';
 
   const responses = booking.responses as Record<string, string> | null;
 
@@ -271,12 +277,12 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
       <div
         className={`rounded-lg border p-6 text-center ${
           isCancelled
-            ? "border-red-200 bg-red-50"
+            ? 'border-red-200 bg-red-50'
             : isRescheduled
-            ? "border-yellow-200 bg-yellow-50"
-            : isPending
-            ? "border-yellow-200 bg-yellow-50"
-            : "border-green-200 bg-green-50"
+              ? 'border-yellow-200 bg-yellow-50'
+              : isPending
+                ? 'border-yellow-200 bg-yellow-50'
+                : 'border-green-200 bg-green-50'
         }`}
       >
         {isCancelled ? (
@@ -300,9 +306,7 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
             <h1 className="mt-4 text-2xl font-bold text-gray-900">Meeting Cancelled</h1>
             <p className="mt-2 text-gray-600">This meeting has been cancelled.</p>
             {booking.cancellationReason && (
-              <p className="mt-1 text-sm text-gray-500">
-                Reason: {booking.cancellationReason}
-              </p>
+              <p className="mt-1 text-sm text-gray-500">Reason: {booking.cancellationReason}</p>
             )}
           </>
         ) : isPending ? (
@@ -325,8 +329,8 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
             </div>
             <h1 className="mt-4 text-2xl font-bold text-gray-900">Booking Pending Confirmation</h1>
             <p className="mt-2 text-gray-600">
-              Your booking request has been sent. You will receive a confirmation email once{" "}
-              {eventType.user.name ?? "the host"} accepts it.
+              Your booking request has been sent. You will receive a confirmation email once{' '}
+              {eventType.user.name ?? 'the host'} accepts it.
             </p>
           </>
         ) : (
@@ -376,14 +380,14 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
           {/* Location / meeting link */}
           {locationDisplay && (
             <div className="flex items-start gap-3 text-gray-700">
-              {locationType === "link" ? (
+              {locationType === 'link' ? (
                 <VideoIcon className="h-5 w-5 flex-shrink-0 text-gray-400 mt-0.5" />
-              ) : locationType === "phone" ? (
+              ) : locationType === 'phone' ? (
                 <PhoneIcon className="h-5 w-5 flex-shrink-0 text-gray-400 mt-0.5" />
               ) : (
                 <MapPinIcon className="h-5 w-5 flex-shrink-0 text-gray-400 mt-0.5" />
               )}
-              {locationType === "link" ? (
+              {locationType === 'link' ? (
                 <a
                   href={locationDisplay}
                   target="_blank"
@@ -403,7 +407,7 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
             {eventType.user.avatarUrl ? (
               <img
                 src={eventType.user.avatarUrl}
-                alt={eventType.user.name ?? eventType.user.username ?? "Host"}
+                alt={eventType.user.name ?? eventType.user.username ?? 'Host'}
                 className="h-9 w-9 rounded-full object-cover flex-shrink-0"
               />
             ) : (
@@ -439,9 +443,28 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
             >
               {/* Google Calendar icon (simplified) */}
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-                <path d="M3 10h18M8 2v4M16 2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M9 15l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <rect
+                  x="3"
+                  y="4"
+                  width="18"
+                  height="18"
+                  rx="2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M3 10h18M8 2v4M16 2v4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M9 15l2 2 4-4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               Google Calendar
             </a>
@@ -453,9 +476,28 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
               className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-                <path d="M3 10h18M8 2v4M16 2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M12 13v4M10 15l2 2 2-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <rect
+                  x="3"
+                  y="4"
+                  width="18"
+                  height="18"
+                  rx="2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M3 10h18M8 2v4M16 2v4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M12 13v4M10 15l2 2 2-2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               Outlook
             </a>
@@ -467,8 +509,21 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
               className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-                <path d="M3 10h18M8 2v4M16 2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <rect
+                  x="3"
+                  y="4"
+                  width="18"
+                  height="18"
+                  rx="2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M3 10h18M8 2v4M16 2v4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
                 <circle cx="12" cy="15" r="2" stroke="currentColor" strokeWidth="2" />
               </svg>
               Apple Calendar
@@ -528,7 +583,9 @@ export default async function BookingConfirmationPage({ params }: BookingConfirm
           >
             Reschedule
           </Link>
-          <span className="text-gray-300" aria-hidden="true">|</span>
+          <span className="text-gray-300" aria-hidden="true">
+            |
+          </span>
           <Link
             href={`/booking/${booking.uid}/cancel`}
             className="text-sm text-red-600 hover:text-red-800 underline underline-offset-2"

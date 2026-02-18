@@ -1,9 +1,9 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { getInitials } from "@/lib/utils";
-import { cn } from "@/lib/utils";
-import type { EventTypeLocation, SchedulingType } from "@/types";
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { getInitials } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import type { EventTypeLocation, SchedulingType } from '@/types';
 
 interface TeamPublicPageProps {
   params: Promise<{ slug: string }>;
@@ -14,7 +14,7 @@ interface TeamPublicPageProps {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -33,7 +33,7 @@ function ClockIcon({ className }: { className?: string }) {
 function VideoIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -52,7 +52,7 @@ function VideoIcon({ className }: { className?: string }) {
 function LocationIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -77,7 +77,7 @@ function LocationIcon({ className }: { className?: string }) {
 function PhoneIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -96,18 +96,13 @@ function PhoneIcon({ className }: { className?: string }) {
 function ArrowRightIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 5l7 7-7 7"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
   );
 }
@@ -126,8 +121,8 @@ function formatPrice(cents: number, currency: string): string | null {
   if (cents === 0) return null;
   const amount = cents / 100;
   try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
       currency: currency.toUpperCase(),
       minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
     }).format(amount);
@@ -137,15 +132,15 @@ function formatPrice(cents: number, currency: string): string | null {
 }
 
 function getSchedulingTypeLabel(type: SchedulingType | null): string | null {
-  if (type === "ROUND_ROBIN") return "Round Robin";
-  if (type === "COLLECTIVE") return "Collective";
+  if (type === 'ROUND_ROBIN') return 'Round Robin';
+  if (type === 'COLLECTIVE') return 'Collective';
   return null;
 }
 
 function getSchedulingTypeBadgeColor(type: SchedulingType | null): string {
-  if (type === "ROUND_ROBIN") return "bg-blue-100 text-blue-700";
-  if (type === "COLLECTIVE") return "bg-purple-100 text-purple-700";
-  return "bg-gray-100 text-gray-700";
+  if (type === 'ROUND_ROBIN') return 'bg-blue-100 text-blue-700';
+  if (type === 'COLLECTIVE') return 'bg-purple-100 text-purple-700';
+  return 'bg-gray-100 text-gray-700';
 }
 
 // ─── SUB-COMPONENTS ───────────────────────────────────────────
@@ -161,9 +156,9 @@ function LocationDisplay({ locations }: { locations: EventTypeLocation[] }) {
   };
 
   const labels = {
-    link: "Video call",
-    inPerson: "In-person",
-    phone: "Phone call",
+    link: 'Video call',
+    inPerson: 'In-person',
+    phone: 'Phone call',
   };
 
   return (
@@ -194,14 +189,14 @@ function TeamEventTypeCard({
   duration,
   locations,
   price = 0,
-  currency = "USD",
+  currency = 'USD',
   color,
   schedulingType,
   teamSlug,
 }: TeamEventTypeCardProps) {
   const href = `/team/${teamSlug}/${slug}`;
   const formattedPrice = formatPrice(price, currency);
-  const dotColor = color ?? "#3b82f6";
+  const dotColor = color ?? '#3b82f6';
   const parsedLocations = locations as EventTypeLocation[] | null;
   const schedulingLabel = getSchedulingTypeLabel(schedulingType ?? null);
   const badgeColor = getSchedulingTypeBadgeColor(schedulingType ?? null);
@@ -210,9 +205,9 @@ function TeamEventTypeCard({
     <Link
       href={href}
       className={cn(
-        "group relative flex flex-col rounded-lg border border-gray-200 bg-white p-6",
-        "transition-shadow duration-150 hover:shadow-md",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+        'group relative flex flex-col rounded-lg border border-gray-200 bg-white p-6',
+        'transition-shadow duration-150 hover:shadow-md',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
       )}
       aria-label={`Book ${title} — ${formatDuration(duration)}`}
     >
@@ -249,7 +244,7 @@ function TeamEventTypeCard({
               <div className="mt-2">
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     badgeColor
                   )}
                 >
@@ -260,9 +255,7 @@ function TeamEventTypeCard({
 
             {/* Description — max 2 lines */}
             {description && (
-              <p className="mt-2 line-clamp-2 text-sm text-gray-600">
-                {description}
-              </p>
+              <p className="mt-2 line-clamp-2 text-sm text-gray-600">{description}</p>
             )}
 
             {/* Location */}
@@ -274,9 +267,7 @@ function TeamEventTypeCard({
 
             {/* Price (only shown if non-zero) */}
             {formattedPrice && (
-              <div className="mt-2 text-sm font-medium text-gray-900">
-                {formattedPrice}
-              </div>
+              <div className="mt-2 text-sm font-medium text-gray-900">{formattedPrice}</div>
             )}
           </div>
         </div>
@@ -298,13 +289,13 @@ interface MemberAvatarProps {
 }
 
 function MemberAvatar({ name, avatarUrl }: MemberAvatarProps) {
-  const initials = name ? getInitials(name) : "?";
+  const initials = name ? getInitials(name) : '?';
 
   if (avatarUrl) {
     return (
       <img
         src={avatarUrl}
-        alt={name ?? "Team member"}
+        alt={name ?? 'Team member'}
         title={name ?? undefined}
         className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
       />
@@ -319,7 +310,7 @@ function MemberAvatar({ name, avatarUrl }: MemberAvatarProps) {
       <span className="text-xs font-semibold text-primary-600" aria-hidden="true">
         {initials}
       </span>
-      <span className="sr-only">{name ?? "Team member"}</span>
+      <span className="sr-only">{name ?? 'Team member'}</span>
     </div>
   );
 }
@@ -348,7 +339,7 @@ export default async function TeamPublicPage({ params }: TeamPublicPageProps) {
             },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: 'asc' },
       },
       eventTypes: {
         where: { isActive: true },
@@ -364,7 +355,7 @@ export default async function TeamPublicPage({ params }: TeamPublicPageProps) {
           color: true,
           schedulingType: true,
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: 'asc' },
       },
     },
   });
@@ -397,27 +388,21 @@ export default async function TeamPublicPage({ params }: TeamPublicPageProps) {
 
         <h1 className="mt-4 text-2xl font-bold text-gray-900">{team.name}</h1>
 
-        {team.bio && (
-          <p className="mt-2 text-gray-600">{team.bio}</p>
-        )}
+        {team.bio && <p className="mt-2 text-gray-600">{team.bio}</p>}
 
         {/* Member avatars row */}
         {members.length > 0 && (
           <div
             className="mt-4 flex items-center justify-center"
-            aria-label={`${members.length} team member${members.length !== 1 ? "s" : ""}`}
+            aria-label={`${members.length} team member${members.length !== 1 ? 's' : ''}`}
           >
             <div className="flex -space-x-2">
               {members.map((member) => (
-                <MemberAvatar
-                  key={member.id}
-                  name={member.name}
-                  avatarUrl={member.avatarUrl}
-                />
+                <MemberAvatar key={member.id} name={member.name} avatarUrl={member.avatarUrl} />
               ))}
             </div>
             <span className="ml-3 text-sm text-gray-500">
-              {members.length} member{members.length !== 1 ? "s" : ""}
+              {members.length} member{members.length !== 1 ? 's' : ''}
             </span>
           </div>
         )}

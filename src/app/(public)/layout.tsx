@@ -1,11 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white">
       {/* Minimal header with CalMill logo */}
@@ -31,9 +27,7 @@ export default function PublicLayout({
       </header>
 
       {/* Main content area - centered */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {children}
-      </main>
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
     </div>
   );
 }

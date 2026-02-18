@@ -1,7 +1,7 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { format, parseISO } from "date-fns";
-import { TZDate } from "@date-fns/tz";
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { format, parseISO } from 'date-fns';
+import { TZDate } from '@date-fns/tz';
 
 /**
  * Merge Tailwind CSS classes with clsx and tailwind-merge
@@ -19,16 +19,16 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function formatDate(
   date: string | Date | null | undefined,
-  formatStr: string = "PPP"
+  formatStr: string = 'PPP'
 ): string {
-  if (!date) return "";
+  if (!date) return '';
 
   try {
-    const dateObj = typeof date === "string" ? parseISO(date) : date;
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
     return format(dateObj, formatStr);
   } catch (error) {
-    console.error("Error formatting date:", error);
-    return "";
+    console.error('Error formatting date:', error);
+    return '';
   }
 }
 
@@ -41,15 +41,15 @@ export function formatDate(
 export function formatDateInTimezone(
   date: string | Date,
   timezone: string,
-  formatStr: string = "PPP p"
+  formatStr: string = 'PPP p'
 ): string {
   try {
-    const dateObj = typeof date === "string" ? parseISO(date) : date;
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
     const tzDate = new TZDate(dateObj, timezone);
     return format(tzDate, formatStr);
   } catch (error) {
-    console.error("Error formatting date in timezone:", error);
-    return "";
+    console.error('Error formatting date in timezone:', error);
+    return '';
   }
 }
 
@@ -62,9 +62,9 @@ export function generateSlug(text: string): string {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, "") // Remove non-word chars (except spaces and hyphens)
-    .replace(/[\s_-]+/g, "-") // Replace spaces, underscores, multiple hyphens with single hyphen
-    .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+    .replace(/[^\w\s-]/g, '') // Remove non-word chars (except spaces and hyphens)
+    .replace(/[\s_-]+/g, '-') // Replace spaces, underscores, multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
 }
 
 /**
@@ -73,7 +73,7 @@ export function generateSlug(text: string): string {
  * @returns Username (part before @)
  */
 export function generateUsername(email: string): string {
-  const localPart = email.split("@")[0] ?? email;
+  const localPart = email.split('@')[0] ?? email;
   return generateSlug(localPart);
 }
 
@@ -110,7 +110,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function truncate(text: string, maxLength: number = 100): string {
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + "...";
+  return text.slice(0, maxLength).trim() + '...';
 }
 
 /**
@@ -131,12 +131,12 @@ export function isValidEmail(email: string): boolean {
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) {
-    return "";
+    return '';
   }
   if (parts.length === 1) {
-    return parts[0]?.charAt(0).toUpperCase() ?? "";
+    return parts[0]?.charAt(0).toUpperCase() ?? '';
   }
-  const first = parts[0]?.charAt(0) ?? "";
-  const last = parts[parts.length - 1]?.charAt(0) ?? "";
+  const first = parts[0]?.charAt(0) ?? '';
+  const last = parts[parts.length - 1]?.charAt(0) ?? '';
   return (first + last).toUpperCase();
 }

@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { eventTypeCreateSchema } from "@/lib/validations";
-import { generateSlug } from "@/lib/utils";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { eventTypeCreateSchema } from '@/lib/validations';
+import { generateSlug } from '@/lib/utils';
 
 // GET /api/event-types — List authenticated user's event types
 export const GET = withAuth(async (_request, _context, user) => {
@@ -22,16 +22,13 @@ export const GET = withAuth(async (_request, _context, user) => {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     return NextResponse.json({ success: true, data: eventTypes });
   } catch (error) {
-    console.error("GET /api/event-types error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('GET /api/event-types error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -119,9 +116,9 @@ export const POST = withAuth(async (request, _context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -129,10 +126,7 @@ export const POST = withAuth(async (request, _context, user) => {
       );
     }
 
-    console.error("POST /api/event-types error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('POST /api/event-types error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

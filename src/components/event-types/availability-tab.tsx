@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import type { EditorEventType, EventTypeFields } from "./editor";
-import type { Availability, DateOverride } from "@/generated/prisma/client";
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import type { EditorEventType, EventTypeFields } from './editor';
+import type { Availability, DateOverride } from '@/generated/prisma/client';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -16,7 +16,7 @@ interface ScheduleOption {
   dateOverrides: DateOverride[];
 }
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -41,13 +41,21 @@ function WeeklyPreviewGrid({ availability }: { availability: Availability[] }) {
         const hasSlots = slots.length > 0;
         return (
           <div key={day} className="flex items-center gap-3 py-1">
-            <span className={cn("w-24 text-sm", hasSlots ? "text-gray-700 font-medium" : "text-gray-400")}>
-              {DAY_NAMES[day] ?? ""}
+            <span
+              className={cn(
+                'w-24 text-sm',
+                hasSlots ? 'text-gray-700 font-medium' : 'text-gray-400'
+              )}
+            >
+              {DAY_NAMES[day] ?? ''}
             </span>
             {hasSlots ? (
               <div className="flex flex-wrap gap-2">
                 {slots.map((slot, i) => (
-                  <span key={i} className="inline-flex items-center rounded bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">
+                  <span
+                    key={i}
+                    className="inline-flex items-center rounded bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700"
+                  >
                     {slot.startTime} – {slot.endTime}
                   </span>
                 ))}
@@ -75,15 +83,15 @@ export function AvailabilityTab({ eventType, onSave }: AvailabilityTabProps) {
   useEffect(() => {
     async function fetchSchedules() {
       try {
-        const res = await fetch("/api/schedules");
+        const res = await fetch('/api/schedules');
         if (res.ok) {
           const data = await res.json();
           setSchedules(data.data ?? []);
         } else {
-          setError("Failed to load schedules");
+          setError('Failed to load schedules');
         }
       } catch {
-        setError("Failed to load schedules");
+        setError('Failed to load schedules');
       } finally {
         setLoading(false);
       }
@@ -103,8 +111,19 @@ export function AvailabilityTab({ eventType, onSave }: AvailabilityTabProps) {
       <div className="flex items-center justify-center py-12">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
           </svg>
           Loading schedules…
         </div>
@@ -128,10 +147,15 @@ export function AvailabilityTab({ eventType, onSave }: AvailabilityTabProps) {
 
         {schedules.length === 0 ? (
           <div className="text-sm text-gray-500">
-            No schedules found.{" "}
-            <a href="/availability" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+            No schedules found.{' '}
+            <a
+              href="/availability"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
               Create a schedule
-            </a>{" "}
+            </a>{' '}
             first.
           </div>
         ) : (
@@ -141,14 +165,15 @@ export function AvailabilityTab({ eventType, onSave }: AvailabilityTabProps) {
             </label>
             <select
               id="et-schedule"
-              value={selectedScheduleId ?? ""}
+              value={selectedScheduleId ?? ''}
               onChange={(e) => handleScheduleChange(e.target.value)}
               className="flex h-10 w-full max-w-sm rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
             >
               <option value="">— No schedule —</option>
               {schedules.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name}{s.isDefault ? " (default)" : ""}
+                  {s.name}
+                  {s.isDefault ? ' (default)' : ''}
                 </option>
               ))}
             </select>
@@ -160,8 +185,19 @@ export function AvailabilityTab({ eventType, onSave }: AvailabilityTabProps) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline"
               >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
                 </svg>
                 Edit Schedule
               </a>
@@ -180,8 +216,13 @@ export function AvailabilityTab({ eventType, onSave }: AvailabilityTabProps) {
             <span className="text-xs text-gray-500">{selectedSchedule.timezone}</span>
           </div>
           <p className="text-xs text-gray-500">
-            This is a read-only preview of the selected schedule. To edit, open the{" "}
-            <a href="/availability" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+            This is a read-only preview of the selected schedule. To edit, open the{' '}
+            <a
+              href="/availability"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
               Availability page
             </a>
             .
@@ -197,18 +238,23 @@ export function AvailabilityTab({ eventType, onSave }: AvailabilityTabProps) {
             Date-Specific Overrides
           </h2>
           <p className="text-xs text-gray-500">
-            These overrides are part of the selected schedule. To edit them, go to the{" "}
-            <a href="/availability" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+            These overrides are part of the selected schedule. To edit them, go to the{' '}
+            <a
+              href="/availability"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
               Availability page
             </a>
             .
           </p>
           <div className="divide-y divide-gray-100">
             {selectedSchedule.dateOverrides.map((override) => {
-              const dateStr = new Date(override.date).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
+              const dateStr = new Date(override.date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
               });
               return (
                 <div key={override.id} className="flex items-center gap-4 py-2">

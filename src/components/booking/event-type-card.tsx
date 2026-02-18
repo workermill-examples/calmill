@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import type { EventTypeLocation } from "@/types";
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import type { EventTypeLocation } from '@/types';
 
 export interface EventTypeCardProps {
   title: string;
@@ -34,8 +34,8 @@ function formatPrice(cents: number, currency: string): string | null {
   if (cents === 0) return null;
   const amount = cents / 100;
   try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
       currency: currency.toUpperCase(),
       minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
     }).format(amount);
@@ -48,7 +48,7 @@ function formatPrice(cents: number, currency: string): string | null {
 function VideoIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -68,7 +68,7 @@ function VideoIcon({ className }: { className?: string }) {
 function LocationIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -94,7 +94,7 @@ function LocationIcon({ className }: { className?: string }) {
 function PhoneIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -114,18 +114,13 @@ function PhoneIcon({ className }: { className?: string }) {
 function ArrowRightIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 5l7 7-7 7"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
   );
 }
@@ -134,7 +129,7 @@ function ArrowRightIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -161,9 +156,9 @@ function LocationDisplay({ locations }: { locations: EventTypeLocation[] }) {
   };
 
   const labels = {
-    link: "Video call",
-    inPerson: "In-person",
-    phone: "Phone call",
+    link: 'Video call',
+    inPerson: 'In-person',
+    phone: 'Phone call',
   };
 
   const icon = icons[primary.type];
@@ -189,7 +184,7 @@ export function EventTypeCard({
   duration,
   locations,
   price = 0,
-  currency = "USD",
+  currency = 'USD',
   color,
   username,
 }: EventTypeCardProps) {
@@ -198,15 +193,15 @@ export function EventTypeCard({
   const parsedLocations = locations as EventTypeLocation[] | null;
 
   // Dot color: use event type color or default to primary blue
-  const dotColor = color ?? "#3b82f6";
+  const dotColor = color ?? '#3b82f6';
 
   return (
     <Link
       href={href}
       className={cn(
-        "group relative flex flex-col rounded-lg border border-gray-200 bg-white p-6",
-        "transition-shadow duration-150 hover:shadow-md",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+        'group relative flex flex-col rounded-lg border border-gray-200 bg-white p-6',
+        'transition-shadow duration-150 hover:shadow-md',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
       )}
       aria-label={`Book ${title} — ${formatDuration(duration)}`}
     >
@@ -240,9 +235,7 @@ export function EventTypeCard({
 
             {/* Description — max 2 lines */}
             {description && (
-              <p className="mt-2 line-clamp-2 text-sm text-gray-600">
-                {description}
-              </p>
+              <p className="mt-2 line-clamp-2 text-sm text-gray-600">{description}</p>
             )}
 
             {/* Location */}
@@ -254,9 +247,7 @@ export function EventTypeCard({
 
             {/* Price (only shown if non-zero) */}
             {formattedPrice && (
-              <div className="mt-2 text-sm font-medium text-gray-900">
-                {formattedPrice}
-              </div>
+              <div className="mt-2 text-sm font-medium text-gray-900">{formattedPrice}</div>
             )}
           </div>
         </div>

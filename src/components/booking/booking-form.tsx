@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { z } from "zod";
-import { cn, formatDateInTimezone } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { bookingCreateSchema } from "@/lib/validations";
-import type { AvailableSlot, CustomQuestion } from "@/types";
+import * as React from 'react';
+import { z } from 'zod';
+import { cn, formatDateInTimezone } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { bookingCreateSchema } from '@/lib/validations';
+import type { AvailableSlot, CustomQuestion } from '@/types';
 
 // ─── PROPS ───────────────────────────────────────────────────
 
@@ -38,18 +38,13 @@ export interface BookingFormProps {
 function ChevronLeftIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 19l-7-7 7-7"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
     </svg>
   );
 }
@@ -57,7 +52,7 @@ function ChevronLeftIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -78,12 +73,14 @@ function ClockIcon({ className }: { className?: string }) {
 /** Get the abbreviated timezone name (e.g. "EST", "PST") */
 function getTimezoneAbbr(timezone: string): string {
   try {
-    return new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      timeZoneName: "short",
-    })
-      .formatToParts(new Date())
-      .find((p) => p.type === "timeZoneName")?.value ?? timezone;
+    return (
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        timeZoneName: 'short',
+      })
+        .formatToParts(new Date())
+        .find((p) => p.type === 'timeZoneName')?.value ?? timezone
+    );
   } catch {
     return timezone;
   }
@@ -100,18 +97,18 @@ interface QuestionFieldProps {
 
 function QuestionField({ question, value, onChange, error }: QuestionFieldProps) {
   const fieldId = `question-${question.id}`;
-  const labelClasses = "block text-sm font-medium text-gray-700 mb-1.5";
+  const labelClasses = 'block text-sm font-medium text-gray-700 mb-1.5';
   const inputClasses = cn(
-    "flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm",
-    "placeholder:text-gray-400",
-    "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-    "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50",
-    "transition-colors",
-    error && "border-danger focus:ring-danger"
+    'flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm',
+    'placeholder:text-gray-400',
+    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+    'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50',
+    'transition-colors',
+    error && 'border-danger focus:ring-danger'
   );
 
   switch (question.type) {
-    case "text":
+    case 'text':
       return (
         <div className="w-full">
           <label htmlFor={fieldId} className={labelClasses}>
@@ -125,7 +122,7 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
             onChange={(e) => onChange(question.id, e.target.value)}
             required={question.required}
             aria-required={question.required}
-            aria-invalid={error ? "true" : "false"}
+            aria-invalid={error ? 'true' : 'false'}
             aria-describedby={error ? `${fieldId}-error` : undefined}
             className={inputClasses}
           />
@@ -137,7 +134,7 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
         </div>
       );
 
-    case "phone":
+    case 'phone':
       return (
         <div className="w-full">
           <label htmlFor={fieldId} className={labelClasses}>
@@ -151,7 +148,7 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
             onChange={(e) => onChange(question.id, e.target.value)}
             required={question.required}
             aria-required={question.required}
-            aria-invalid={error ? "true" : "false"}
+            aria-invalid={error ? 'true' : 'false'}
             aria-describedby={error ? `${fieldId}-error` : undefined}
             placeholder="+1 (555) 000-0000"
             className={inputClasses}
@@ -164,7 +161,7 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
         </div>
       );
 
-    case "textarea":
+    case 'textarea':
       return (
         <div className="w-full">
           <label htmlFor={fieldId} className={labelClasses}>
@@ -177,16 +174,16 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
             onChange={(e) => onChange(question.id, e.target.value)}
             required={question.required}
             aria-required={question.required}
-            aria-invalid={error ? "true" : "false"}
+            aria-invalid={error ? 'true' : 'false'}
             aria-describedby={error ? `${fieldId}-error` : undefined}
             rows={3}
             className={cn(
-              "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm",
-              "placeholder:text-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50",
-              "transition-colors resize-none",
-              error && "border-danger focus:ring-danger"
+              'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm',
+              'placeholder:text-gray-400',
+              'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+              'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50',
+              'transition-colors resize-none',
+              error && 'border-danger focus:ring-danger'
             )}
           />
           {error && (
@@ -197,7 +194,7 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
         </div>
       );
 
-    case "select":
+    case 'select':
       return (
         <div className="w-full">
           <label htmlFor={fieldId} className={labelClasses}>
@@ -210,9 +207,9 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
             onChange={(e) => onChange(question.id, e.target.value)}
             required={question.required}
             aria-required={question.required}
-            aria-invalid={error ? "true" : "false"}
+            aria-invalid={error ? 'true' : 'false'}
             aria-describedby={error ? `${fieldId}-error` : undefined}
-            className={cn(inputClasses, "cursor-pointer")}
+            className={cn(inputClasses, 'cursor-pointer')}
           >
             <option value="">Select an option</option>
             {question.options?.map((opt) => (
@@ -229,19 +226,16 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
         </div>
       );
 
-    case "radio": {
+    case 'radio': {
       return (
-        <fieldset className="w-full" aria-invalid={error ? "true" : "false"}>
-          <legend className={cn(labelClasses, "mb-2")}>
+        <fieldset className="w-full" aria-invalid={error ? 'true' : 'false'}>
+          <legend className={cn(labelClasses, 'mb-2')}>
             {question.label}
             {question.required && <span className="text-danger ml-1">*</span>}
           </legend>
           <div className="flex flex-col gap-2" role="radiogroup">
             {question.options?.map((opt) => (
-              <label
-                key={opt}
-                className="flex items-center gap-2.5 cursor-pointer"
-              >
+              <label key={opt} className="flex items-center gap-2.5 cursor-pointer">
                 <input
                   type="radio"
                   name={fieldId}
@@ -250,23 +244,21 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
                   onChange={() => onChange(question.id, opt)}
                   required={question.required}
                   className={cn(
-                    "h-4 w-4 border-gray-300 text-primary-600",
-                    "focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
-                    error && "border-danger"
+                    'h-4 w-4 border-gray-300 text-primary-600',
+                    'focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+                    error && 'border-danger'
                   )}
                 />
                 <span className="text-sm text-gray-700">{opt}</span>
               </label>
             ))}
           </div>
-          {error && (
-            <p className="mt-1.5 text-sm text-danger">{error}</p>
-          )}
+          {error && <p className="mt-1.5 text-sm text-danger">{error}</p>}
         </fieldset>
       );
     }
 
-    case "checkbox": {
+    case 'checkbox': {
       const selectedValues = Array.isArray(value) ? value : [];
       const isSingleCheck = !question.options || question.options.length === 0;
 
@@ -278,43 +270,34 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
               <input
                 id={fieldId}
                 type="checkbox"
-                checked={selectedValues.includes("true")}
-                onChange={(e) =>
-                  onChange(question.id, e.target.checked ? ["true"] : [])
-                }
-                aria-invalid={error ? "true" : "false"}
+                checked={selectedValues.includes('true')}
+                onChange={(e) => onChange(question.id, e.target.checked ? ['true'] : [])}
+                aria-invalid={error ? 'true' : 'false'}
                 className={cn(
-                  "h-4 w-4 rounded border-gray-300 text-primary-600",
-                  "focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
-                  error && "border-danger"
+                  'h-4 w-4 rounded border-gray-300 text-primary-600',
+                  'focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+                  error && 'border-danger'
                 )}
               />
               <span className="text-sm font-medium text-gray-700">
                 {question.label}
-                {question.required && (
-                  <span className="text-danger ml-1">*</span>
-                )}
+                {question.required && <span className="text-danger ml-1">*</span>}
               </span>
             </label>
-            {error && (
-              <p className="mt-1.5 text-sm text-danger">{error}</p>
-            )}
+            {error && <p className="mt-1.5 text-sm text-danger">{error}</p>}
           </div>
         );
       }
 
       return (
-        <fieldset className="w-full" aria-invalid={error ? "true" : "false"}>
-          <legend className={cn(labelClasses, "mb-2")}>
+        <fieldset className="w-full" aria-invalid={error ? 'true' : 'false'}>
+          <legend className={cn(labelClasses, 'mb-2')}>
             {question.label}
             {question.required && <span className="text-danger ml-1">*</span>}
           </legend>
           <div className="flex flex-col gap-2">
             {question.options?.map((opt) => (
-              <label
-                key={opt}
-                className="flex items-center gap-2.5 cursor-pointer"
-              >
+              <label key={opt} className="flex items-center gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
                   value={opt}
@@ -330,18 +313,16 @@ function QuestionField({ question, value, onChange, error }: QuestionFieldProps)
                     }
                   }}
                   className={cn(
-                    "h-4 w-4 rounded border-gray-300 text-primary-600",
-                    "focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
-                    error && "border-danger"
+                    'h-4 w-4 rounded border-gray-300 text-primary-600',
+                    'focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+                    error && 'border-danger'
                   )}
                 />
                 <span className="text-sm text-gray-700">{opt}</span>
               </label>
             ))}
           </div>
-          {error && (
-            <p className="mt-1.5 text-sm text-danger">{error}</p>
-          )}
+          {error && <p className="mt-1.5 text-sm text-danger">{error}</p>}
         </fieldset>
       );
     }
@@ -376,15 +357,8 @@ export function BookingForm({
 }: BookingFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  const [responses, setResponses] = React.useState<
-    Record<string, string | string[]>
-  >(() =>
-    Object.fromEntries(
-      customQuestions.map((q) => [
-        q.id,
-        q.type === "checkbox" ? [] : "",
-      ])
-    )
+  const [responses, setResponses] = React.useState<Record<string, string | string[]>>(() =>
+    Object.fromEntries(customQuestions.map((q) => [q.id, q.type === 'checkbox' ? [] : '']))
   );
 
   // Formatted slot label for the summary header
@@ -406,9 +380,9 @@ export function BookingForm({
     setErrors({});
 
     const formData = new FormData(e.currentTarget);
-    const attendeeName = formData.get("attendeeName") as string;
-    const attendeeEmail = formData.get("attendeeEmail") as string;
-    const attendeeNotes = (formData.get("attendeeNotes") as string) || undefined;
+    const attendeeName = formData.get('attendeeName') as string;
+    const attendeeEmail = formData.get('attendeeEmail') as string;
+    const attendeeNotes = (formData.get('attendeeNotes') as string) || undefined;
 
     try {
       // Validate required custom questions before Zod parse
@@ -418,9 +392,7 @@ export function BookingForm({
         if (q.required) {
           const val = responses[q.id];
           const isEmpty =
-            val === undefined ||
-            val === "" ||
-            (Array.isArray(val) && val.length === 0);
+            val === undefined || val === '' || (Array.isArray(val) && val.length === 0);
           if (isEmpty) {
             customErrors[q.id] = `${q.label} is required`;
           }
@@ -446,9 +418,9 @@ export function BookingForm({
       const validated = bookingCreateSchema.parse(payload);
 
       // Submit to API
-      const response = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(validated),
       });
 
@@ -458,19 +430,17 @@ export function BookingForm({
         if (response.status === 409) {
           setErrors({
             general:
-              "This time slot is no longer available. Please go back and choose another time.",
+              'This time slot is no longer available. Please go back and choose another time.',
           });
         } else if (response.status === 400 && data.details) {
           const fieldErrors: Record<string, string> = {};
-          (data.details as { field: string; message: string }[]).forEach(
-            (detail) => {
-              fieldErrors[detail.field] = detail.message;
-            }
-          );
+          (data.details as { field: string; message: string }[]).forEach((detail) => {
+            fieldErrors[detail.field] = detail.message;
+          });
           setErrors(fieldErrors);
         } else {
           setErrors({
-            general: data.error || "Failed to schedule meeting. Please try again.",
+            general: data.error || 'Failed to schedule meeting. Please try again.',
           });
         }
         return;
@@ -488,7 +458,7 @@ export function BookingForm({
         });
         setErrors(fieldErrors);
       } else {
-        setErrors({ general: "An unexpected error occurred. Please try again." });
+        setErrors({ general: 'An unexpected error occurred. Please try again.' });
       }
     } finally {
       setIsSubmitting(false);
@@ -496,16 +466,14 @@ export function BookingForm({
   };
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn('w-full', className)}>
       {/* Selected time summary */}
       <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <ClockIcon className="mt-0.5 shrink-0 text-primary-600" />
             <div>
-              <p className="text-sm font-semibold text-gray-900">
-                {eventTypeTitle}
-              </p>
+              <p className="text-sm font-semibold text-gray-900">{eventTypeTitle}</p>
               <p className="mt-0.5 text-sm text-gray-600">
                 {slotLabel} ({tzAbbr})
               </p>
@@ -517,9 +485,9 @@ export function BookingForm({
               type="button"
               onClick={onBack}
               className={cn(
-                "shrink-0 inline-flex items-center gap-1 text-sm font-medium text-primary-600",
-                "hover:text-primary-700 transition-colors",
-                "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded"
+                'shrink-0 inline-flex items-center gap-1 text-sm font-medium text-primary-600',
+                'hover:text-primary-700 transition-colors',
+                'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded'
               )}
               aria-label="Go back to time selection"
             >
@@ -561,10 +529,7 @@ export function BookingForm({
 
         {/* Notes textarea */}
         <div className="w-full">
-          <label
-            htmlFor="attendeeNotes"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
+          <label htmlFor="attendeeNotes" className="block text-sm font-medium text-gray-700 mb-1.5">
             Additional Notes
           </label>
           <textarea
@@ -572,15 +537,15 @@ export function BookingForm({
             name="attendeeNotes"
             rows={3}
             placeholder="Anything you'd like the host to know..."
-            aria-describedby={errors.attendeeNotes ? "attendeeNotes-error" : undefined}
-            aria-invalid={errors.attendeeNotes ? "true" : "false"}
+            aria-describedby={errors.attendeeNotes ? 'attendeeNotes-error' : undefined}
+            aria-invalid={errors.attendeeNotes ? 'true' : 'false'}
             className={cn(
-              "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm",
-              "placeholder:text-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50",
-              "transition-colors resize-none",
-              errors.attendeeNotes && "border-danger focus:ring-danger"
+              'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm',
+              'placeholder:text-gray-400',
+              'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+              'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50',
+              'transition-colors resize-none',
+              errors.attendeeNotes && 'border-danger focus:ring-danger'
             )}
           />
           {errors.attendeeNotes && (
@@ -594,15 +559,13 @@ export function BookingForm({
         {customQuestions.length > 0 && (
           <>
             <div className="border-t border-gray-200 pt-5">
-              <p className="mb-4 text-sm font-medium text-gray-700">
-                Additional Information
-              </p>
+              <p className="mb-4 text-sm font-medium text-gray-700">Additional Information</p>
               <div className="space-y-5">
                 {customQuestions.map((q) => (
                   <QuestionField
                     key={q.id}
                     question={q}
-                    value={responses[q.id] ?? (q.type === "checkbox" ? [] : "")}
+                    value={responses[q.id] ?? (q.type === 'checkbox' ? [] : '')}
                     onChange={handleResponseChange}
                     error={errors[q.id]}
                   />
@@ -621,7 +584,7 @@ export function BookingForm({
             loading={isSubmitting}
             className="w-full"
           >
-            {isSubmitting ? "Scheduling..." : "Schedule Meeting"}
+            {isSubmitting ? 'Scheduling...' : 'Schedule Meeting'}
           </Button>
         </div>
       </form>

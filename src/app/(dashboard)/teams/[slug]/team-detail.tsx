@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useId, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { cn, generateSlug } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MemberList, type TeamMemberData } from "@/components/teams/member-list";
+import { useState, useId, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { cn, generateSlug } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { MemberList, type TeamMemberData } from '@/components/teams/member-list';
 import {
   TeamEventTypeCard,
   type TeamEventTypeCardData,
-} from "@/components/teams/team-event-type-card";
+} from '@/components/teams/team-event-type-card';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,11 +27,11 @@ interface TeamDetailClientProps {
   members: TeamMemberData[];
   eventTypes: TeamEventTypeCardData[];
   currentUserId: string;
-  currentUserRole: "OWNER" | "ADMIN" | "MEMBER";
+  currentUserRole: 'OWNER' | 'ADMIN' | 'MEMBER';
   appUrl: string;
 }
 
-type TabId = "members" | "event-types" | "settings";
+type TabId = 'members' | 'event-types' | 'settings';
 
 // ─── Create Team Event Type Dialog ────────────────────────────────────────────
 
@@ -48,17 +48,17 @@ function CreateEventTypeDialog({
   const titleId = useId();
   const firstFocusRef = useRef<HTMLInputElement>(null);
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState('');
   const [duration, setDuration] = useState(30);
-  const [schedulingType, setSchedulingType] = useState<"ROUND_ROBIN" | "COLLECTIVE">("ROUND_ROBIN");
-  const [slugPreview, setSlugPreview] = useState("");
+  const [schedulingType, setSchedulingType] = useState<'ROUND_ROBIN' | 'COLLECTIVE'>('ROUND_ROBIN');
+  const [slugPreview, setSlugPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; general?: string }>({});
 
   const DURATION_OPTIONS = [15, 30, 45, 60] as const;
 
   useEffect(() => {
-    setSlugPreview(title ? generateSlug(title) : "");
+    setSlugPreview(title ? generateSlug(title) : '');
   }, [title]);
 
   useEffect(() => {
@@ -71,28 +71,28 @@ function CreateEventTypeDialog({
   useEffect(() => {
     if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") handleClose();
+      if (e.key === 'Escape') handleClose();
     }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     };
   }, [open]);
 
   function resetForm() {
-    setTitle("");
+    setTitle('');
     setDuration(30);
-    setSchedulingType("ROUND_ROBIN");
-    setSlugPreview("");
+    setSchedulingType('ROUND_ROBIN');
+    setSlugPreview('');
     setErrors({});
   }
 
@@ -105,7 +105,7 @@ function CreateEventTypeDialog({
     e.preventDefault();
     const trimmed = title.trim();
     if (!trimmed) {
-      setErrors({ title: "Title is required" });
+      setErrors({ title: 'Title is required' });
       return;
     }
 
@@ -114,8 +114,8 @@ function CreateEventTypeDialog({
 
     try {
       const res = await fetch(`/api/teams/${teamSlug}/event-types`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: trimmed, duration, schedulingType }),
       });
 
@@ -127,19 +127,19 @@ function CreateEventTypeDialog({
         if (data.details) {
           const fieldErrors: typeof errors = {};
           for (const detail of data.details) {
-            if (detail.field === "title") fieldErrors.title = detail.message;
+            if (detail.field === 'title') fieldErrors.title = detail.message;
           }
           if (Object.keys(fieldErrors).length > 0) {
             setErrors(fieldErrors);
           } else {
-            setErrors({ general: data.error ?? "Failed to create event type" });
+            setErrors({ general: data.error ?? 'Failed to create event type' });
           }
         } else {
-          setErrors({ general: data.error ?? "Failed to create event type" });
+          setErrors({ general: data.error ?? 'Failed to create event type' });
         }
       }
     } catch {
-      setErrors({ general: "Something went wrong. Please try again." });
+      setErrors({ general: 'Something went wrong. Please try again.' });
     } finally {
       setSubmitting(false);
     }
@@ -171,8 +171,19 @@ function CreateEventTypeDialog({
             aria-label="Close dialog"
             className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-ring transition-colors"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -181,7 +192,10 @@ function CreateEventTypeDialog({
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-5 px-6 py-5">
             {errors.general && (
-              <div role="alert" className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-danger">
+              <div
+                role="alert"
+                className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-danger"
+              >
                 {errors.general}
               </div>
             )}
@@ -215,10 +229,10 @@ function CreateEventTypeDialog({
                     type="button"
                     onClick={() => setDuration(d)}
                     className={cn(
-                      "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-ring",
+                      'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-ring',
                       duration === d
-                        ? "border-primary-600 bg-primary-50 text-primary-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                     )}
                   >
                     {d} min
@@ -235,18 +249,18 @@ function CreateEventTypeDialog({
               <div className="space-y-2">
                 <label
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors",
-                    schedulingType === "ROUND_ROBIN"
-                      ? "border-primary-500 bg-primary-50"
-                      : "border-gray-200 hover:bg-gray-50"
+                    'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
+                    schedulingType === 'ROUND_ROBIN'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:bg-gray-50'
                   )}
                 >
                   <input
                     type="radio"
                     name="schedulingType"
                     value="ROUND_ROBIN"
-                    checked={schedulingType === "ROUND_ROBIN"}
-                    onChange={() => setSchedulingType("ROUND_ROBIN")}
+                    checked={schedulingType === 'ROUND_ROBIN'}
+                    onChange={() => setSchedulingType('ROUND_ROBIN')}
                     className="mt-0.5 text-primary-600 focus-ring"
                   />
                   <div>
@@ -258,18 +272,18 @@ function CreateEventTypeDialog({
                 </label>
                 <label
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors",
-                    schedulingType === "COLLECTIVE"
-                      ? "border-primary-500 bg-primary-50"
-                      : "border-gray-200 hover:bg-gray-50"
+                    'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
+                    schedulingType === 'COLLECTIVE'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:bg-gray-50'
                   )}
                 >
                   <input
                     type="radio"
                     name="schedulingType"
                     value="COLLECTIVE"
-                    checked={schedulingType === "COLLECTIVE"}
-                    onChange={() => setSchedulingType("COLLECTIVE")}
+                    checked={schedulingType === 'COLLECTIVE'}
+                    onChange={() => setSchedulingType('COLLECTIVE')}
                     className="mt-0.5 text-primary-600 focus-ring"
                   />
                   <div>
@@ -304,33 +318,33 @@ function SettingsTab({
   currentUserRole,
 }: {
   team: TeamData;
-  currentUserRole: "OWNER" | "ADMIN" | "MEMBER";
+  currentUserRole: 'OWNER' | 'ADMIN' | 'MEMBER';
 }) {
   const router = useRouter();
   const [name, setName] = useState(team.name);
   const [slug, setSlug] = useState(team.slug);
-  const [logoUrl, setLogoUrl] = useState(team.logoUrl ?? "");
-  const [bio, setBio] = useState(team.bio ?? "");
+  const [logoUrl, setLogoUrl] = useState(team.logoUrl ?? '');
+  const [bio, setBio] = useState(team.bio ?? '');
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState("");
+  const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Delete state
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
-  const isOwner = currentUserRole === "OWNER";
-  const canEdit = currentUserRole === "OWNER" || currentUserRole === "ADMIN";
+  const isOwner = currentUserRole === 'OWNER';
+  const canEdit = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setSaveError("");
+    setSaveError('');
     setSaveSuccess(false);
 
     try {
       const res = await fetch(`/api/teams/${team.slug}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim() || undefined,
           slug: slug.trim() || undefined,
@@ -351,10 +365,10 @@ function SettingsTab({
         }
       } else {
         const data = await res.json();
-        setSaveError(data.error ?? "Failed to save settings");
+        setSaveError(data.error ?? 'Failed to save settings');
       }
     } catch {
-      setSaveError("Something went wrong. Please try again.");
+      setSaveError('Something went wrong. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -364,15 +378,15 @@ function SettingsTab({
     if (deleteConfirmText !== team.name) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/teams/${team.slug}`, { method: "DELETE" });
+      const res = await fetch(`/api/teams/${team.slug}`, { method: 'DELETE' });
       if (res.ok) {
-        router.push("/teams");
+        router.push('/teams');
       } else {
         const data = await res.json();
-        alert(data.error ?? "Failed to delete team");
+        alert(data.error ?? 'Failed to delete team');
       }
     } catch {
-      alert("Failed to delete team");
+      alert('Failed to delete team');
     } finally {
       setDeleting(false);
     }
@@ -384,16 +398,24 @@ function SettingsTab({
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="border-b border-gray-200 px-6 py-4">
           <h3 className="text-base font-semibold text-gray-900">Team Settings</h3>
-          <p className="mt-0.5 text-sm text-gray-600">Update your team&apos;s profile information</p>
+          <p className="mt-0.5 text-sm text-gray-600">
+            Update your team&apos;s profile information
+          </p>
         </div>
         <form onSubmit={handleSave} className="px-6 py-5 space-y-5">
           {saveError && (
-            <div role="alert" className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-danger">
+            <div
+              role="alert"
+              className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-danger"
+            >
               {saveError}
             </div>
           )}
           {saveSuccess && (
-            <div role="status" className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+            <div
+              role="status"
+              className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700"
+            >
               Settings saved successfully.
             </div>
           )}
@@ -427,7 +449,10 @@ function SettingsTab({
           />
 
           <div>
-            <label htmlFor="settings-team-bio" className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label
+              htmlFor="settings-team-bio"
+              className="block text-sm font-medium text-gray-700 mb-1.5"
+            >
               Bio
             </label>
             <textarea
@@ -462,11 +487,15 @@ function SettingsTab({
             <div>
               <p className="text-sm font-medium text-gray-900">Delete this team</p>
               <p className="mt-1 text-sm text-gray-600">
-                Permanently delete the team, all its members, and event types. This action cannot be undone.
+                Permanently delete the team, all its members, and event types. This action cannot be
+                undone.
               </p>
             </div>
             <div>
-              <label htmlFor="delete-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="delete-confirm"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
                 Type <strong>{team.name}</strong> to confirm
               </label>
               <input
@@ -514,7 +543,7 @@ function EventTypesTab({
         <div>
           <h3 className="text-base font-semibold text-gray-900">Team Event Types</h3>
           <p className="mt-0.5 text-sm text-gray-600">
-            {eventTypes.length} event type{eventTypes.length !== 1 ? "s" : ""}
+            {eventTypes.length} event type{eventTypes.length !== 1 ? 's' : ''}
           </p>
         </div>
         {canCreate && (
@@ -528,8 +557,19 @@ function EventTypesTab({
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
           <div className="mx-auto max-w-sm">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
-              <svg className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="h-6 w-6 text-primary-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
             </div>
             <h4 className="mt-4 text-lg font-medium text-gray-900">No team event types yet</h4>
@@ -548,12 +588,7 @@ function EventTypesTab({
       ) : (
         <div className="space-y-3">
           {eventTypes.map((et) => (
-            <TeamEventTypeCard
-              key={et.id}
-              eventType={et}
-              teamSlug={teamSlug}
-              appUrl={appUrl}
-            />
+            <TeamEventTypeCard key={et.id} eventType={et} teamSlug={teamSlug} appUrl={appUrl} />
           ))}
         </div>
       )}
@@ -577,15 +612,14 @@ export function TeamDetailClient({
   currentUserRole,
   appUrl,
 }: TeamDetailClientProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("members");
+  const [activeTab, setActiveTab] = useState<TabId>('members');
 
-  const canManageEventTypes =
-    currentUserRole === "OWNER" || currentUserRole === "ADMIN";
+  const canManageEventTypes = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
 
   const tabs: { id: TabId; label: string }[] = [
-    { id: "members", label: "Members" },
-    { id: "event-types", label: "Event Types" },
-    { id: "settings", label: "Settings" },
+    { id: 'members', label: 'Members' },
+    { id: 'event-types', label: 'Event Types' },
+    { id: 'settings', label: 'Settings' },
   ];
 
   return (
@@ -595,11 +629,7 @@ export function TeamDetailClient({
         {/* Team logo */}
         <div className="shrink-0">
           {team.logoUrl ? (
-            <img
-              src={team.logoUrl}
-              alt={team.name}
-              className="h-14 w-14 rounded-xl object-cover"
-            />
+            <img src={team.logoUrl} alt={team.name} className="h-14 w-14 rounded-xl object-cover" />
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary-600 text-white text-xl font-bold">
               {team.name[0]?.toUpperCase()}
@@ -609,9 +639,7 @@ export function TeamDetailClient({
         <div className="min-w-0 flex-1">
           <h2 className="text-2xl font-semibold text-gray-900 truncate">{team.name}</h2>
           <p className="mt-0.5 text-sm text-gray-500">/{team.slug}</p>
-          {team.bio && (
-            <p className="mt-1 text-sm text-gray-600 line-clamp-2">{team.bio}</p>
-          )}
+          {team.bio && <p className="mt-1 text-sm text-gray-600 line-clamp-2">{team.bio}</p>}
         </div>
       </div>
 
@@ -627,10 +655,10 @@ export function TeamDetailClient({
               aria-controls={`panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "border-b-2 pb-3 text-sm font-medium transition-colors whitespace-nowrap",
+                'border-b-2 pb-3 text-sm font-medium transition-colors whitespace-nowrap',
                 activeTab === tab.id
-                  ? "border-primary-600 text-primary-700"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  ? 'border-primary-600 text-primary-700'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
               )}
             >
               {tab.label}
@@ -640,12 +668,8 @@ export function TeamDetailClient({
       </div>
 
       {/* Tab panels */}
-      <div
-        role="tabpanel"
-        id={`panel-${activeTab}`}
-        aria-labelledby={`tab-${activeTab}`}
-      >
-        {activeTab === "members" && (
+      <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+        {activeTab === 'members' && (
           <MemberList
             members={members}
             teamSlug={team.slug}
@@ -653,7 +677,7 @@ export function TeamDetailClient({
             currentUserRole={currentUserRole}
           />
         )}
-        {activeTab === "event-types" && (
+        {activeTab === 'event-types' && (
           <EventTypesTab
             eventTypes={eventTypes}
             teamSlug={team.slug}
@@ -661,12 +685,7 @@ export function TeamDetailClient({
             canCreate={canManageEventTypes}
           />
         )}
-        {activeTab === "settings" && (
-          <SettingsTab
-            team={team}
-            currentUserRole={currentUserRole}
-          />
-        )}
+        {activeTab === 'settings' && <SettingsTab team={team} currentUserRole={currentUserRole} />}
       </div>
     </div>
   );

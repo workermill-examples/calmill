@@ -1,19 +1,19 @@
-import NextAuth, { type DefaultSession } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { compare } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { loginSchema } from "@/lib/validations";
+import NextAuth, { type DefaultSession } from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import { compare } from 'bcryptjs';
+import { prisma } from '@/lib/prisma';
+import { loginSchema } from '@/lib/validations';
 
 // Extend the built-in session types
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
       username: string;
       timezone: string;
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
   }
 
   interface User {
@@ -22,7 +22,7 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
+declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
     username: string;
@@ -34,10 +34,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma) as any, // Type assertion to fix adapter type mismatch between next-auth's bundled @auth/core and standalone @auth/prisma-adapter
   providers: [
     Credentials({
-      name: "credentials",
+      name: 'credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       authorize: async (credentials) => {
         try {
@@ -84,7 +84,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             image: user.avatarUrl,
           };
         } catch (error) {
-          console.error("Authorization error:", error);
+          console.error('Authorization error:', error);
           return null;
         }
       },
@@ -92,24 +92,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true, // Allow linking if email matches
+      // Account linking requires user to be authenticated first (via settings page)
     }),
   ],
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     jwt({ token, user, trigger, session }) {
       // Initial sign in - populate token with user data
       if (user) {
-        token.id = user.id ?? "";
-        token.username = user.username ?? "";
-        token.timezone = user.timezone ?? "America/New_York";
+        token.id = user.id ?? '';
+        token.username = user.username ?? '';
+        token.timezone = user.timezone ?? 'America/New_York';
       }
 
       // Session update - sync token with updated session data
-      if (trigger === "update" && session) {
+      if (trigger === 'update' && session) {
         token.name = session.name;
         token.email = session.email;
         token.username = session.username;
@@ -129,7 +129,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async signIn({ user, account }) {
       // For OAuth providers, ensure username is set
-      if (account?.provider !== "credentials" && user.email) {
+      if (account?.provider !== 'credentials' && user.email) {
         // Check if user exists
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
@@ -138,8 +138,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // If username not set, generate one from email
         if (existingUser && !existingUser.username) {
-          const baseUsername = (user.email.split("@")[0] ?? user.email).toLowerCase();
-          const username = baseUsername.replace(/[^a-z0-9_-]/g, "");
+          const baseUsername = (user.email.split('@')[0] ?? user.email).toLowerCase();
+          const username = baseUsername.replace(/[^a-z0-9_-]/g, '');
 
           // Update user with generated username
           await prisma.user.update({
@@ -152,33 +152,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: {
-    signIn: "/login",
-    newUser: "/getting-started",
-    error: "/login",
+    signIn: '/login',
+    newUser: '/getting-started',
+    error: '/login',
   },
   events: {
     async createUser({ user }) {
       // Only create default data if user.id exists (should always be the case after user creation)
       if (!user.id) {
-        console.error("User created without ID - skipping default schedule creation");
+        console.error('User created without ID - skipping default schedule creation');
         return;
       }
 
       // Create default schedule for new users
       const defaultSchedule = await prisma.schedule.create({
         data: {
-          name: "Business Hours",
-          timezone: user.timezone || "America/New_York",
+          name: 'Business Hours',
+          timezone: user.timezone || 'America/New_York',
           isDefault: true,
           userId: user.id,
           availability: {
             create: [
               // Monday - Friday: 9 AM - 5 PM
-              { day: 1, startTime: "09:00", endTime: "17:00" },
-              { day: 2, startTime: "09:00", endTime: "17:00" },
-              { day: 3, startTime: "09:00", endTime: "17:00" },
-              { day: 4, startTime: "09:00", endTime: "17:00" },
-              { day: 5, startTime: "09:00", endTime: "17:00" },
+              { day: 1, startTime: '09:00', endTime: '17:00' },
+              { day: 2, startTime: '09:00', endTime: '17:00' },
+              { day: 3, startTime: '09:00', endTime: '17:00' },
+              { day: 4, startTime: '09:00', endTime: '17:00' },
+              { day: 5, startTime: '09:00', endTime: '17:00' },
             ],
           },
         },
@@ -188,15 +188,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       await prisma.eventType.createMany({
         data: [
           {
-            title: "30 Minute Meeting",
-            slug: "30min",
+            title: '30 Minute Meeting',
+            slug: '30min',
             duration: 30,
             userId: user.id,
             scheduleId: defaultSchedule.id,
           },
           {
-            title: "60 Minute Consultation",
-            slug: "60min",
+            title: '60 Minute Consultation',
+            slug: '60min',
             duration: 60,
             userId: user.id,
             scheduleId: defaultSchedule.id,
@@ -205,5 +205,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       });
     },
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === 'development',
 });

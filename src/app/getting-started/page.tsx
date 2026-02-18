@@ -1,15 +1,15 @@
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { CopyButton } from "@/components/copy-button";
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { auth } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { CopyButton } from '@/components/copy-button';
 
 export default async function GettingStartedPage() {
   const session = await auth();
 
   // Redirect to login if not authenticated
   if (!session?.user) {
-    redirect("/login");
+    redirect('/login');
   }
 
   return (
@@ -96,11 +96,11 @@ export default async function GettingStartedPage() {
                   </p>
                   <div className="mt-2 flex items-center gap-2 rounded-md bg-gray-50 px-3 py-2 border border-gray-200">
                     <code className="text-sm text-gray-700 flex-1">
-                      {process.env.NEXT_PUBLIC_APP_URL || "https://calmill.workermill.com"}/
+                      {process.env.NEXT_PUBLIC_APP_URL || 'https://calmill.workermill.com'}/
                       {session.user.username}
                     </code>
                     <CopyButton
-                      text={`${process.env.NEXT_PUBLIC_APP_URL || "https://calmill.workermill.com"}/${session.user.username}`}
+                      text={`${process.env.NEXT_PUBLIC_APP_URL || 'https://calmill.workermill.com'}/${session.user.username}`}
                     />
                   </div>
                 </div>

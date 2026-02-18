@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { teamSchema } from "@/lib/validations";
-import { generateSlug } from "@/lib/utils";
-import { verifyTeamMembership, verifyTeamRole } from "@/lib/team-auth";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { teamSchema } from '@/lib/validations';
+import { generateSlug } from '@/lib/utils';
+import { verifyTeamMembership, verifyTeamRole } from '@/lib/team-auth';
 
 // GET /api/teams/[slug] — Team details with members and event types. Requires membership.
 export const GET = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
-    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug) return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
     // Verify the user is a member
     const memberResult = await verifyTeamMembership(user.id, slug);
@@ -31,24 +31,24 @@ export const GET = withAuth(async (_request, context, user) => {
               },
             },
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: 'asc' },
         },
         eventTypes: {
           where: { isActive: true },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         },
         _count: { select: { members: true } },
       },
     });
 
     if (!team) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, data: team });
   } catch (error) {
-    console.error("GET /api/teams/[slug] error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/teams/[slug] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -56,10 +56,10 @@ export const GET = withAuth(async (_request, context, user) => {
 export const PUT = withAuth(async (request, context, user) => {
   try {
     const { slug } = await context.params;
-    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug) return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
     // Require ADMIN or OWNER role
-    const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
+    const roleResult = await verifyTeamRole(user.id, slug, 'ADMIN');
     if (roleResult.error) return roleResult.error;
 
     const { member } = roleResult;
@@ -68,7 +68,7 @@ export const PUT = withAuth(async (request, context, user) => {
 
     const updateSchema = teamSchema
       .extend({
-        logoUrl: z.string().url("Invalid logo URL").optional().nullable(),
+        logoUrl: z.string().url('Invalid logo URL').optional().nullable(),
       })
       .partial();
 
@@ -135,9 +135,9 @@ export const PUT = withAuth(async (request, context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -145,8 +145,8 @@ export const PUT = withAuth(async (request, context, user) => {
       );
     }
 
-    console.error("PUT /api/teams/[slug] error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('PUT /api/teams/[slug] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -154,10 +154,10 @@ export const PUT = withAuth(async (request, context, user) => {
 export const DELETE = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
-    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug) return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
     // Require OWNER role
-    const roleResult = await verifyTeamRole(user.id, slug, "OWNER");
+    const roleResult = await verifyTeamRole(user.id, slug, 'OWNER');
     if (roleResult.error) return roleResult.error;
 
     const { member } = roleResult;
@@ -177,9 +177,9 @@ export const DELETE = withAuth(async (_request, context, user) => {
       prisma.team.delete({ where: { id: member.teamId } }),
     ]);
 
-    return NextResponse.json({ success: true, message: "Team deleted" });
+    return NextResponse.json({ success: true, message: 'Team deleted' });
   } catch (error) {
-    console.error("DELETE /api/teams/[slug] error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('DELETE /api/teams/[slug] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

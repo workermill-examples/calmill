@@ -1,6 +1,6 @@
-import { Button, Hr, Section, Text } from "@react-email/components";
-import { EmailLayout, colors } from "./components/email-layout";
-import { DetailRow } from "./components/detail-row";
+import { Button, Hr, Section, Text } from '@react-email/components';
+import { EmailLayout, colors } from './components/email-layout';
+import { DetailRow } from './components/detail-row';
 
 export interface BookingCancelledEmailProps {
   /** Display name of the person receiving the email */
@@ -40,15 +40,15 @@ export function BookingCancelledEmail({
   isRejection = false,
   rebookUrl,
 }: BookingCancelledEmailProps) {
-  const actionLabel = isRejection ? "rejected" : "cancelled";
+  const actionLabel = isRejection ? 'rejected' : 'cancelled';
   const preview = `Meeting ${actionLabel}: ${eventTypeTitle}`;
-  const heading = isRejection ? "Meeting request declined" : "Meeting cancelled";
+  const heading = isRejection ? 'Meeting request declined' : 'Meeting cancelled';
 
   const subheading = isHost
     ? `The booking with ${attendeeName} for "${eventTypeTitle}" has been ${actionLabel}.`
     : isRejection
-    ? `${hostName} has declined your meeting request for "${eventTypeTitle}".`
-    : `Your meeting "${eventTypeTitle}" has been ${actionLabel}.`;
+      ? `${hostName} has declined your meeting request for "${eventTypeTitle}".`
+      : `Your meeting "${eventTypeTitle}" has been ${actionLabel}.`;
 
   return (
     <EmailLayout preview={preview}>
@@ -74,7 +74,7 @@ export function BookingCancelledEmail({
           <span style={styles.timezone}>{timezone}</span>
         </DetailRow>
 
-        <DetailRow icon="👤" label={isHost ? "Attendee" : "Host"}>
+        <DetailRow icon="👤" label={isHost ? 'Attendee' : 'Host'}>
           {isHost ? attendeeName : hostName}
         </DetailRow>
       </Section>
@@ -85,7 +85,7 @@ export function BookingCancelledEmail({
           <Hr style={styles.divider} />
           <Section>
             <Text style={styles.sectionTitle}>
-              {isRejection ? "Reason for declining" : "Cancellation reason"}
+              {isRejection ? 'Reason for declining' : 'Cancellation reason'}
             </Text>
             <Text style={styles.reasonText}>{cancellationReason}</Text>
           </Section>
@@ -109,98 +109,94 @@ export function BookingCancelledEmail({
         </Text>
       )}
 
-      {isHost && (
-        <Text style={styles.hint}>
-          No further action is required.
-        </Text>
-      )}
+      {isHost && <Text style={styles.hint}>No further action is required.</Text>}
     </EmailLayout>
   );
 }
 
 const styles = {
   centeredSection: {
-    textAlign: "center" as const,
+    textAlign: 'center' as const,
   },
   statusIconCircle: {
     backgroundColor: colors.danger,
-    borderRadius: "50%",
+    borderRadius: '50%',
     color: colors.white,
-    fontSize: "24px",
-    fontWeight: "700",
-    margin: "0 auto 16px",
-    padding: "12px 16px",
-    textAlign: "center" as const,
+    fontSize: '24px',
+    fontWeight: '700',
+    margin: '0 auto 16px',
+    padding: '12px 16px',
+    textAlign: 'center' as const,
   },
   heading: {
     color: colors.text,
-    fontSize: "24px",
-    fontWeight: "700",
-    lineHeight: "1.3",
-    margin: "0 0 8px",
-    textAlign: "center" as const,
+    fontSize: '24px',
+    fontWeight: '700',
+    lineHeight: '1.3',
+    margin: '0 0 8px',
+    textAlign: 'center' as const,
   },
   subheading: {
     color: colors.textMuted,
-    fontSize: "15px",
-    lineHeight: "1.6",
-    margin: "0 0 24px",
-    textAlign: "center" as const,
+    fontSize: '15px',
+    lineHeight: '1.6',
+    margin: '0 0 24px',
+    textAlign: 'center' as const,
   },
   divider: {
     borderColor: colors.border,
-    margin: "24px 0",
+    margin: '24px 0',
   },
   detailsCard: {
     backgroundColor: colors.dangerLight,
-    borderRadius: "8px",
-    padding: "16px 20px",
+    borderRadius: '8px',
+    padding: '16px 20px',
   },
   eventTitle: {
     color: colors.danger,
-    fontSize: "17px",
-    fontWeight: "700",
-    margin: "0 0 16px",
+    fontSize: '17px',
+    fontWeight: '700',
+    margin: '0 0 16px',
   },
   timezone: {
     color: colors.textMuted,
-    fontSize: "13px",
+    fontSize: '13px',
   },
   sectionTitle: {
     color: colors.text,
-    fontSize: "14px",
-    fontWeight: "600",
-    margin: "0 0 8px",
+    fontSize: '14px',
+    fontWeight: '600',
+    margin: '0 0 8px',
   },
   reasonText: {
     backgroundColor: colors.background,
     borderLeftColor: colors.danger,
-    borderLeftStyle: "solid" as const,
-    borderLeftWidth: "3px",
-    borderRadius: "4px",
+    borderLeftStyle: 'solid' as const,
+    borderLeftWidth: '3px',
+    borderRadius: '4px',
     color: colors.text,
-    fontSize: "14px",
-    lineHeight: "1.6",
-    margin: "0",
-    padding: "12px 16px",
+    fontSize: '14px',
+    lineHeight: '1.6',
+    margin: '0',
+    padding: '12px 16px',
   },
   primaryButton: {
     backgroundColor: colors.primary,
-    borderRadius: "6px",
+    borderRadius: '6px',
     color: colors.white,
-    display: "inline-block",
-    fontSize: "15px",
-    fontWeight: "600",
-    marginBottom: "12px",
-    padding: "12px 24px",
-    textDecoration: "none",
+    display: 'inline-block',
+    fontSize: '15px',
+    fontWeight: '600',
+    marginBottom: '12px',
+    padding: '12px 24px',
+    textDecoration: 'none',
   },
   hint: {
     color: colors.textMuted,
-    fontSize: "13px",
-    lineHeight: "1.5",
-    margin: "0",
-    textAlign: "center" as const,
+    fontSize: '13px',
+    lineHeight: '1.5',
+    margin: '0',
+    textAlign: 'center' as const,
   },
 } as const;
 

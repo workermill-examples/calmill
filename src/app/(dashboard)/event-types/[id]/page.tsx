@@ -1,8 +1,8 @@
-import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { EventTypeEditor } from "@/components/event-types/editor";
-import type { EventTypeLocation, CustomQuestion } from "@/types";
+import { notFound, redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { EventTypeEditor } from '@/components/event-types/editor';
+import type { EventTypeLocation, CustomQuestion } from '@/types';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -22,7 +22,7 @@ export default async function EventTypeEditorPage({ params }: PageProps) {
         include: {
           availability: true,
           dateOverrides: {
-            orderBy: { date: "asc" },
+            orderBy: { date: 'asc' },
           },
         },
       },
@@ -30,9 +30,9 @@ export default async function EventTypeEditorPage({ params }: PageProps) {
   });
 
   if (!eventType) notFound();
-  if (eventType.userId !== userId) redirect("/event-types");
+  if (eventType.userId !== userId) redirect('/event-types');
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   return (
     <EventTypeEditor

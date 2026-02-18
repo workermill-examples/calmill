@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -63,23 +63,21 @@ export class GoogleCalendarService {
     ) {
       // Token is expired or about to expire — refresh it
       const params = new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID ?? "",
-        client_secret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        client_id: process.env.GOOGLE_CLIENT_ID ?? '',
+        client_secret: process.env.GOOGLE_CLIENT_SECRET ?? '',
         refresh_token: this.connection.refreshToken,
-        grant_type: "refresh_token",
+        grant_type: 'refresh_token',
       });
 
-      const response = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params.toString(),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(
-          `Failed to refresh Google token: ${error.error ?? response.status}`
-        );
+        throw new Error(`Failed to refresh Google token: ${error.error ?? response.status}`);
       }
 
       const data = await response.json();
@@ -108,21 +106,18 @@ export class GoogleCalendarService {
   async getBusyTimes(startDate: Date, endDate: Date): Promise<BusyTime[]> {
     const token = await this.getValidAccessToken();
 
-    const response = await fetch(
-      "https://www.googleapis.com/calendar/v3/freeBusy",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          timeMin: startDate.toISOString(),
-          timeMax: endDate.toISOString(),
-          items: [{ id: "primary" }],
-        }),
-      }
-    );
+    const response = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        timeMin: startDate.toISOString(),
+        timeMax: endDate.toISOString(),
+        items: [{ id: 'primary' }],
+      }),
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -132,8 +127,7 @@ export class GoogleCalendarService {
     }
 
     const data = await response.json();
-    const busy: Array<{ start: string; end: string }> =
-      data.calendars?.primary?.busy ?? [];
+    const busy: Array<{ start: string; end: string }> = data.calendars?.primary?.busy ?? [];
 
     return busy.map((slot) => ({
       start: new Date(slot.start),
@@ -149,30 +143,30 @@ export class GoogleCalendarService {
     const token = await this.getValidAccessToken();
 
     const eventBody = {
-      summary: booking.eventType?.title ?? booking.title ?? "Meeting",
-      description: booking.notes ?? "",
+      summary: booking.eventType?.title ?? booking.title ?? 'Meeting',
+      description: booking.notes ?? '',
       start: {
         dateTime: booking.startTime.toISOString(),
       },
       end: {
         dateTime: booking.endTime.toISOString(),
       },
-      location: booking.location ?? "",
+      location: booking.location ?? '',
       attendees: [
         { email: booking.attendeeEmail, displayName: booking.attendeeName },
         ...(booking.user?.email
-          ? [{ email: booking.user.email, displayName: booking.user.name ?? "" }]
+          ? [{ email: booking.user.email, displayName: booking.user.name ?? '' }]
           : []),
       ],
     };
 
     const response = await fetch(
-      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      'https://www.googleapis.com/calendar/v3/calendars/primary/events',
       {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(eventBody),
       }
@@ -192,26 +186,23 @@ export class GoogleCalendarService {
   /**
    * Updates an existing Google Calendar event for a rescheduled booking.
    */
-  async updateEvent(
-    eventId: string,
-    booking: BookingWithDetails
-  ): Promise<void> {
+  async updateEvent(eventId: string, booking: BookingWithDetails): Promise<void> {
     const token = await this.getValidAccessToken();
 
     const eventBody = {
-      summary: booking.eventType?.title ?? booking.title ?? "Meeting",
-      description: booking.notes ?? "",
+      summary: booking.eventType?.title ?? booking.title ?? 'Meeting',
+      description: booking.notes ?? '',
       start: {
         dateTime: booking.startTime.toISOString(),
       },
       end: {
         dateTime: booking.endTime.toISOString(),
       },
-      location: booking.location ?? "",
+      location: booking.location ?? '',
       attendees: [
         { email: booking.attendeeEmail, displayName: booking.attendeeName },
         ...(booking.user?.email
-          ? [{ email: booking.user.email, displayName: booking.user.name ?? "" }]
+          ? [{ email: booking.user.email, displayName: booking.user.name ?? '' }]
           : []),
       ],
     };
@@ -219,10 +210,10 @@ export class GoogleCalendarService {
     const response = await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
       {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(eventBody),
       }
@@ -245,7 +236,7 @@ export class GoogleCalendarService {
     const response = await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },

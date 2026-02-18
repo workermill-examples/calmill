@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth, verifyOwnership } from "@/lib/api-auth";
-import { scheduleUpdateSchema } from "@/lib/validations";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth, verifyOwnership } from '@/lib/api-auth';
+import { scheduleUpdateSchema } from '@/lib/validations';
 
 // GET /api/schedules/[id] — Get single schedule with all availability and date overrides
 export const GET = withAuth(async (_request, context, user) => {
@@ -14,7 +14,7 @@ export const GET = withAuth(async (_request, context, user) => {
       include: {
         availability: true,
         dateOverrides: {
-          orderBy: { date: "asc" },
+          orderBy: { date: 'asc' },
         },
         _count: {
           select: { eventTypes: true },
@@ -23,7 +23,7 @@ export const GET = withAuth(async (_request, context, user) => {
     });
 
     if (!schedule) {
-      return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, schedule.userId);
@@ -31,11 +31,8 @@ export const GET = withAuth(async (_request, context, user) => {
 
     return NextResponse.json({ success: true, data: schedule });
   } catch (error) {
-    console.error("GET /api/schedules/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('GET /api/schedules/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -50,7 +47,7 @@ export const PUT = withAuth(async (request, context, user) => {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, existing.userId);
@@ -61,12 +58,9 @@ export const PUT = withAuth(async (request, context, user) => {
 
     // Validate timezone if provided
     if (validated.timezone !== undefined) {
-      const validTimezones = Intl.supportedValuesOf("timeZone");
+      const validTimezones = Intl.supportedValuesOf('timeZone');
       if (!validTimezones.includes(validated.timezone)) {
-        return NextResponse.json(
-          { error: "Invalid timezone" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 });
       }
     }
 
@@ -102,7 +96,7 @@ export const PUT = withAuth(async (request, context, user) => {
       include: {
         availability: true,
         dateOverrides: {
-          orderBy: { date: "asc" },
+          orderBy: { date: 'asc' },
         },
         _count: {
           select: { eventTypes: true },
@@ -115,9 +109,9 @@ export const PUT = withAuth(async (request, context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -125,11 +119,8 @@ export const PUT = withAuth(async (request, context, user) => {
       );
     }
 
-    console.error("PUT /api/schedules/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('PUT /api/schedules/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -144,7 +135,7 @@ export const DELETE = withAuth(async (_request, context, user) => {
     });
 
     if (!schedule) {
-      return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, schedule.userId);
@@ -156,10 +147,7 @@ export const DELETE = withAuth(async (_request, context, user) => {
     });
 
     if (totalSchedules <= 1) {
-      return NextResponse.json(
-        { error: "Cannot delete the only schedule" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Cannot delete the only schedule' }, { status: 409 });
     }
 
     // Fail if any event types reference this schedule
@@ -169,19 +157,16 @@ export const DELETE = withAuth(async (_request, context, user) => {
 
     if (referencingEventTypes > 0) {
       return NextResponse.json(
-        { error: "Cannot delete schedule referenced by event types" },
+        { error: 'Cannot delete schedule referenced by event types' },
         { status: 409 }
       );
     }
 
     await prisma.schedule.delete({ where: { id } });
 
-    return NextResponse.json({ success: true, message: "Schedule deleted" });
+    return NextResponse.json({ success: true, message: 'Schedule deleted' });
   } catch (error) {
-    console.error("DELETE /api/schedules/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('DELETE /api/schedules/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

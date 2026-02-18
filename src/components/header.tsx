@@ -94,7 +94,9 @@ export function Header({ onMenuClick }: HeaderProps) {
           aria-haspopup="true"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white text-sm font-medium">
-            {session?.user?.name?.[0]?.toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || 'U'}
+            {session?.user?.name?.[0]?.toUpperCase() ||
+              session?.user?.email?.[0]?.toUpperCase() ||
+              'U'}
           </div>
         </button>
 

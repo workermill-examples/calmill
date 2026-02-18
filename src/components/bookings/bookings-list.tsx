@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
-import { BookingCard, type BookingCardData } from "./booking-card";
-import type { BookingStatus } from "@/generated/prisma/client";
-import type { EventTypeLocation } from "@/types";
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
+import { BookingCard, type BookingCardData } from './booking-card';
+import type { BookingStatus } from '@/generated/prisma/client';
+import type { EventTypeLocation } from '@/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabKey = "upcoming" | "past" | "cancelled";
+type TabKey = 'upcoming' | 'past' | 'cancelled';
 
 interface Tab {
   key: TabKey;
@@ -16,16 +16,16 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { key: "upcoming", label: "Upcoming" },
-  { key: "past", label: "Past" },
-  { key: "cancelled", label: "Cancelled" },
+  { key: 'upcoming', label: 'Upcoming' },
+  { key: 'past', label: 'Past' },
+  { key: 'cancelled', label: 'Cancelled' },
 ];
 
 // Map tab to query params
-const TAB_QUERY: Record<TabKey, { statuses: BookingStatus[]; direction: "upcoming" | "past" }> = {
-  upcoming: { statuses: ["PENDING", "ACCEPTED"], direction: "upcoming" },
-  past: { statuses: ["ACCEPTED", "REJECTED", "RESCHEDULED"], direction: "past" },
-  cancelled: { statuses: ["CANCELLED"], direction: "past" },
+const TAB_QUERY: Record<TabKey, { statuses: BookingStatus[]; direction: 'upcoming' | 'past' }> = {
+  upcoming: { statuses: ['PENDING', 'ACCEPTED'], direction: 'upcoming' },
+  past: { statuses: ['ACCEPTED', 'REJECTED', 'RESCHEDULED'], direction: 'past' },
+  cancelled: { statuses: ['CANCELLED'], direction: 'past' },
 };
 
 interface BookingsListProps {
@@ -38,16 +38,16 @@ interface BookingsListProps {
 function EmptyState({ tab }: { tab: TabKey }) {
   const messages: Record<TabKey, { title: string; body: string }> = {
     upcoming: {
-      title: "No upcoming bookings",
-      body: "Upcoming bookings will appear here once people start scheduling time with you.",
+      title: 'No upcoming bookings',
+      body: 'Upcoming bookings will appear here once people start scheduling time with you.',
     },
     past: {
-      title: "No past bookings",
-      body: "Completed bookings will appear here.",
+      title: 'No past bookings',
+      body: 'Completed bookings will appear here.',
     },
     cancelled: {
-      title: "No cancelled bookings",
-      body: "Cancelled or rejected bookings will appear here.",
+      title: 'No cancelled bookings',
+      body: 'Cancelled or rejected bookings will appear here.',
     },
   };
   const { title, body } = messages[tab];
@@ -112,7 +112,10 @@ function Pagination({
         </button>
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-end">
-        <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+        <nav
+          className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+          aria-label="Pagination"
+        >
           <button
             type="button"
             onClick={() => onPageChange(page - 1)}
@@ -121,21 +124,25 @@ function Pagination({
             aria-label="Previous page"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
 
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-            .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+            .reduce<(number | '...')[]>((acc, p, idx, arr) => {
               if (idx > 0 && (arr[idx - 1] as number) + 1 < p) {
-                acc.push("...");
+                acc.push('...');
               }
               acc.push(p);
               return acc;
             }, [])
             .map((p, idx) =>
-              p === "..." ? (
+              p === '...' ? (
                 <span
                   key={`ellipsis-${idx}`}
                   className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300"
@@ -147,12 +154,12 @@ function Pagination({
                   key={p}
                   type="button"
                   onClick={() => onPageChange(p as number)}
-                  aria-current={p === page ? "page" : undefined}
+                  aria-current={p === page ? 'page' : undefined}
                   className={cn(
-                    "relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus-ring",
+                    'relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus-ring',
                     p === page
-                      ? "z-10 bg-primary-600 text-white ring-primary-600 hover:bg-primary-700"
-                      : "text-gray-900"
+                      ? 'z-10 bg-primary-600 text-white ring-primary-600 hover:bg-primary-700'
+                      : 'text-gray-900'
                   )}
                 >
                   {p}
@@ -168,7 +175,11 @@ function Pagination({
             aria-label="Next page"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         </nav>
@@ -180,16 +191,16 @@ function Pagination({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function BookingsList({ initialBookings, initialTotal }: BookingsListProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
+  const [activeTab, setActiveTab] = useState<TabKey>('upcoming');
   const [bookings, setBookings] = useState<BookingCardData[]>(initialBookings);
   const [total, setTotal] = useState(initialTotal);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
   // Filters
-  const [search, setSearch] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [search, setSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   // Track if this is the initial render (use server-fetched data)
   const isInitialRender = useRef(true);
@@ -209,19 +220,19 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
         let totalCount = 0;
 
         // Build base params
-        if (start) params.set("startDate", start);
-        if (end) params.set("endDate", end);
+        if (start) params.set('startDate', start);
+        if (end) params.set('endDate', end);
 
         // For "upcoming" tab without user-specified dates, default to future bookings
         const now = new Date();
-        if (!start && !end && tabConfig.direction === "upcoming") {
-          params.set("startDate", now.toISOString());
+        if (!start && !end && tabConfig.direction === 'upcoming') {
+          params.set('startDate', now.toISOString());
         }
         // For "past" and "cancelled" tabs, we don't impose a date ceiling by default
         // so that future-dated rejected/rescheduled bookings are still visible
 
-        params.set("page", String(currentPage));
-        params.set("limit", "20");
+        params.set('page', String(currentPage));
+        params.set('limit', '20');
 
         // Fetch for each status in the tab
         // For tabs with multiple statuses, we need multiple requests or
@@ -230,7 +241,7 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
         // For "upcoming" tab (PENDING+ACCEPTED), we fetch without status filter
         // then filter client-side.
         if (tabConfig.statuses.length === 1) {
-          params.set("status", tabConfig.statuses[0]!);
+          params.set('status', tabConfig.statuses[0]!);
           const res = await fetch(`/api/bookings?${params.toString()}`);
           if (res.ok) {
             const data = await res.json();
@@ -244,9 +255,9 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
           // we only fetch page 1 of each and combine — acceptable tradeoff)
           const fetchPromises = tabConfig.statuses.map(async (status) => {
             const statusParams = new URLSearchParams(params);
-            statusParams.set("status", status);
-            statusParams.set("page", "1");
-            statusParams.set("limit", "20");
+            statusParams.set('status', status);
+            statusParams.set('page', '1');
+            statusParams.set('limit', '20');
             const res = await fetch(`/api/bookings?${statusParams.toString()}`);
             if (!res.ok) return { items: [], total: 0 };
             const data = await res.json();
@@ -267,7 +278,7 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
           allResults.sort((a, b) => {
             const aTime = new Date(a.startTime).getTime();
             const bTime = new Date(b.startTime).getTime();
-            return tabConfig.direction === "upcoming" ? aTime - bTime : bTime - aTime;
+            return tabConfig.direction === 'upcoming' ? aTime - bTime : bTime - aTime;
           });
 
           // Simple client-side pagination for combined results
@@ -289,7 +300,7 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
         setBookings(filtered);
         setTotal(searchTerm ? filtered.length : totalCount);
       } catch (err) {
-        console.error("Failed to fetch bookings:", err);
+        console.error('Failed to fetch bookings:', err);
       } finally {
         setLoading(false);
       }
@@ -312,9 +323,9 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
     isInitialRender.current = false;
     setActiveTab(tab);
     setPage(1);
-    setSearch("");
-    setStartDate("");
-    setEndDate("");
+    setSearch('');
+    setStartDate('');
+    setEndDate('');
   }
 
   function handleApplyFilters() {
@@ -324,12 +335,12 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
   }
 
   function handleClearFilters() {
-    setSearch("");
-    setStartDate("");
-    setEndDate("");
+    setSearch('');
+    setStartDate('');
+    setEndDate('');
     setPage(1);
     isInitialRender.current = false;
-    fetchBookings(activeTab, 1, "", "", "");
+    fetchBookings(activeTab, 1, '', '', '');
   }
 
   const hasFilters = search || startDate || endDate;
@@ -340,9 +351,7 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
       {/* Page header */}
       <div>
         <h2 className="text-2xl font-semibold text-gray-900">Bookings</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          View and manage all your scheduled bookings
-        </p>
+        <p className="mt-1 text-sm text-gray-600">View and manage all your scheduled bookings</p>
       </div>
 
       {/* Tab bar */}
@@ -354,12 +363,12 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
               type="button"
               onClick={() => handleTabChange(tab.key)}
               className={cn(
-                "whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors",
+                'whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors',
                 activeTab === tab.key
-                  ? "border-primary-600 text-primary-600"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
               )}
-              aria-current={activeTab === tab.key ? "page" : undefined}
+              aria-current={activeTab === tab.key ? 'page' : undefined}
             >
               {tab.label}
             </button>
@@ -376,8 +385,19 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
           </label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="h-4 w-4 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
             <input
@@ -385,7 +405,7 @@ export function BookingsList({ initialBookings, initialTotal }: BookingsListProp
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
+              onKeyDown={(e) => e.key === 'Enter' && handleApplyFilters()}
               placeholder="Name or email…"
               className="block w-full rounded-md border border-gray-300 bg-white pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />

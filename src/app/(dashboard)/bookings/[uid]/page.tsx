@@ -1,11 +1,11 @@
-import type { ReactNode } from "react";
-import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { formatDateInTimezone, getInitials } from "@/lib/utils";
-import { BookingActions } from "@/components/bookings/booking-actions";
-import { StatusTimeline } from "@/components/bookings/status-timeline";
-import type { EventTypeLocation } from "@/types";
+import type { ReactNode } from 'react';
+import { notFound } from 'next/navigation';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { formatDateInTimezone, getInitials } from '@/lib/utils';
+import { BookingActions } from '@/components/bookings/booking-actions';
+import { StatusTimeline } from '@/components/bookings/status-timeline';
+import type { EventTypeLocation } from '@/types';
 
 interface BookingDetailPageProps {
   params: Promise<{ uid: string }>;
@@ -14,11 +14,11 @@ interface BookingDetailPageProps {
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  PENDING: { label: "Pending", className: "bg-yellow-100 text-yellow-800" },
-  ACCEPTED: { label: "Confirmed", className: "bg-green-100 text-green-800" },
-  CANCELLED: { label: "Cancelled", className: "bg-red-100 text-red-700" },
-  REJECTED: { label: "Rejected", className: "bg-red-100 text-red-700" },
-  RESCHEDULED: { label: "Rescheduled", className: "bg-blue-100 text-blue-800" },
+  PENDING: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
+  ACCEPTED: { label: 'Confirmed', className: 'bg-green-100 text-green-800' },
+  CANCELLED: { label: 'Cancelled', className: 'bg-red-100 text-red-700' },
+  REJECTED: { label: 'Rejected', className: 'bg-red-100 text-red-700' },
+  RESCHEDULED: { label: 'Rescheduled', className: 'bg-blue-100 text-blue-800' },
 } as const;
 
 // ─── Icon Components ──────────────────────────────────────────────────────────
@@ -194,8 +194,9 @@ function formatDuration(minutes: number): string {
 function getLocationDisplay(
   location: string | null,
   locations: EventTypeLocation[] | null
-): { display: string | null; type: "inPerson" | "link" | "phone" | null } {
-  const value = location ?? (locations && locations.length > 0 ? locations[0]?.value : null) ?? null;
+): { display: string | null; type: 'inPerson' | 'link' | 'phone' | null } {
+  const value =
+    location ?? (locations && locations.length > 0 ? locations[0]?.value : null) ?? null;
   const type = locations && locations.length > 0 ? (locations[0]?.type ?? null) : null;
   return { display: value || null, type };
 }
@@ -224,9 +225,7 @@ function DetailRow({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function BookingDetailPage({
-  params,
-}: BookingDetailPageProps) {
+export default async function BookingDetailPage({ params }: BookingDetailPageProps) {
   const { uid } = await params;
   const session = await auth();
   const userId = session!.user.id;
@@ -271,32 +270,29 @@ export default async function BookingDetailPage({
   const formattedDate = formatDateInTimezone(
     booking.startTime,
     booking.attendeeTimezone,
-    "EEEE, MMMM d, yyyy"
+    'EEEE, MMMM d, yyyy'
   );
   const formattedTimeRange = `${formatDateInTimezone(
     booking.startTime,
     booking.attendeeTimezone,
-    "h:mm a"
-  )} – ${formatDateInTimezone(booking.endTime, booking.attendeeTimezone, "h:mm a")}`;
+    'h:mm a'
+  )} – ${formatDateInTimezone(booking.endTime, booking.attendeeTimezone, 'h:mm a')}`;
 
   const responses = booking.responses as Record<string, string> | null;
   const statusConfig = STATUS_CONFIG[booking.status];
 
   const hostInitials = eventType.user.name
     ? getInitials(eventType.user.name)
-    : (eventType.user.username ?? "H").charAt(0).toUpperCase();
+    : (eventType.user.username ?? 'H').charAt(0).toUpperCase();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Page header */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold text-gray-900 truncate">
-            {booking.title}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 truncate">{booking.title}</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Booking reference:{" "}
-            <span className="font-mono text-gray-700">{booking.uid}</span>
+            Booking reference: <span className="font-mono text-gray-700">{booking.uid}</span>
           </p>
         </div>
         {/* Large status badge */}
@@ -311,7 +307,7 @@ export default async function BookingDetailPage({
       {booking.cancellationReason && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-medium text-red-800">
-            {booking.status === "REJECTED" ? "Rejection reason:" : "Cancellation reason:"}
+            {booking.status === 'REJECTED' ? 'Rejection reason:' : 'Cancellation reason:'}
           </p>
           <p className="mt-1 text-sm text-red-700">{booking.cancellationReason}</p>
         </div>
@@ -342,10 +338,7 @@ export default async function BookingDetailPage({
               />
             )}
             <div className="p-6 space-y-4">
-              <h2
-                id="event-details-heading"
-                className="text-base font-semibold text-gray-900"
-              >
+              <h2 id="event-details-heading" className="text-base font-semibold text-gray-900">
                 {eventType.title}
               </h2>
 
@@ -354,10 +347,8 @@ export default async function BookingDetailPage({
               </DetailRow>
 
               <DetailRow icon={<ClockIcon />} label="Time">
-                {formattedTimeRange}{" "}
-                <span className="text-gray-500">
-                  ({formatDuration(eventType.duration)})
-                </span>
+                {formattedTimeRange}{' '}
+                <span className="text-gray-500">({formatDuration(eventType.duration)})</span>
               </DetailRow>
 
               <DetailRow icon={<GlobeIcon />} label="Timezone">
@@ -367,9 +358,9 @@ export default async function BookingDetailPage({
               {locationDisplay && (
                 <DetailRow
                   icon={
-                    locationType === "link" ? (
+                    locationType === 'link' ? (
                       <VideoIcon />
-                    ) : locationType === "phone" ? (
+                    ) : locationType === 'phone' ? (
                       <PhoneIcon />
                     ) : (
                       <MapPinIcon />
@@ -377,7 +368,7 @@ export default async function BookingDetailPage({
                   }
                   label="Location"
                 >
-                  {locationType === "link" ? (
+                  {locationType === 'link' ? (
                     <a
                       href={locationDisplay}
                       target="_blank"
@@ -409,10 +400,7 @@ export default async function BookingDetailPage({
             aria-labelledby="attendee-heading"
             className="rounded-lg border border-gray-200 bg-white p-6 space-y-4"
           >
-            <h2
-              id="attendee-heading"
-              className="text-base font-semibold text-gray-900"
-            >
+            <h2 id="attendee-heading" className="text-base font-semibold text-gray-900">
               Attendee
             </h2>
 
@@ -438,9 +426,7 @@ export default async function BookingDetailPage({
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">
                   Notes
                 </p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {booking.attendeeNotes}
-                </p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{booking.attendeeNotes}</p>
               </div>
             )}
           </section>
@@ -451,10 +437,7 @@ export default async function BookingDetailPage({
               aria-labelledby="responses-heading"
               className="rounded-lg border border-gray-200 bg-white p-6 space-y-4"
             >
-              <h2
-                id="responses-heading"
-                className="text-base font-semibold text-gray-900"
-              >
+              <h2 id="responses-heading" className="text-base font-semibold text-gray-900">
                 Additional Information
               </h2>
               <dl className="space-y-3">
@@ -463,9 +446,7 @@ export default async function BookingDetailPage({
                     <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                       {question}
                     </dt>
-                    <dd className="mt-0.5 text-sm text-gray-900">
-                      {String(answer)}
-                    </dd>
+                    <dd className="mt-0.5 text-sm text-gray-900">{String(answer)}</dd>
                   </div>
                 ))}
               </dl>
@@ -490,15 +471,12 @@ export default async function BookingDetailPage({
               {eventType.user.avatarUrl ? (
                 <img
                   src={eventType.user.avatarUrl}
-                  alt={eventType.user.name ?? eventType.user.username ?? "Host"}
+                  alt={eventType.user.name ?? eventType.user.username ?? 'Host'}
                   className="h-10 w-10 rounded-full object-cover flex-shrink-0"
                 />
               ) : (
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-100">
-                  <span
-                    className="text-sm font-semibold text-primary-600"
-                    aria-hidden="true"
-                  >
+                  <span className="text-sm font-semibold text-primary-600" aria-hidden="true">
                     {hostInitials}
                   </span>
                 </div>
@@ -508,9 +486,7 @@ export default async function BookingDetailPage({
                   {eventType.user.name ?? `@${eventType.user.username}`}
                 </p>
                 {eventType.user.username && (
-                  <p className="text-xs text-gray-500 truncate">
-                    @{eventType.user.username}
-                  </p>
+                  <p className="text-xs text-gray-500 truncate">@{eventType.user.username}</p>
                 )}
               </div>
             </div>

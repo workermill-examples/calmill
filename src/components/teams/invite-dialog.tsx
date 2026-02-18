@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, useId } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect, useRef, useId } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface InviteDialogProps {
   open: boolean;
@@ -16,8 +16,8 @@ export function InviteDialog({ open, onClose, teamSlug }: InviteDialogProps) {
   const titleId = useId();
   const firstFocusRef = useRef<HTMLInputElement>(null);
 
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"MEMBER" | "ADMIN">("MEMBER");
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; general?: string }>({});
 
@@ -33,27 +33,27 @@ export function InviteDialog({ open, onClose, teamSlug }: InviteDialogProps) {
   useEffect(() => {
     if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") handleClose();
+      if (e.key === 'Escape') handleClose();
     }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Prevent body scroll
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     };
   }, [open]);
 
   function resetForm() {
-    setEmail("");
-    setRole("MEMBER");
+    setEmail('');
+    setRole('MEMBER');
     setErrors({});
   }
 
@@ -66,9 +66,9 @@ export function InviteDialog({ open, onClose, teamSlug }: InviteDialogProps) {
     const newErrors: typeof errors = {};
     const trimmed = email.trim();
     if (!trimmed) {
-      newErrors.email = "Email is required";
+      newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      newErrors.email = "Enter a valid email address";
+      newErrors.email = 'Enter a valid email address';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -83,8 +83,8 @@ export function InviteDialog({ open, onClose, teamSlug }: InviteDialogProps) {
 
     try {
       const res = await fetch(`/api/teams/${teamSlug}/members`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), role }),
       });
 
@@ -96,19 +96,19 @@ export function InviteDialog({ open, onClose, teamSlug }: InviteDialogProps) {
         if (data.details) {
           const fieldErrors: typeof errors = {};
           for (const detail of data.details) {
-            if (detail.field === "email") fieldErrors.email = detail.message;
+            if (detail.field === 'email') fieldErrors.email = detail.message;
           }
           if (Object.keys(fieldErrors).length > 0) {
             setErrors(fieldErrors);
           } else {
-            setErrors({ general: data.error ?? "Failed to send invitation" });
+            setErrors({ general: data.error ?? 'Failed to send invitation' });
           }
         } else {
-          setErrors({ general: data.error ?? "Failed to send invitation" });
+          setErrors({ general: data.error ?? 'Failed to send invitation' });
         }
       }
     } catch {
-      setErrors({ general: "Something went wrong. Please try again." });
+      setErrors({ general: 'Something went wrong. Please try again.' });
     } finally {
       setSubmitting(false);
     }
@@ -143,8 +143,19 @@ export function InviteDialog({ open, onClose, teamSlug }: InviteDialogProps) {
             aria-label="Close dialog"
             className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-ring transition-colors"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -180,13 +191,16 @@ export function InviteDialog({ open, onClose, teamSlug }: InviteDialogProps) {
 
             {/* Role */}
             <div>
-              <label htmlFor="invite-member-role" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="invite-member-role"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
                 Role
               </label>
               <select
                 id="invite-member-role"
                 value={role}
-                onChange={(e) => setRole(e.target.value as "MEMBER" | "ADMIN")}
+                onChange={(e) => setRole(e.target.value as 'MEMBER' | 'ADMIN')}
                 className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               >
                 <option value="MEMBER">Member — Can view team and be assigned bookings</option>

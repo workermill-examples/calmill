@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface StatCard {
   label: string;
@@ -21,7 +21,7 @@ interface StatCardsProps {
 function CalendarIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-6 w-6", className)}
+      className={cn('h-6 w-6', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -40,7 +40,7 @@ function CalendarIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-6 w-6", className)}
+      className={cn('h-6 w-6', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -59,7 +59,7 @@ function ClockIcon({ className }: { className?: string }) {
 function InboxIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-6 w-6", className)}
+      className={cn('h-6 w-6', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -78,7 +78,7 @@ function InboxIcon({ className }: { className?: string }) {
 function StarIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-6 w-6", className)}
+      className={cn('h-6 w-6', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -97,7 +97,7 @@ function StarIcon({ className }: { className?: string }) {
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -117,42 +117,42 @@ export function StatCards({
 }: StatCardsProps) {
   const cards: StatCard[] = [
     {
-      label: "Upcoming",
+      label: 'Upcoming',
       value: upcomingCount,
-      description: "Confirmed in next 7 days",
-      href: "/bookings",
+      description: 'Confirmed in next 7 days',
+      href: '/bookings',
       icon: <CalendarIcon className="text-blue-600" />,
-      colorClass: "text-blue-700",
-      bgClass: "bg-blue-50",
+      colorClass: 'text-blue-700',
+      bgClass: 'bg-blue-50',
     },
     {
-      label: "Pending",
+      label: 'Pending',
       value: pendingCount,
-      description: "Awaiting your response",
-      href: "/bookings",
+      description: 'Awaiting your response',
+      href: '/bookings',
       icon: <ClockIcon className="text-yellow-600" />,
-      colorClass: "text-yellow-700",
-      bgClass: "bg-yellow-50",
+      colorClass: 'text-yellow-700',
+      bgClass: 'bg-yellow-50',
     },
     {
-      label: "This Month",
+      label: 'This Month',
       value: monthlyCount,
-      description: "Total bookings this month",
-      href: "/bookings",
+      description: 'Total bookings this month',
+      href: '/bookings',
       icon: <InboxIcon className="text-green-600" />,
-      colorClass: "text-green-700",
-      bgClass: "bg-green-50",
+      colorClass: 'text-green-700',
+      bgClass: 'bg-green-50',
     },
     {
-      label: "Popular",
-      value: popularEventType?.title ?? "—",
+      label: 'Popular',
+      value: popularEventType?.title ?? '—',
       description: popularEventType
-        ? `${popularEventType.count} booking${popularEventType.count === 1 ? "" : "s"} total`
-        : "No bookings yet",
-      href: "/event-types",
+        ? `${popularEventType.count} booking${popularEventType.count === 1 ? '' : 's'} total`
+        : 'No bookings yet',
+      href: '/event-types',
       icon: <StarIcon className="text-purple-600" />,
-      colorClass: "text-purple-700",
-      bgClass: "bg-purple-50",
+      colorClass: 'text-purple-700',
+      bgClass: 'bg-purple-50',
     },
   ];
 
@@ -166,10 +166,7 @@ export function StatCards({
         >
           <div className="flex items-center justify-between">
             <div
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-lg",
-                card.bgClass
-              )}
+              className={cn('flex h-10 w-10 items-center justify-center rounded-lg', card.bgClass)}
             >
               {card.icon}
             </div>
@@ -178,11 +175,8 @@ export function StatCards({
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-500">{card.label}</p>
             <p
-              className={cn(
-                "mt-1 truncate text-2xl font-bold",
-                card.colorClass
-              )}
-              title={typeof card.value === "string" ? card.value : undefined}
+              className={cn('mt-1 truncate text-2xl font-bold', card.colorClass)}
+              title={typeof card.value === 'string' ? card.value : undefined}
             >
               {card.value}
             </p>

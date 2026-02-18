@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { EventTypeCard, type EventTypeCardData } from "@/components/event-types/event-type-card";
-import { CreateDialog } from "@/components/event-types/create-dialog";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { EventTypeCard, type EventTypeCardData } from '@/components/event-types/event-type-card';
+import { CreateDialog } from '@/components/event-types/create-dialog';
 
 interface EventTypeListClientProps {
   initialEventTypes: EventTypeCardData[];
@@ -77,21 +77,13 @@ export function EventTypeListClient({
       ) : (
         <div className="space-y-3">
           {initialEventTypes.map((et) => (
-            <EventTypeCard
-              key={et.id}
-              eventType={et}
-              username={username}
-              appUrl={appUrl}
-            />
+            <EventTypeCard key={et.id} eventType={et} username={username} appUrl={appUrl} />
           ))}
         </div>
       )}
 
       {/* Create dialog */}
-      <CreateDialog
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-      />
+      <CreateDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }

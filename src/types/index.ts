@@ -10,7 +10,7 @@ import type {
   BookingStatus,
   SchedulingType,
   TeamRole,
-} from "@/generated/prisma/client";
+} from '@/generated/prisma/client';
 
 // ─── USER TYPES ─────────────────────────────────────────────
 
@@ -21,10 +21,7 @@ export type UserWithRelations = User & {
   teamMemberships?: (TeamMember & { team: Team })[];
 };
 
-export type PublicUser = Pick<
-  User,
-  "id" | "name" | "username" | "avatarUrl" | "bio"
->;
+export type PublicUser = Pick<User, 'id' | 'name' | 'username' | 'avatarUrl' | 'bio'>;
 
 // ─── EVENT TYPE TYPES ───────────────────────────────────────
 
@@ -41,14 +38,14 @@ export type EventTypeWithRelations = EventType & {
 };
 
 export type EventTypeLocation = {
-  type: "inPerson" | "link" | "phone";
+  type: 'inPerson' | 'link' | 'phone';
   value: string;
 };
 
 export type CustomQuestion = {
   id: string;
   label: string;
-  type: "text" | "textarea" | "select" | "radio" | "checkbox" | "phone";
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'phone';
   required: boolean;
   options?: string[];
 };
@@ -57,7 +54,7 @@ export type CustomQuestion = {
 
 export type BookingWithRelations = Booking & {
   user: PublicUser;
-  eventType: Pick<EventType, "id" | "title" | "duration" | "locations">;
+  eventType: Pick<EventType, 'id' | 'title' | 'duration' | 'locations'>;
 };
 
 export type BookingSlot = {
@@ -67,22 +64,24 @@ export type BookingSlot = {
 };
 
 export type AvailableSlot = {
-  time: string;      // ISO 8601 datetime in UTC
+  time: string; // ISO 8601 datetime in UTC
   localTime: string; // HH:mm in attendee's timezone
-  duration: number;  // minutes
+  duration: number; // minutes
 };
 
 export type BookingWithDetails = Booking & {
-  eventType: Pick<EventType, "id" | "title" | "duration" | "locations" | "color"> & {
+  eventType: Pick<EventType, 'id' | 'title' | 'duration' | 'locations' | 'color'> & {
     user: PublicUser;
   };
 };
 
 export type EventTypeWithSchedule = EventType & {
-  schedule: (Schedule & {
-    availability: Availability[];
-    dateOverrides: DateOverride[];
-  }) | null;
+  schedule:
+    | (Schedule & {
+        availability: Availability[];
+        dateOverrides: DateOverride[];
+      })
+    | null;
   _count?: {
     bookings: number;
   };
@@ -171,7 +170,7 @@ export type CalendarEvent = {
   title: string;
   start: Date;
   end: Date;
-  type: "booking" | "blocked" | "available";
+  type: 'booking' | 'blocked' | 'available';
   status?: BookingStatus;
   attendeeName?: string;
   attendeeEmail?: string;
@@ -187,11 +186,11 @@ export type TimeSlot = {
 // ─── WEBHOOK TYPES ──────────────────────────────────────────
 
 export type WebhookEventType =
-  | "BOOKING_CREATED"
-  | "BOOKING_CANCELLED"
-  | "BOOKING_RESCHEDULED"
-  | "BOOKING_ACCEPTED"
-  | "BOOKING_REJECTED";
+  | 'BOOKING_CREATED'
+  | 'BOOKING_CANCELLED'
+  | 'BOOKING_RESCHEDULED'
+  | 'BOOKING_ACCEPTED'
+  | 'BOOKING_REJECTED';
 
 export type WebhookPayload<T = any> = {
   event: WebhookEventType;
@@ -201,7 +200,7 @@ export type WebhookPayload<T = any> = {
 
 // ─── NOTIFICATION TYPES ─────────────────────────────────────
 
-export type NotificationType = "success" | "error" | "warning" | "info";
+export type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
 export type Notification = {
   id: string;
@@ -213,7 +212,7 @@ export type Notification = {
 
 // ─── SEARCH & FILTER TYPES ──────────────────────────────────
 
-export type SortOrder = "asc" | "desc";
+export type SortOrder = 'asc' | 'desc';
 
 export type SortField<T> = {
   field: keyof T;
@@ -221,17 +220,17 @@ export type SortField<T> = {
 };
 
 export type FilterOperator =
-  | "eq"
-  | "ne"
-  | "gt"
-  | "gte"
-  | "lt"
-  | "lte"
-  | "contains"
-  | "startsWith"
-  | "endsWith"
-  | "in"
-  | "notIn";
+  | 'eq'
+  | 'ne'
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  | 'contains'
+  | 'startsWith'
+  | 'endsWith'
+  | 'in'
+  | 'notIn';
 
 export type Filter<T> = {
   field: keyof T;
@@ -288,10 +287,10 @@ export type BaseComponentProps = {
   children?: React.ReactNode;
 };
 
-export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 
-export type ButtonSize = "sm" | "md" | "lg";
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-export type InputSize = "sm" | "md" | "lg";
+export type InputSize = 'sm' | 'md' | 'lg';
 
-export type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
+export type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';

@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/users/[username]/event-types — Public active event types for a user
 // Returns only public-safe fields: title, slug, description, duration, locations, price, currency
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ username: string }> }
-) {
+export async function GET(_request: Request, context: { params: Promise<{ username: string }> }) {
   try {
     const { username } = await context.params;
 
@@ -16,7 +13,7 @@ export async function GET(
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const eventTypes = await prisma.eventType.findMany({
@@ -35,15 +32,12 @@ export async function GET(
         currency: true,
         color: true,
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
 
     return NextResponse.json({ success: true, data: eventTypes });
   } catch (error) {
-    console.error("GET /api/users/[username]/event-types error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('GET /api/users/[username]/event-types error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

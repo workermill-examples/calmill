@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface CancelPageClientProps {
   uid: string;
@@ -21,7 +21,7 @@ interface CancelPageClientProps {
 function CalendarIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -40,7 +40,7 @@ function CalendarIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -59,7 +59,7 @@ function ClockIcon({ className }: { className?: string }) {
 function VideoIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -78,7 +78,7 @@ function VideoIcon({ className }: { className?: string }) {
 function MapPinIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -103,7 +103,7 @@ function MapPinIcon({ className }: { className?: string }) {
 function PhoneIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -132,7 +132,7 @@ export default function CancelPageClient({
   locationValue,
   locationType,
 }: CancelPageClientProps) {
-  const [reason, setReason] = React.useState("");
+  const [reason, setReason] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isCancelled, setIsCancelled] = React.useState(false);
@@ -143,24 +143,24 @@ export default function CancelPageClient({
 
     try {
       const res = await fetch(`/api/bookings/${uid}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "cancel", reason: reason.trim() || undefined }),
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel', reason: reason.trim() || undefined }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (res.status === 409) {
-          setError(data.error ?? "This booking cannot be cancelled.");
+          setError(data.error ?? 'This booking cannot be cancelled.');
         } else {
-          setError("Something went wrong. Please try again.");
+          setError('Something went wrong. Please try again.');
         }
         return;
       }
 
       setIsCancelled(true);
     } catch {
-      setError("Network error. Please check your connection and try again.");
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -189,9 +189,7 @@ export default function CancelPageClient({
             </svg>
           </div>
           <h1 className="mt-4 text-2xl font-bold text-gray-900">Meeting Cancelled</h1>
-          <p className="mt-2 text-gray-600">
-            Your meeting has been successfully cancelled.
-          </p>
+          <p className="mt-2 text-gray-600">Your meeting has been successfully cancelled.</p>
           <p className="mt-1 text-sm text-gray-500">
             {attendeeName}, we hope to see you again soon.
           </p>
@@ -214,7 +212,7 @@ export default function CancelPageClient({
   // ─── CANCEL FORM ────────────────────────────────────────────────────────────
 
   const LocationIcon =
-    locationType === "link" ? VideoIcon : locationType === "phone" ? PhoneIcon : MapPinIcon;
+    locationType === 'link' ? VideoIcon : locationType === 'phone' ? PhoneIcon : MapPinIcon;
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
@@ -240,7 +238,12 @@ export default function CancelPageClient({
             stroke="currentColor"
             aria-hidden="true"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to booking details
         </Link>
@@ -305,18 +308,17 @@ export default function CancelPageClient({
           />
         </svg>
         <p className="text-sm text-yellow-800">
-          <strong>Are you sure you want to cancel this meeting?</strong>{" "}
+          <strong>Are you sure you want to cancel this meeting?</strong>{' '}
           {hostName
             ? `${hostName} will be notified of the cancellation.`
-            : "The host will be notified of the cancellation."}
+            : 'The host will be notified of the cancellation.'}
         </p>
       </div>
 
       {/* Reason textarea */}
       <div>
         <label htmlFor="cancel-reason" className="block text-sm font-medium text-gray-700 mb-1.5">
-          Reason for cancellation{" "}
-          <span className="font-normal text-gray-500">(optional)</span>
+          Reason for cancellation <span className="font-normal text-gray-500">(optional)</span>
         </label>
         <textarea
           id="cancel-reason"
@@ -368,7 +370,7 @@ export default function CancelPageClient({
               Cancelling...
             </>
           ) : (
-            "Cancel Meeting"
+            'Cancel Meeting'
           )}
         </button>
 

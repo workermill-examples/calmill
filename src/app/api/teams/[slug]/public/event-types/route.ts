@@ -1,11 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/teams/[slug]/public/event-types — Active team event types. No auth required.
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ slug: string }> }
-) {
+export async function GET(_request: Request, context: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await context.params;
 
@@ -15,7 +12,7 @@ export async function GET(
     });
 
     if (!team) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
     const eventTypes = await prisma.eventType.findMany({
@@ -35,12 +32,12 @@ export async function GET(
         color: true,
         schedulingType: true,
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
 
     return NextResponse.json({ success: true, data: eventTypes });
   } catch (error) {
-    console.error("GET /api/teams/[slug]/public/event-types error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/teams/[slug]/public/event-types error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

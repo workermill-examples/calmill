@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { formatDate } from "@/lib/utils";
-import { cn } from "@/lib/utils";
-import type { EventTypeLocation } from "@/types";
+import Link from 'next/link';
+import { formatDate } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import type { EventTypeLocation } from '@/types';
 
 interface UpcomingBooking {
   uid: string;
@@ -27,7 +27,7 @@ interface UpcomingListProps {
 function VideoIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -46,7 +46,7 @@ function VideoIcon({ className }: { className?: string }) {
 function UserIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-3.5 w-3.5", className)}
+      className={cn('h-3.5 w-3.5', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -65,7 +65,7 @@ function UserIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-3.5 w-3.5", className)}
+      className={cn('h-3.5 w-3.5', className)}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -84,7 +84,7 @@ function ClockIcon({ className }: { className?: string }) {
 function getVideoLink(booking: UpcomingBooking): string | null {
   const locations = booking.eventType?.locations;
   if (!locations) return null;
-  const videoLocation = locations.find((l) => l.type === "link");
+  const videoLocation = locations.find((l) => l.type === 'link');
   return videoLocation?.value ?? null;
 }
 
@@ -116,9 +116,7 @@ export function UpcomingList({ bookings }: UpcomingListProps) {
           </svg>
         </div>
         <p className="mt-3 text-sm font-medium text-gray-900">No upcoming bookings</p>
-        <p className="mt-1 text-xs text-gray-500">
-          Your confirmed bookings will appear here.
-        </p>
+        <p className="mt-1 text-xs text-gray-500">Your confirmed bookings will appear here.</p>
       </div>
     );
   }
@@ -127,7 +125,7 @@ export function UpcomingList({ bookings }: UpcomingListProps) {
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
       <ul className="divide-y divide-gray-100" role="list">
         {bookings.map((booking) => {
-          const color = booking.eventType?.color ?? "#3b82f6";
+          const color = booking.eventType?.color ?? '#3b82f6';
           const videoLink = getVideoLink(booking);
           const duration = booking.eventType?.duration;
 
@@ -143,11 +141,9 @@ export function UpcomingList({ bookings }: UpcomingListProps) {
                 {/* Date/time column */}
                 <div className="w-28 shrink-0 text-right">
                   <p className="text-sm font-semibold text-gray-900">
-                    {formatDate(booking.startTime, "MMM d")}
+                    {formatDate(booking.startTime, 'MMM d')}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(booking.startTime, "p")}
-                  </p>
+                  <p className="text-xs text-gray-500">{formatDate(booking.startTime, 'p')}</p>
                 </div>
 
                 {/* Divider */}

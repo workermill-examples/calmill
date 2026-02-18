@@ -1,9 +1,9 @@
-import { addMinutes, format, getDay, addDays, startOfWeek, endOfWeek } from "date-fns";
-import { TZDate } from "@date-fns/tz";
-import { prisma } from "@/lib/prisma";
-import type { AvailableSlot } from "@/types";
-import type { Availability, DateOverride } from "@/generated/prisma/client";
-import { GoogleCalendarService } from "@/lib/google-calendar";
+import { addMinutes, format, getDay, addDays, startOfWeek, endOfWeek } from 'date-fns';
+import { TZDate } from '@date-fns/tz';
+import { prisma } from '@/lib/prisma';
+import type { AvailableSlot } from '@/types';
+import type { Availability, DateOverride } from '@/generated/prisma/client';
+import { GoogleCalendarService } from '@/lib/google-calendar';
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
@@ -51,8 +51,12 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
 
   // 2. Determine date range bounds in UTC
   // Parse startDate/endDate as days in the attendee's timezone
-  const [startYear, startMonth, startDay] = startDate.split("-").map(Number) as [number, number, number];
-  const [endYear, endMonth, endDay] = endDate.split("-").map(Number) as [number, number, number];
+  const [startYear, startMonth, startDay] = startDate.split('-').map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  const [endYear, endMonth, endDay] = endDate.split('-').map(Number) as [number, number, number];
 
   // First moment of startDate in attendee's timezone → UTC
   const rangeStart = new TZDate(startYear, startMonth - 1, startDay, 0, 0, 0, 0, timezone);
@@ -68,7 +72,7 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
       eventTypeId: eventTypeId,
       startTime: { lte: new Date(rangeEnd.getTime()) },
       endTime: { gte: new Date(rangeStart.getTime()) },
-      status: { in: ["PENDING", "ACCEPTED"] },
+      status: { in: ['PENDING', 'ACCEPTED'] },
     },
     select: {
       startTime: true,
@@ -86,15 +90,12 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
     const busyTimeResults = await Promise.allSettled(
       calendarConnections.map(async (connection) => {
         const service = new GoogleCalendarService(connection);
-        return service.getBusyTimes(
-          new Date(rangeStart.getTime()),
-          new Date(rangeEnd.getTime())
-        );
+        return service.getBusyTimes(new Date(rangeStart.getTime()), new Date(rangeEnd.getTime()));
       })
     );
 
     for (const result of busyTimeResults) {
-      if (result.status === "fulfilled") {
+      if (result.status === 'fulfilled') {
         // Convert BusyTime { start, end } to ExistingBooking { startTime, endTime }
         const converted: ExistingBooking[] = result.value.map((bt) => ({
           startTime: bt.start,
@@ -102,7 +103,7 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
         }));
         calendarBusyTimes = calendarBusyTimes.concat(converted);
       } else {
-        console.warn("[Slots] Failed to fetch Google Calendar busy times:", result.reason);
+        console.warn('[Slots] Failed to fetch Google Calendar busy times:', result.reason);
       }
     }
   }
@@ -115,7 +116,7 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
   // to get the correct calendar date for the host's perspective.
   const overrideMap = new Map<string, DateOverride>();
   for (const override of schedule.dateOverrides) {
-    const key = format(new TZDate(override.date, scheduleTimezone), "yyyy-MM-dd");
+    const key = format(new TZDate(override.date, scheduleTimezone), 'yyyy-MM-dd');
     overrideMap.set(key, override);
   }
 
@@ -135,7 +136,7 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
   while (currentDay.getTime() <= rangeEnd.getTime()) {
     // Get calendar date key in the schedule's timezone for override lookups
     // (overrides are stored with the schedule's timezone perspective)
-    const dayKey = format(new TZDate(currentDay, scheduleTimezone), "yyyy-MM-dd");
+    const dayKey = format(new TZDate(currentDay, scheduleTimezone), 'yyyy-MM-dd');
 
     // Check future limit — skip days beyond futureLimit
     const dayStartUTC = new Date(currentDay.getTime());
@@ -158,14 +159,20 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
         currentDay.getFullYear(),
         currentDay.getMonth(),
         currentDay.getDate(),
-        0, 0, 0, 0,
+        0,
+        0,
+        0,
+        0,
         timezone
       );
       const dayEnd = new TZDate(
         currentDay.getFullYear(),
         currentDay.getMonth(),
         currentDay.getDate(),
-        23, 59, 59, 999,
+        23,
+        59,
+        59,
+        999,
         timezone
       );
 
@@ -184,14 +191,20 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
       }
 
       // Check daily limit before generating slots for this day
-      if (eventType.maxBookingsPerDay !== null && bookingsThisDay.length >= eventType.maxBookingsPerDay) {
+      if (
+        eventType.maxBookingsPerDay !== null &&
+        bookingsThisDay.length >= eventType.maxBookingsPerDay
+      ) {
         // Skip all slots this day
         currentDay = addDaysTZ(currentDay, timezone);
         continue;
       }
 
       // Check weekly limit
-      if (eventType.maxBookingsPerWeek !== null && bookingsThisWeek.length >= eventType.maxBookingsPerWeek) {
+      if (
+        eventType.maxBookingsPerWeek !== null &&
+        bookingsThisWeek.length >= eventType.maxBookingsPerWeek
+      ) {
         // Skip remaining days this week
         currentDay = addDaysTZ(currentDay, timezone);
         continue;
@@ -229,13 +242,7 @@ export async function getAvailableSlots(params: SlotParams): Promise<AvailableSl
 // ─── HELPER: Get next day in a timezone ──────────────────────────────────────
 
 function addDaysTZ(date: TZDate, timezone: string): TZDate {
-  return new TZDate(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate() + 1,
-    0, 0, 0, 0,
-    timezone
-  );
+  return new TZDate(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0, 0, timezone);
 }
 
 // ─── HELPER: Determine availability windows for a day ───────────────────────
@@ -293,9 +300,9 @@ function parseWindowInTimezone(
   endTime: string, // HH:mm
   timezone: string
 ): TimeWindow | null {
-  const [year, month, day] = dateKey.split("-").map(Number) as [number, number, number];
-  const [startHour, startMin] = startTime.split(":").map(Number) as [number, number];
-  const [endHour, endMin] = endTime.split(":").map(Number) as [number, number];
+  const [year, month, day] = dateKey.split('-').map(Number) as [number, number, number];
+  const [startHour, startMin] = startTime.split(':').map(Number) as [number, number];
+  const [endHour, endMin] = endTime.split(':').map(Number) as [number, number];
 
   // Create dates in the schedule's timezone
   const windowStart = new TZDate(year, month - 1, day, startHour, startMin, 0, 0, timezone);
@@ -382,9 +389,17 @@ export function generateSlotsForWindow(params: GenerateSlotsParams): AvailableSl
     }
 
     // Check booking conflicts (with buffers)
-    if (!isSlotConflicting(slotStart, slotEnd, existingBookings, eventType.beforeBuffer, eventType.afterBuffer)) {
+    if (
+      !isSlotConflicting(
+        slotStart,
+        slotEnd,
+        existingBookings,
+        eventType.beforeBuffer,
+        eventType.afterBuffer
+      )
+    ) {
       // Format localTime in attendee's timezone
-      const localTime = format(new TZDate(slotStart, attendeeTimezone), "HH:mm");
+      const localTime = format(new TZDate(slotStart, attendeeTimezone), 'HH:mm');
 
       slots.push({
         time: slotStart.toISOString(),

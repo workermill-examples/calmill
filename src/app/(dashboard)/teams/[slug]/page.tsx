@@ -1,17 +1,13 @@
-import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { TeamDetailClient } from "./team-detail";
-import type { TeamMemberData } from "@/components/teams/member-list";
-import type { TeamEventTypeCardData } from "@/components/teams/team-event-type-card";
+import { notFound, redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { TeamDetailClient } from './team-detail';
+import type { TeamMemberData } from '@/components/teams/member-list';
+import type { TeamEventTypeCardData } from '@/components/teams/team-event-type-card';
 
-export default async function TeamDetailPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function TeamDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session) redirect('/login');
   const userId = session.user.id;
   const { slug } = await params;
 
@@ -31,10 +27,10 @@ export default async function TeamDetailPage({
             },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: 'asc' },
       },
       eventTypes: {
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         select: {
           id: true,
           title: true,
@@ -54,19 +50,17 @@ export default async function TeamDetailPage({
   if (!team) notFound();
 
   // Check the current user is a member (accepted)
-  const currentMembership = team.members.find(
-    (m) => m.user.id === userId && m.accepted
-  );
+  const currentMembership = team.members.find((m) => m.user.id === userId && m.accepted);
 
   if (!currentMembership) {
     // Not an accepted member — redirect to teams list
-    redirect("/teams");
+    redirect('/teams');
   }
 
   // Cast members to typed shape
   const members: TeamMemberData[] = team.members.map((m) => ({
     id: m.id,
-    role: m.role as "OWNER" | "ADMIN" | "MEMBER",
+    role: m.role as 'OWNER' | 'ADMIN' | 'MEMBER',
     accepted: m.accepted,
     user: {
       id: m.user.id,
@@ -86,11 +80,11 @@ export default async function TeamDetailPage({
     duration: et.duration,
     color: et.color,
     isActive: et.isActive,
-    schedulingType: et.schedulingType as "ROUND_ROBIN" | "COLLECTIVE" | null,
+    schedulingType: et.schedulingType as 'ROUND_ROBIN' | 'COLLECTIVE' | null,
     _count: et._count,
   }));
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   return (
     <TeamDetailClient
@@ -105,7 +99,7 @@ export default async function TeamDetailPage({
       members={members}
       eventTypes={eventTypes}
       currentUserId={userId}
-      currentUserRole={currentMembership.role as "OWNER" | "ADMIN" | "MEMBER"}
+      currentUserRole={currentMembership.role as 'OWNER' | 'ADMIN' | 'MEMBER'}
       appUrl={appUrl}
     />
   );

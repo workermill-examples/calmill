@@ -1,21 +1,22 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { verifyTeamRole } from "@/lib/team-auth";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { verifyTeamRole } from '@/lib/team-auth';
 
 // DELETE /api/teams/[slug]/event-types/[eventTypeId] — Delete a team event type. ADMIN+ required.
 export const DELETE = withAuth(async (_request, context, user) => {
   try {
     const { slug, eventTypeId } = await context.params;
-    if (!slug || !eventTypeId) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug || !eventTypeId)
+      return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
-    const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
+    const roleResult = await verifyTeamRole(user.id, slug, 'ADMIN');
     if (roleResult.error) return roleResult.error;
 
     const { member } = roleResult;
 
     if (!member.accepted) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Verify the event type belongs to this team
@@ -24,7 +25,7 @@ export const DELETE = withAuth(async (_request, context, user) => {
     });
 
     if (!eventType) {
-      return NextResponse.json({ error: "Event type not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Event type not found' }, { status: 404 });
     }
 
     // Delete bookings then the event type
@@ -33,9 +34,9 @@ export const DELETE = withAuth(async (_request, context, user) => {
       prisma.eventType.delete({ where: { id: eventTypeId } }),
     ]);
 
-    return NextResponse.json({ success: true, message: "Event type deleted" });
+    return NextResponse.json({ success: true, message: 'Event type deleted' });
   } catch (error) {
-    console.error("DELETE /api/teams/[slug]/event-types/[eventTypeId] error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('DELETE /api/teams/[slug]/event-types/[eventTypeId] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

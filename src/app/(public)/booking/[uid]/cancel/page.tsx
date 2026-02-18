@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { formatDateInTimezone } from "@/lib/utils";
-import type { EventTypeLocation } from "@/types";
-import CancelPageClient from "./cancel-client";
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { formatDateInTimezone } from '@/lib/utils';
+import type { EventTypeLocation } from '@/types';
+import CancelPageClient from './cancel-client';
 
 interface CancelPageProps {
   params: Promise<{ uid: string }>;
@@ -39,7 +39,7 @@ export default async function CancelPage({ params }: CancelPageProps) {
   }
 
   // Only PENDING or ACCEPTED bookings can be cancelled
-  if (booking.status === "CANCELLED") {
+  if (booking.status === 'CANCELLED') {
     // Already cancelled — show that state
     const formattedDateTime = formatDateInTimezone(
       booking.startTime,
@@ -80,7 +80,8 @@ export default async function CancelPage({ params }: CancelPageProps) {
               href={`/${booking.eventType.user.username}`}
               className="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2"
             >
-              Book a new meeting with {booking.eventType.user.name ?? booking.eventType.user.username}
+              Book a new meeting with{' '}
+              {booking.eventType.user.name ?? booking.eventType.user.username}
             </a>
           </div>
         )}
@@ -88,7 +89,7 @@ export default async function CancelPage({ params }: CancelPageProps) {
     );
   }
 
-  if (booking.status === "RESCHEDULED" || booking.status === "REJECTED") {
+  if (booking.status === 'RESCHEDULED' || booking.status === 'REJECTED') {
     notFound();
   }
 
@@ -100,7 +101,7 @@ export default async function CancelPage({ params }: CancelPageProps) {
 
   const formattedDuration =
     booking.eventType.duration >= 60
-      ? `${booking.eventType.duration / 60} hr${booking.eventType.duration > 60 ? "s" : ""}`
+      ? `${booking.eventType.duration / 60} hr${booking.eventType.duration > 60 ? 's' : ''}`
       : `${booking.eventType.duration} min`;
 
   const locations = (booking.eventType.locations ?? null) as EventTypeLocation[] | null;

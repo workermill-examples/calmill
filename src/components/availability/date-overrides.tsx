@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { cn, formatDate } from "@/lib/utils";
-import type { DateOverride } from "@/generated/prisma/client";
-import { TIME_OPTIONS, formatTime } from "./time-utils";
+import { useState } from 'react';
+import { cn, formatDate } from '@/lib/utils';
+import type { DateOverride } from '@/generated/prisma/client';
+import { TIME_OPTIONS, formatTime } from './time-utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -16,10 +16,10 @@ interface DateOverridesProps {
 
 // Format a Date to YYYY-MM-DD in local time (for display)
 function formatDateToYMD(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = typeof date === 'string' ? new Date(date) : date;
   const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -39,22 +39,22 @@ function AddOverrideForm({
   onAdded: (override: DateOverride) => void;
   onCancel: () => void;
 }) {
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState('');
   const [isUnavailable, setIsUnavailable] = useState(false);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("17:00");
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('17:00');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!date) {
-      setError("Please select a date");
+      setError('Please select a date');
       return;
     }
 
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       const body: Record<string, unknown> = { date, isUnavailable };
@@ -64,8 +64,8 @@ function AddOverrideForm({
       }
 
       const res = await fetch(`/api/schedules/${scheduleId}/overrides`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 
@@ -74,10 +74,10 @@ function AddOverrideForm({
         onAdded(data.data);
       } else {
         const data = await res.json();
-        setError(data.error ?? "Failed to add override");
+        setError(data.error ?? 'Failed to add override');
       }
     } catch {
-      setError("Failed to add override");
+      setError('Failed to add override');
     } finally {
       setLoading(false);
     }
@@ -112,14 +112,14 @@ function AddOverrideForm({
             aria-label="Unavailable all day"
             onClick={() => setIsUnavailable((v) => !v)}
             className={cn(
-              "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
-              isUnavailable ? "bg-primary-600" : "bg-gray-200"
+              'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+              isUnavailable ? 'bg-primary-600' : 'bg-gray-200'
             )}
           >
             <span
               className={cn(
-                "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-                isUnavailable ? "translate-x-4" : "translate-x-0.5"
+                'inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                isUnavailable ? 'translate-x-4' : 'translate-x-0.5'
               )}
             />
           </button>
@@ -130,7 +130,10 @@ function AddOverrideForm({
         {!isUnavailable && (
           <div className="flex items-center gap-2">
             <div>
-              <label htmlFor="override-start" className="block text-xs font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="override-start"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
                 Start
               </label>
               <select
@@ -140,13 +143,18 @@ function AddOverrideForm({
                 className="rounded border border-gray-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
                 {TIME_OPTIONS.map((t) => (
-                  <option key={t} value={t}>{formatTime(t)}</option>
+                  <option key={t} value={t}>
+                    {formatTime(t)}
+                  </option>
                 ))}
               </select>
             </div>
             <span className="text-sm text-gray-500 pt-5">–</span>
             <div>
-              <label htmlFor="override-end" className="block text-xs font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="override-end"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
                 End
               </label>
               <select
@@ -156,7 +164,9 @@ function AddOverrideForm({
                 className="rounded border border-gray-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
                 {TIME_OPTIONS.map((t) => (
-                  <option key={t} value={t}>{formatTime(t)}</option>
+                  <option key={t} value={t}>
+                    {formatTime(t)}
+                  </option>
                 ))}
               </select>
             </div>
@@ -171,7 +181,7 @@ function AddOverrideForm({
             disabled={loading}
             className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
           >
-            {loading ? "Adding…" : "Add Override"}
+            {loading ? 'Adding…' : 'Add Override'}
           </button>
           <button
             type="button"
@@ -199,22 +209,22 @@ function OverrideRow({
   onDeleted: (id: string) => void;
 }) {
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
+  const [deleteError, setDeleteError] = useState('');
 
   async function handleDelete() {
     setDeleting(true);
-    setDeleteError("");
+    setDeleteError('');
     try {
       const res = await fetch(`/api/schedules/${scheduleId}/overrides/${override.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       if (res.ok) {
         onDeleted(override.id);
       } else {
-        setDeleteError("Failed to delete override");
+        setDeleteError('Failed to delete override');
       }
     } catch {
-      setDeleteError("Failed to delete override");
+      setDeleteError('Failed to delete override');
     } finally {
       setDeleting(false);
     }
@@ -223,48 +233,68 @@ function OverrideRow({
   // Format the date for display — the API stores as a Date object (UTC midnight)
   // We display in local "month day, year" format
   const displayDate = formatDate(
-    typeof override.date === "string" ? override.date : override.date.toISOString(),
-    "MMM d, yyyy"
+    typeof override.date === 'string' ? override.date : override.date.toISOString(),
+    'MMM d, yyyy'
   );
 
   const displayTime = override.isUnavailable
-    ? "Unavailable all day"
+    ? 'Unavailable all day'
     : override.startTime && override.endTime
-    ? `${formatTime(override.startTime)} – ${formatTime(override.endTime)}`
-    : "Custom hours";
+      ? `${formatTime(override.startTime)} – ${formatTime(override.endTime)}`
+      : 'Custom hours';
 
   return (
     <div className="rounded-md border border-gray-200 bg-white px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <p className="text-sm font-medium text-gray-900">{displayDate}</p>
-          <p className={cn("text-xs", override.isUnavailable ? "text-red-600" : "text-gray-500")}>
+          <p className={cn('text-xs', override.isUnavailable ? 'text-red-600' : 'text-gray-500')}>
             {displayTime}
           </p>
         </div>
         <button
-        type="button"
-        onClick={handleDelete}
-        disabled={deleting}
-        className="ml-4 shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
-        aria-label={`Delete override for ${displayDate}`}
-        title="Delete override"
-      >
-        {deleting ? (
-          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-        ) : (
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        )}
+          type="button"
+          onClick={handleDelete}
+          disabled={deleting}
+          className="ml-4 shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+          aria-label={`Delete override for ${displayDate}`}
+          title="Delete override"
+        >
+          {deleting ? (
+            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          )}
         </button>
       </div>
-      {deleteError && (
-        <p className="mt-2 text-xs text-red-600">{deleteError}</p>
-      )}
+      {deleteError && <p className="mt-2 text-xs text-red-600">{deleteError}</p>}
     </div>
   );
 }
@@ -289,9 +319,7 @@ export function DateOverrides({
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-medium text-gray-900">Date Overrides</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Override your schedule for specific dates
-          </p>
+          <p className="mt-0.5 text-xs text-gray-500">Override your schedule for specific dates</p>
         </div>
         {!showForm && (
           <button
@@ -299,8 +327,19 @@ export function DateOverrides({
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Add Date Override
           </button>

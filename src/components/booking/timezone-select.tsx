@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface TimezoneSelectProps {
   value: string;
@@ -13,18 +13,13 @@ export interface TimezoneSelectProps {
 function ChevronDownIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 9l-7 7-7-7"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
   );
 }
@@ -33,7 +28,7 @@ function ChevronDownIcon({ className }: { className?: string }) {
 function GlobeIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -53,7 +48,7 @@ function GlobeIcon({ className }: { className?: string }) {
 function SearchIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -73,18 +68,18 @@ function SearchIcon({ className }: { className?: string }) {
 function getUtcOffset(timezone: string): string {
   try {
     const now = new Date();
-    const parts = new Intl.DateTimeFormat("en-US", {
+    const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
-      timeZoneName: "shortOffset",
+      timeZoneName: 'shortOffset',
     }).formatToParts(now);
-    const offsetPart = parts.find((p) => p.type === "timeZoneName");
+    const offsetPart = parts.find((p) => p.type === 'timeZoneName');
     if (offsetPart) {
       // "GMT-5" → "UTC-5", "GMT+5:30" → "UTC+5:30"
-      return offsetPart.value.replace("GMT", "UTC");
+      return offsetPart.value.replace('GMT', 'UTC');
     }
-    return "UTC";
+    return 'UTC';
   } catch {
-    return "UTC";
+    return 'UTC';
   }
 }
 
@@ -100,9 +95,7 @@ function getOffsetMinutes(timezone: string): number {
       now.getUTCMinutes(),
       now.getUTCSeconds()
     );
-    const local = new Date(
-      now.toLocaleString("en-US", { timeZone: timezone })
-    ).getTime();
+    const local = new Date(now.toLocaleString('en-US', { timeZone: timezone })).getTime();
     return Math.round((local - utc) / 60000);
   } catch {
     return 0;
@@ -121,32 +114,32 @@ interface TimezoneOption {
 function buildTimezoneOptions(): TimezoneOption[] {
   let timezones: string[] = [];
   try {
-    timezones = Intl.supportedValuesOf("timeZone") as string[];
+    timezones = Intl.supportedValuesOf('timeZone') as string[];
   } catch {
     // Fallback to a minimal list if the API isn't available
     timezones = [
-      "America/New_York",
-      "America/Chicago",
-      "America/Denver",
-      "America/Los_Angeles",
-      "America/Anchorage",
-      "Pacific/Honolulu",
-      "Europe/London",
-      "Europe/Paris",
-      "Europe/Berlin",
-      "Asia/Tokyo",
-      "Asia/Shanghai",
-      "Asia/Kolkata",
-      "Australia/Sydney",
-      "Pacific/Auckland",
-      "UTC",
+      'America/New_York',
+      'America/Chicago',
+      'America/Denver',
+      'America/Los_Angeles',
+      'America/Anchorage',
+      'Pacific/Honolulu',
+      'Europe/London',
+      'Europe/Paris',
+      'Europe/Berlin',
+      'Asia/Tokyo',
+      'Asia/Shanghai',
+      'Asia/Kolkata',
+      'Australia/Sydney',
+      'Pacific/Auckland',
+      'UTC',
     ];
   }
 
   return timezones.map((tz) => {
-    const region = tz.split("/")[0] ?? tz;
-    const cityRaw = tz.split("/").slice(1).join("/");
-    const city = cityRaw.replace(/_/g, " ") || tz;
+    const region = tz.split('/')[0] ?? tz;
+    const cityRaw = tz.split('/').slice(1).join('/');
+    const city = cityRaw.replace(/_/g, ' ') || tz;
     const offset = getUtcOffset(tz);
     const offsetMinutes = getOffsetMinutes(tz);
     return {
@@ -161,18 +154,18 @@ function buildTimezoneOptions(): TimezoneOption[] {
 
 // Region display names
 const REGION_LABELS: Record<string, string> = {
-  Africa: "Africa",
-  America: "Americas",
-  Antarctica: "Antarctica",
-  Arctic: "Arctic",
-  Asia: "Asia",
-  Atlantic: "Atlantic",
-  Australia: "Australia & Pacific",
-  Europe: "Europe",
-  Indian: "Indian Ocean",
-  Pacific: "Pacific",
-  Etc: "Other",
-  UTC: "UTC",
+  Africa: 'Africa',
+  America: 'Americas',
+  Antarctica: 'Antarctica',
+  Arctic: 'Arctic',
+  Asia: 'Asia',
+  Atlantic: 'Atlantic',
+  Australia: 'Australia & Pacific',
+  Europe: 'Europe',
+  Indian: 'Indian Ocean',
+  Pacific: 'Pacific',
+  Etc: 'Other',
+  UTC: 'UTC',
 };
 
 /** Detect browser timezone */
@@ -180,7 +173,7 @@ function detectBrowserTimezone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
   } catch {
-    return "UTC";
+    return 'UTC';
   }
 }
 
@@ -203,13 +196,9 @@ function getTimezoneOptions(): TimezoneOption[] {
  * - Supports keyboard navigation (ArrowUp/Down, Enter, Escape)
  * - Accessible combobox pattern with ARIA attributes
  */
-export function TimezoneSelect({
-  value,
-  onChange,
-  className,
-}: TimezoneSelectProps) {
+export function TimezoneSelect({ value, onChange, className }: TimezoneSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = React.useState('');
   const [highlightedIndex, setHighlightedIndex] = React.useState(0);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -267,11 +256,9 @@ export function TimezoneSelect({
     if (!isOpen) return;
     const list = listRef.current;
     if (!list) return;
-    const item = list.querySelector(
-      `[data-index="${highlightedIndex}"]`
-    ) as HTMLElement | null;
+    const item = list.querySelector(`[data-index="${highlightedIndex}"]`) as HTMLElement | null;
     if (item) {
-      item.scrollIntoView({ block: "nearest" });
+      item.scrollIntoView({ block: 'nearest' });
     }
   }, [highlightedIndex, isOpen]);
 
@@ -279,16 +266,13 @@ export function TimezoneSelect({
   React.useEffect(() => {
     if (!isOpen) return;
     function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
-        setSearch("");
+        setSearch('');
       }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
   }, [isOpen]);
 
   // Focus search input when opened
@@ -300,17 +284,17 @@ export function TimezoneSelect({
 
   function openDropdown() {
     setIsOpen(true);
-    setSearch("");
+    setSearch('');
   }
 
   function selectOption(tz: string) {
     onChange(tz);
     setIsOpen(false);
-    setSearch("");
+    setSearch('');
   }
 
   function handleTriggerKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
       e.preventDefault();
       openDropdown();
     }
@@ -318,38 +302,38 @@ export function TimezoneSelect({
 
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     switch (e.key) {
-      case "ArrowDown":
+      case 'ArrowDown':
         e.preventDefault();
         setHighlightedIndex((i) => Math.min(i + 1, flatOptions.length - 1));
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         e.preventDefault();
         setHighlightedIndex((i) => Math.max(i - 1, 0));
         break;
-      case "Enter":
+      case 'Enter':
         e.preventDefault();
         if (flatOptions[highlightedIndex]) {
           selectOption(flatOptions[highlightedIndex]!.value);
         }
         break;
-      case "Escape":
+      case 'Escape':
         e.preventDefault();
         setIsOpen(false);
-        setSearch("");
+        setSearch('');
         break;
-      case "Tab":
+      case 'Tab':
         setIsOpen(false);
-        setSearch("");
+        setSearch('');
         break;
     }
   }
 
   const displayLabel = selectedOption
     ? `${selectedOption.label} (${selectedOption.offset})`
-    : value || "Select timezone";
+    : value || 'Select timezone';
 
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
+    <div ref={containerRef} className={cn('relative', className)}>
       {/* Trigger button */}
       <button
         type="button"
@@ -360,20 +344,17 @@ export function TimezoneSelect({
         onClick={openDropdown}
         onKeyDown={handleTriggerKeyDown}
         className={cn(
-          "flex w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2",
-          "text-sm text-gray-900 shadow-sm transition-colors",
-          "hover:border-gray-400",
-          "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
-          isOpen && "border-primary-500 ring-2 ring-primary-500 ring-offset-1"
+          'flex w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2',
+          'text-sm text-gray-900 shadow-sm transition-colors',
+          'hover:border-gray-400',
+          'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+          isOpen && 'border-primary-500 ring-2 ring-primary-500 ring-offset-1'
         )}
       >
         <GlobeIcon className="shrink-0 text-gray-400" />
         <span className="min-w-0 flex-1 truncate text-left">{displayLabel}</span>
         <ChevronDownIcon
-          className={cn(
-            "shrink-0 text-gray-400 transition-transform",
-            isOpen && "rotate-180"
-          )}
+          className={cn('shrink-0 text-gray-400 transition-transform', isOpen && 'rotate-180')}
         />
       </button>
 
@@ -381,8 +362,8 @@ export function TimezoneSelect({
       {isOpen && (
         <div
           className={cn(
-            "absolute z-50 mt-1 w-full min-w-[280px] rounded-md border border-gray-200",
-            "bg-white shadow-lg"
+            'absolute z-50 mt-1 w-full min-w-[280px] rounded-md border border-gray-200',
+            'bg-white shadow-lg'
           )}
         >
           {/* Search input */}
@@ -402,8 +383,8 @@ export function TimezoneSelect({
               aria-label="Search timezones"
               aria-controls={listboxId}
               className={cn(
-                "flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400",
-                "focus:outline-none"
+                'flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400',
+                'focus:outline-none'
               )}
             />
           </div>
@@ -417,13 +398,10 @@ export function TimezoneSelect({
             className="max-h-60 overflow-y-auto py-1"
           >
             {flatOptions.length === 0 ? (
-              <li className="px-3 py-4 text-center text-sm text-gray-500">
-                No timezones found
-              </li>
+              <li className="px-3 py-4 text-center text-sm text-gray-500">No timezones found</li>
             ) : (
               Array.from(groupedOptions.entries()).map(([region, options]) => {
-                const regionLabel =
-                  REGION_LABELS[region] ?? region;
+                const regionLabel = REGION_LABELS[region] ?? region;
                 return (
                   <React.Fragment key={region}>
                     {/* Region group label */}
@@ -445,26 +423,19 @@ export function TimezoneSelect({
                           aria-selected={isSelected}
                           data-index={globalIndex}
                           onClick={() => selectOption(opt.value)}
-                          onMouseEnter={() =>
-                            setHighlightedIndex(globalIndex)
-                          }
+                          onMouseEnter={() => setHighlightedIndex(globalIndex)}
                           className={cn(
-                            "flex cursor-pointer items-center justify-between px-3 py-2 text-sm",
-                            isHighlighted &&
-                              !isSelected &&
-                              "bg-primary-50 text-primary-700",
-                            isSelected &&
-                              "bg-primary-100 font-medium text-primary-800",
-                            !isHighlighted && !isSelected && "text-gray-900"
+                            'flex cursor-pointer items-center justify-between px-3 py-2 text-sm',
+                            isHighlighted && !isSelected && 'bg-primary-50 text-primary-700',
+                            isSelected && 'bg-primary-100 font-medium text-primary-800',
+                            !isHighlighted && !isSelected && 'text-gray-900'
                           )}
                         >
                           <span className="truncate">{opt.label}</span>
                           <span
                             className={cn(
-                              "ml-3 shrink-0 text-xs tabular-nums",
-                              isSelected
-                                ? "text-primary-600"
-                                : "text-gray-400"
+                              'ml-3 shrink-0 text-xs tabular-nums',
+                              isSelected ? 'text-primary-600' : 'text-gray-400'
                             )}
                           >
                             {opt.offset}

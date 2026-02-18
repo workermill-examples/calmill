@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 /**
  * Seed Endpoint
@@ -10,31 +11,30 @@ import bcrypt from "bcryptjs";
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
+    // Check authorization — accept x-seed-token header or Authorization: Bearer
+    const token =
+      request.headers.get('x-seed-token') ??
+      request.headers.get('authorization')?.replace('Bearer ', '');
     const expectedToken = process.env.SEED_TOKEN;
 
     if (!expectedToken) {
-      return NextResponse.json(
-        { error: "Seed endpoint not configured" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Seed endpoint not configured' }, { status: 500 });
     }
 
-    if (!token || token !== expectedToken) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    if (
+      !token ||
+      token.length !== expectedToken.length ||
+      !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expectedToken))
+    ) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log("🌱 Starting database seed via API...");
+    console.log('🌱 Starting database seed via API...');
 
     // Demo user credentials
-    const demoEmail = "demo@workermill.com";
-    const demoPassword = "demo1234";
-    const demoUsername = "demo";
+    const demoEmail = 'demo@workermill.com';
+    const demoPassword = 'demo1234';
+    const demoUsername = 'demo';
 
     // Hash password with bcryptjs (12 rounds)
     const passwordHash = await bcrypt.hash(demoPassword, 12);
@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
         email: demoEmail,
         passwordHash,
         username: demoUsername,
-        name: "Alex Demo",
-        timezone: "America/New_York",
+        name: 'Alex Demo',
+        timezone: 'America/New_York',
         weekStart: 0, // Sunday
-        theme: "light",
+        theme: 'light',
         emailVerified: new Date(),
       },
     });
@@ -68,9 +68,9 @@ export async function POST(request: NextRequest) {
     if (!defaultSchedule) {
       defaultSchedule = await prisma.schedule.create({
         data: {
-          name: "Business Hours",
+          name: 'Business Hours',
           isDefault: true,
-          timezone: "America/New_York",
+          timezone: 'America/New_York',
           userId: demoUser.id,
         },
       });
@@ -86,11 +86,11 @@ export async function POST(request: NextRequest) {
 
     if (existingAvailability.length === 0) {
       const weekdayAvailability = [
-        { day: 1, startTime: "09:00", endTime: "17:00" }, // Monday
-        { day: 2, startTime: "09:00", endTime: "17:00" }, // Tuesday
-        { day: 3, startTime: "09:00", endTime: "17:00" }, // Wednesday
-        { day: 4, startTime: "09:00", endTime: "17:00" }, // Thursday
-        { day: 5, startTime: "09:00", endTime: "17:00" }, // Friday
+        { day: 1, startTime: '09:00', endTime: '17:00' }, // Monday
+        { day: 2, startTime: '09:00', endTime: '17:00' }, // Tuesday
+        { day: 3, startTime: '09:00', endTime: '17:00' }, // Wednesday
+        { day: 4, startTime: '09:00', endTime: '17:00' }, // Thursday
+        { day: 5, startTime: '09:00', endTime: '17:00' }, // Friday
       ];
 
       for (const availability of weekdayAvailability) {
@@ -111,14 +111,14 @@ export async function POST(request: NextRequest) {
       where: {
         userId_slug: {
           userId: demoUser.id,
-          slug: "30min",
+          slug: '30min',
         },
       },
       update: {},
       create: {
-        title: "30 Minute Meeting",
-        slug: "30min",
-        description: "A quick 30 minute meeting to discuss your needs.",
+        title: '30 Minute Meeting',
+        slug: '30min',
+        description: 'A quick 30 minute meeting to discuss your needs.',
         duration: 30,
         isActive: true,
         userId: demoUser.id,
@@ -127,8 +127,8 @@ export async function POST(request: NextRequest) {
         futureLimit: 60, // 60 days
         locations: [
           {
-            type: "link",
-            value: "Google Meet link will be provided",
+            type: 'link',
+            value: 'Google Meet link will be provided',
           },
         ],
       },
@@ -140,14 +140,14 @@ export async function POST(request: NextRequest) {
       where: {
         userId_slug: {
           userId: demoUser.id,
-          slug: "60min",
+          slug: '60min',
         },
       },
       update: {},
       create: {
-        title: "60 Minute Consultation",
-        slug: "60min",
-        description: "A comprehensive 60 minute consultation session.",
+        title: '60 Minute Consultation',
+        slug: '60min',
+        description: 'A comprehensive 60 minute consultation session.',
         duration: 60,
         isActive: true,
         userId: demoUser.id,
@@ -156,8 +156,8 @@ export async function POST(request: NextRequest) {
         futureLimit: 60, // 60 days
         locations: [
           {
-            type: "link",
-            value: "Zoom link will be provided",
+            type: 'link',
+            value: 'Zoom link will be provided',
           },
         ],
       },
@@ -165,12 +165,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Created/found event type: ${eventType60.title} (${eventType60.id})`);
 
-    console.log("🎉 Database seeding completed via API!");
+    console.log('🎉 Database seeding completed via API!');
 
     return NextResponse.json(
       {
         success: true,
-        message: "Database seeded successfully",
+        message: 'Database seeded successfully',
         data: {
           user: {
             id: demoUser.id,
@@ -198,11 +198,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Seed failed:", error);
+    console.error('❌ Seed failed:', error);
     return NextResponse.json(
       {
-        error: "Seed failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Seed failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

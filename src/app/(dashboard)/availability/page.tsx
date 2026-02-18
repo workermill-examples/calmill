@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { AvailabilityEditor } from "@/components/availability/availability-editor";
-import type { ScheduleWithRelations } from "@/types";
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { AvailabilityEditor } from '@/components/availability/availability-editor';
+import type { ScheduleWithRelations } from '@/types';
 
 export default async function AvailabilityPage() {
   const session = await auth();
@@ -13,13 +13,13 @@ export default async function AvailabilityPage() {
     include: {
       availability: true,
       dateOverrides: {
-        orderBy: { date: "asc" },
+        orderBy: { date: 'asc' },
       },
       _count: {
         select: { eventTypes: true },
       },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
   });
 
   return (

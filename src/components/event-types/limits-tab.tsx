@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { EditorEventType, EventTypeFields } from "./editor";
+import { useState } from 'react';
+import type { EditorEventType, EventTypeFields } from './editor';
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ function NumberField({
   suffix?: string;
   optional?: boolean;
 }) {
-  const displayValue = value === null || value === undefined ? "" : String(value);
+  const displayValue = value === null || value === undefined ? '' : String(value);
 
   return (
     <div>
@@ -55,7 +55,7 @@ function NumberField({
           placeholder={placeholder}
           onChange={(e) => {
             const val = e.target.value;
-            if (val === "") {
+            if (val === '') {
               onChange(null);
             } else {
               const num = parseInt(val, 10);
@@ -76,11 +76,11 @@ function NumberField({
 
 export function LimitsTab({ eventType, onSave }: LimitsTabProps) {
   const [minimumNotice, setMinimumNotice] = useState(eventType.minimumNotice);
-  const [minimumNoticeUnit, setMinimumNoticeUnit] = useState<"minutes" | "hours" | "days">(() => {
+  const [minimumNoticeUnit, setMinimumNoticeUnit] = useState<'minutes' | 'hours' | 'days'>(() => {
     const n = eventType.minimumNotice;
-    if (n >= 1440) return "days";
-    if (n >= 60) return "hours";
-    return "minutes";
+    if (n >= 1440) return 'days';
+    if (n >= 60) return 'hours';
+    return 'minutes';
   });
 
   const [beforeBuffer, setBeforeBuffer] = useState(eventType.beforeBuffer);
@@ -92,26 +92,26 @@ export function LimitsTab({ eventType, onSave }: LimitsTabProps) {
 
   // Derived display values for minimum notice
   function getDisplayNotice(): number {
-    if (minimumNoticeUnit === "days") return Math.round(minimumNotice / 1440);
-    if (minimumNoticeUnit === "hours") return Math.round(minimumNotice / 60);
+    if (minimumNoticeUnit === 'days') return Math.round(minimumNotice / 1440);
+    if (minimumNoticeUnit === 'hours') return Math.round(minimumNotice / 60);
     return minimumNotice;
   }
 
   function setDisplayNotice(val: number | null) {
     if (val === null) return;
     let minutes = val;
-    if (minimumNoticeUnit === "days") minutes = val * 1440;
-    else if (minimumNoticeUnit === "hours") minutes = val * 60;
+    if (minimumNoticeUnit === 'days') minutes = val * 1440;
+    else if (minimumNoticeUnit === 'hours') minutes = val * 60;
     setMinimumNotice(minutes);
   }
 
-  function handleMinimumNoticeUnitChange(unit: "minutes" | "hours" | "days") {
+  function handleMinimumNoticeUnitChange(unit: 'minutes' | 'hours' | 'days') {
     // Convert current minutes to new unit display, then save
     const current = getDisplayNotice();
     setMinimumNoticeUnit(unit);
     let newMinutes = current;
-    if (unit === "days") newMinutes = current * 1440;
-    else if (unit === "hours") newMinutes = current * 60;
+    if (unit === 'days') newMinutes = current * 1440;
+    else if (unit === 'hours') newMinutes = current * 60;
     else newMinutes = current;
     setMinimumNotice(newMinutes);
     onSave({ minimumNotice: newMinutes });
@@ -121,13 +121,13 @@ export function LimitsTab({ eventType, onSave }: LimitsTabProps) {
     <div className="space-y-6">
       {/* Notice & Buffers */}
       <section className="bg-white rounded-lg border border-gray-200 p-6 space-y-5">
-        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Notice & Buffers</h2>
+        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+          Notice & Buffers
+        </h2>
 
         {/* Minimum notice */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Minimum Notice
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Minimum Notice</label>
           <p className="text-xs text-gray-500 mb-2">
             How far in advance must someone book this event?
           </p>
@@ -146,7 +146,9 @@ export function LimitsTab({ eventType, onSave }: LimitsTabProps) {
             />
             <select
               value={minimumNoticeUnit}
-              onChange={(e) => handleMinimumNoticeUnitChange(e.target.value as "minutes" | "hours" | "days")}
+              onChange={(e) =>
+                handleMinimumNoticeUnitChange(e.target.value as 'minutes' | 'hours' | 'days')
+              }
               className="h-10 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               aria-label="Minimum notice unit"
             >
@@ -201,7 +203,9 @@ export function LimitsTab({ eventType, onSave }: LimitsTabProps) {
 
       {/* Booking limits */}
       <section className="bg-white rounded-lg border border-gray-200 p-6 space-y-5">
-        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Booking Limits</h2>
+        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+          Booking Limits
+        </h2>
 
         <NumberField
           id="et-max-per-day"

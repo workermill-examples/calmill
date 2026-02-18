@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
-import type { Availability } from "@/generated/prisma/client";
-import { TIME_OPTIONS, formatTime } from "./time-utils";
+import { useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
+import type { Availability } from '@/generated/prisma/client';
+import { TIME_OPTIONS, formatTime } from './time-utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type TimeWindow = {
-  id: string;        // stable key for React reconciliation
+  id: string; // stable key for React reconciliation
   startTime: string; // "HH:mm"
-  endTime: string;   // "HH:mm"
+  endTime: string; // "HH:mm"
 };
 
 let _windowId = 0;
@@ -25,12 +25,14 @@ type DayState = {
 
 interface WeeklyGridProps {
   availability: Availability[];
-  onSave: (availability: Array<Pick<Availability, "day" | "startTime" | "endTime">>) => Promise<void>;
+  onSave: (
+    availability: Array<Pick<Availability, 'day' | 'startTime' | 'endTime'>>
+  ) => Promise<void>;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // ─── Toggle Switch ────────────────────────────────────────────────────────────
 
@@ -48,17 +50,17 @@ function DayToggle({
       type="button"
       role="switch"
       aria-checked={checked}
-      aria-label={`${dayName} ${checked ? "available" : "unavailable"}`}
+      aria-label={`${dayName} ${checked ? 'available' : 'unavailable'}`}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
-        checked ? "bg-primary-600" : "bg-gray-200"
+        'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+        checked ? 'bg-primary-600' : 'bg-gray-200'
       )}
     >
       <span
         className={cn(
-          "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-          checked ? "translate-x-4" : "translate-x-0.5"
+          'inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+          checked ? 'translate-x-4' : 'translate-x-0.5'
         )}
       />
     </button>
@@ -91,7 +93,9 @@ function TimeRangeRow({
         aria-label={`Start time for window ${index + 1}`}
       >
         {TIME_OPTIONS.map((t) => (
-          <option key={t} value={t}>{formatTime(t)}</option>
+          <option key={t} value={t}>
+            {formatTime(t)}
+          </option>
         ))}
       </select>
       <span className="text-sm text-gray-500">–</span>
@@ -102,7 +106,9 @@ function TimeRangeRow({
         aria-label={`End time for window ${index + 1}`}
       >
         {TIME_OPTIONS.map((t) => (
-          <option key={t} value={t}>{formatTime(t)}</option>
+          <option key={t} value={t}>
+            {formatTime(t)}
+          </option>
         ))}
       </select>
       {canRemove && (
@@ -113,8 +119,19 @@ function TimeRangeRow({
           aria-label={`Remove time window ${index + 1}`}
           title="Remove this time window"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       )}
@@ -132,7 +149,10 @@ function buildDayState(availability: Availability[]): Record<number, DayState> {
       .map((a) => ({ id: nextWindowId(), startTime: a.startTime, endTime: a.endTime }));
     state[day] = {
       enabled: windows.length > 0,
-      windows: windows.length > 0 ? windows : [{ id: nextWindowId(), startTime: "09:00", endTime: "17:00" }],
+      windows:
+        windows.length > 0
+          ? windows
+          : [{ id: nextWindowId(), startTime: '09:00', endTime: '17:00' }],
     };
   }
   return state;
@@ -169,7 +189,7 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
   function handleAddWindow(day: number) {
     const current = dayState[day]!;
     updateDay(day, {
-      windows: [...current.windows, { id: nextWindowId(), startTime: "09:00", endTime: "17:00" }],
+      windows: [...current.windows, { id: nextWindowId(), startTime: '09:00', endTime: '17:00' }],
     });
   }
 
@@ -177,7 +197,10 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
     const current = dayState[day]!;
     const newWindows = current.windows.filter((w) => w.id !== windowId);
     updateDay(day, {
-      windows: newWindows.length > 0 ? newWindows : [{ id: nextWindowId(), startTime: "09:00", endTime: "17:00" }],
+      windows:
+        newWindows.length > 0
+          ? newWindows
+          : [{ id: nextWindowId(), startTime: '09:00', endTime: '17:00' }],
     });
   }
 
@@ -202,7 +225,7 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
     setSaved(false);
     setError(false);
 
-    const availability: Array<Pick<Availability, "day" | "startTime" | "endTime">> = [];
+    const availability: Array<Pick<Availability, 'day' | 'startTime' | 'endTime'>> = [];
     for (let day = 0; day < 7; day++) {
       const ds = dayState[day]!;
       if (ds.enabled) {
@@ -232,21 +255,24 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
           {saved && (
             <span className="flex items-center gap-1 text-xs text-green-600">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               Saved
             </span>
           )}
-          {error && (
-            <span className="text-xs text-red-600">Save failed</span>
-          )}
+          {error && <span className="text-xs text-red-600">Save failed</span>}
           <button
             type="button"
             onClick={handleSave}
             disabled={saving}
             className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Save"}
+            {saving ? 'Saving…' : 'Save'}
           </button>
         </div>
       </div>
@@ -258,8 +284,8 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
             <div
               key={day}
               className={cn(
-                "flex items-start gap-4 rounded-md px-3 py-3 transition-colors",
-                ds.enabled ? "bg-white" : "bg-gray-50"
+                'flex items-start gap-4 rounded-md px-3 py-3 transition-colors',
+                ds.enabled ? 'bg-white' : 'bg-gray-50'
               )}
             >
               {/* Day name + toggle */}
@@ -271,8 +297,8 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
                 />
                 <span
                   className={cn(
-                    "text-sm font-medium",
-                    ds.enabled ? "text-gray-900" : "text-gray-400"
+                    'text-sm font-medium',
+                    ds.enabled ? 'text-gray-900' : 'text-gray-400'
                   )}
                 >
                   {DAY_NAMES[day]}
@@ -299,8 +325,19 @@ export function WeeklyGrid({ availability, onSave }: WeeklyGridProps) {
                     className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
                     aria-label={`Add another time window for ${DAY_NAMES[day]!}`}
                   >
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                     Add hours
                   </button>

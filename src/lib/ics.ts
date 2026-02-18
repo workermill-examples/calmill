@@ -11,7 +11,7 @@ export interface ICSEventOptions {
   description?: string;
   location?: string;
   startTime: Date | string; // UTC datetime
-  endTime: Date | string;   // UTC datetime
+  endTime: Date | string; // UTC datetime
   organizerName?: string;
   organizerEmail?: string;
   attendeeName?: string;
@@ -23,8 +23,11 @@ export interface ICSEventOptions {
  * Format a Date to iCalendar UTC datetime string: 20260220T150000Z
  */
 function formatICSDate(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '');
 }
 
 /**
@@ -43,15 +46,15 @@ function foldLine(line: string): string {
 
   // Subsequent chunks: 74 chars (1 char is the folding space)
   while (remaining.length > 74) {
-    chunks.push(" " + remaining.slice(0, 74));
+    chunks.push(' ' + remaining.slice(0, 74));
     remaining = remaining.slice(74);
   }
 
   if (remaining.length > 0) {
-    chunks.push(" " + remaining);
+    chunks.push(' ' + remaining);
   }
 
-  return chunks.join("\r\n");
+  return chunks.join('\r\n');
 }
 
 /**
@@ -59,11 +62,11 @@ function foldLine(line: string): string {
  */
 function escapeText(text: string): string {
   return text
-    .replace(/\\/g, "\\\\")
-    .replace(/;/g, "\\;")
-    .replace(/,/g, "\\,")
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "");
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '');
 }
 
 /**
@@ -91,12 +94,12 @@ export function generateICS(options: ICSEventOptions): string {
   const dtend = formatICSDate(endTime);
 
   const lines: string[] = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//CalMill//CalMill//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:REQUEST",
-    "BEGIN:VEVENT",
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//CalMill//CalMill//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:REQUEST',
+    'BEGIN:VEVENT',
     `UID:${uid}@calmill`,
     `DTSTAMP:${now}`,
     `DTSTART:${dtstart}`,
@@ -130,15 +133,10 @@ export function generateICS(options: ICSEventOptions): string {
     lines.push(foldLine(`ATTENDEE;RSVP=TRUE;ROLE=REQ-PARTICIPANT;${attendee}`));
   }
 
-  lines.push(
-    "STATUS:CONFIRMED",
-    "SEQUENCE:0",
-    "END:VEVENT",
-    "END:VCALENDAR"
-  );
+  lines.push('STATUS:CONFIRMED', 'SEQUENCE:0', 'END:VEVENT', 'END:VCALENDAR');
 
   // RFC 5545 requires CRLF line endings
-  return lines.join("\r\n");
+  return lines.join('\r\n');
 }
 
 /**
@@ -150,16 +148,16 @@ export function buildGoogleCalendarUrl(options: ICSEventOptions): string {
   const endStr = formatICSDate(options.endTime);
 
   const params = new URLSearchParams({
-    action: "TEMPLATE",
+    action: 'TEMPLATE',
     text: options.title,
     dates: `${startStr}/${endStr}`,
   });
 
   if (options.description) {
-    params.set("details", options.description);
+    params.set('details', options.description);
   }
   if (options.location) {
-    params.set("location", options.location);
+    params.set('location', options.location);
   }
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -181,11 +179,11 @@ export function buildICSDataUri(options: ICSEventOptions): string {
  */
 export function downloadICS(options: ICSEventOptions, filename?: string): void {
   const icsContent = generateICS(options);
-  const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+  const link = document.createElement('a');
   link.href = url;
-  link.download = filename ?? `${options.title.replace(/\s+/g, "-")}.ics`;
+  link.download = filename ?? `${options.title.replace(/\s+/g, '-')}.ics`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

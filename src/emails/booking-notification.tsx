@@ -1,6 +1,6 @@
-import { Button, Hr, Link, Section, Text } from "@react-email/components";
-import { EmailLayout, colors } from "./components/email-layout";
-import { DetailRow } from "./components/detail-row";
+import { Button, Hr, Link, Section, Text } from '@react-email/components';
+import { EmailLayout, colors } from './components/email-layout';
+import { DetailRow } from './components/detail-row';
 
 export interface BookingNotificationEmailProps {
   /** Host's display name */
@@ -57,11 +57,8 @@ export function BookingNotificationEmail({
 
       <Text style={styles.heading}>You have a new booking</Text>
       <Text style={styles.subheading}>
-        Hi {hostName},{" "}
-        <strong>{attendeeName}</strong> has booked a meeting with you.
-        {requiresConfirmation && (
-          <> This booking requires your confirmation.</>
-        )}
+        Hi {hostName}, <strong>{attendeeName}</strong> has booked a meeting with you.
+        {requiresConfirmation && <> This booking requires your confirmation.</>}
       </Text>
 
       <Hr style={styles.divider} />
@@ -81,7 +78,7 @@ export function BookingNotificationEmail({
         </DetailRow>
 
         <DetailRow icon="👤" label="Attendee">
-          {attendeeName}{" "}
+          {attendeeName}{' '}
           <Link href={`mailto:${attendeeEmail}`} style={styles.link}>
             ({attendeeEmail})
           </Link>
@@ -126,7 +123,7 @@ export function BookingNotificationEmail({
       {/* CTA */}
       <Section style={styles.centeredSection}>
         <Button href={bookingUrl} style={styles.primaryButton}>
-          {requiresConfirmation ? "Review Booking" : "View Booking"}
+          {requiresConfirmation ? 'Review Booking' : 'View Booking'}
         </Button>
       </Section>
 
@@ -141,101 +138,101 @@ export function BookingNotificationEmail({
 
 const styles = {
   centeredSection: {
-    textAlign: "center" as const,
+    textAlign: 'center' as const,
   },
   statusIcon: {
-    fontSize: "48px",
-    margin: "0 auto 16px",
-    textAlign: "center" as const,
+    fontSize: '48px',
+    margin: '0 auto 16px',
+    textAlign: 'center' as const,
   },
   heading: {
     color: colors.text,
-    fontSize: "24px",
-    fontWeight: "700",
-    lineHeight: "1.3",
-    margin: "0 0 8px",
-    textAlign: "center" as const,
+    fontSize: '24px',
+    fontWeight: '700',
+    lineHeight: '1.3',
+    margin: '0 0 8px',
+    textAlign: 'center' as const,
   },
   subheading: {
     color: colors.textMuted,
-    fontSize: "15px",
-    lineHeight: "1.6",
-    margin: "0 0 24px",
-    textAlign: "center" as const,
+    fontSize: '15px',
+    lineHeight: '1.6',
+    margin: '0 0 24px',
+    textAlign: 'center' as const,
   },
   divider: {
     borderColor: colors.border,
-    margin: "24px 0",
+    margin: '24px 0',
   },
   detailsCard: {
     backgroundColor: colors.primaryLight,
-    borderRadius: "8px",
-    padding: "16px 20px",
+    borderRadius: '8px',
+    padding: '16px 20px',
   },
   eventTitle: {
     color: colors.primary,
-    fontSize: "17px",
-    fontWeight: "700",
-    margin: "0 0 16px",
+    fontSize: '17px',
+    fontWeight: '700',
+    margin: '0 0 16px',
   },
   timezone: {
     color: colors.textMuted,
-    fontSize: "13px",
+    fontSize: '13px',
   },
   link: {
     color: colors.primary,
-    textDecoration: "none",
+    textDecoration: 'none',
   },
   sectionTitle: {
     color: colors.text,
-    fontSize: "14px",
-    fontWeight: "600",
-    margin: "0 0 8px",
+    fontSize: '14px',
+    fontWeight: '600',
+    margin: '0 0 8px',
   },
   notesText: {
     backgroundColor: colors.background,
     borderLeftColor: colors.border,
-    borderLeftStyle: "solid" as const,
-    borderLeftWidth: "3px",
-    borderRadius: "4px",
+    borderLeftStyle: 'solid' as const,
+    borderLeftWidth: '3px',
+    borderRadius: '4px',
     color: colors.text,
-    fontSize: "14px",
-    lineHeight: "1.6",
-    margin: "0",
-    padding: "12px 16px",
+    fontSize: '14px',
+    lineHeight: '1.6',
+    margin: '0',
+    padding: '12px 16px',
   },
   responseRow: {
-    marginBottom: "12px",
+    marginBottom: '12px',
   },
   responseQuestion: {
     color: colors.textMuted,
-    fontSize: "13px",
-    fontWeight: "600",
-    margin: "0 0 2px",
+    fontSize: '13px',
+    fontWeight: '600',
+    margin: '0 0 2px',
   },
   responseAnswer: {
     color: colors.text,
-    fontSize: "14px",
-    lineHeight: "1.5",
-    margin: "0",
+    fontSize: '14px',
+    lineHeight: '1.5',
+    margin: '0',
   },
   primaryButton: {
     backgroundColor: colors.primary,
-    borderRadius: "6px",
+    borderRadius: '6px',
     color: colors.white,
-    display: "inline-block",
-    fontSize: "15px",
-    fontWeight: "600",
-    marginBottom: "12px",
-    padding: "12px 24px",
-    textDecoration: "none",
+    display: 'inline-block',
+    fontSize: '15px',
+    fontWeight: '600',
+    marginBottom: '12px',
+    padding: '12px 24px',
+    textDecoration: 'none',
   },
   confirmationHint: {
     color: colors.textMuted,
-    fontSize: "13px",
-    lineHeight: "1.5",
-    margin: "0",
-    textAlign: "center" as const,
+    fontSize: '13px',
+    lineHeight: '1.5',
+    margin: '0',
+    textAlign: 'center' as const,
   },
 } as const;
 

@@ -1,21 +1,19 @@
-"use client";
+'use client';
 
-import { useState, Suspense } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { loginSchema } from "@/lib/validations";
-import { z } from "zod";
+import { useState, Suspense } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { loginSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>(
-    {}
-  );
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,25 +21,25 @@ function LoginForm() {
     setErrors({});
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
     try {
       // Validate with Zod
       const validated = loginSchema.parse({ email, password });
 
       // Sign in with NextAuth
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         email: validated.email,
         password: validated.password,
         redirect: false,
       });
 
       if (result?.error) {
-        setErrors({ general: "Invalid email or password" });
+        setErrors({ general: 'Invalid email or password' });
       } else {
         // Successful login - redirect to event types or callbackUrl
-        const callbackUrl = searchParams.get("callbackUrl") || "/event-types";
+        const callbackUrl = searchParams.get('callbackUrl') || '/event-types';
         router.push(callbackUrl);
         router.refresh();
       }
@@ -50,12 +48,12 @@ function LoginForm() {
         const fieldErrors: { email?: string; password?: string } = {};
         error.issues.forEach((err) => {
           if (err.path[0]) {
-            fieldErrors[err.path[0] as "email" | "password"] = err.message;
+            fieldErrors[err.path[0] as 'email' | 'password'] = err.message;
           }
         });
         setErrors(fieldErrors);
       } else {
-        setErrors({ general: "An unexpected error occurred" });
+        setErrors({ general: 'An unexpected error occurred' });
       }
     } finally {
       setIsLoading(false);
@@ -67,20 +65,20 @@ function LoginForm() {
     setErrors({});
 
     try {
-      const result = await signIn("credentials", {
-        email: "demo@workermill.com",
-        password: "demo1234",
+      const result = await signIn('credentials', {
+        email: 'demo@workermill.com',
+        password: 'demo1234',
         redirect: false,
       });
 
       if (result?.error) {
-        setErrors({ general: "Demo login failed. Please try again." });
+        setErrors({ general: 'Demo login failed. Please try again.' });
       } else {
-        router.push("/event-types");
+        router.push('/event-types');
         router.refresh();
       }
     } catch {
-      setErrors({ general: "An unexpected error occurred" });
+      setErrors({ general: 'An unexpected error occurred' });
     } finally {
       setIsLoading(false);
     }
@@ -110,9 +108,7 @@ function LoginForm() {
             <span className="text-2xl font-semibold text-gray-900">CalMill</span>
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">Welcome back</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to your account to continue
-          </p>
+          <p className="mt-2 text-sm text-gray-600">Sign in to your account to continue</p>
         </div>
 
         {/* Login Form */}
@@ -182,7 +178,7 @@ function LoginForm() {
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-600">
-            Don&apos;t have an account?{" "}
+            Don&apos;t have an account?{' '}
             <Link
               href="/signup"
               className="font-medium text-primary-600 hover:text-primary-500 transition-colors"

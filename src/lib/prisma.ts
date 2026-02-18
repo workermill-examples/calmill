@@ -1,5 +1,6 @@
-import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaClient } from '@/generated/prisma/client';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 // Prevent multiple PrismaClient instances in development
 // This is critical for serverless environments and hot-reloading
@@ -8,26 +9,25 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  // Use DATABASE_URL (pooled connection) for Neon
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL environment variable is not set. " +
-      "Please configure your Neon PostgreSQL connection string."
+      'DATABASE_URL environment variable is not set. ' +
+        'Please configure your PostgreSQL connection string.'
     );
   }
 
-  // Create Prisma adapter for Neon (pass connectionString directly)
-  const adapter = new PrismaNeon({ connectionString });
+  const logConfig = process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'];
 
-  // Initialize PrismaClient with the adapter
+  // Use Neon adapter for Neon serverless connections, PrismaPg for standard PostgreSQL
+  const adapter = connectionString.includes('neon.tech')
+    ? new PrismaNeon({ connectionString })
+    : new PrismaPg({ connectionString });
+
   return new PrismaClient({
     adapter,
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
+    log: logConfig as ('query' | 'error' | 'warn')[],
   });
 }
 
@@ -35,13 +35,13 @@ function createPrismaClient() {
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 // Cache the client in development to prevent connection exhaustion
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 
 // Graceful shutdown handler
-if (typeof window === "undefined") {
-  process.on("beforeExit", async () => {
+if (typeof window === 'undefined') {
+  process.on('beforeExit', async () => {
     await prisma.$disconnect();
   });
 }

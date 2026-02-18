@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
 
 // GET /api/dashboard — Aggregated dashboard data for authenticated user
 export const GET = withAuth(async (_request, _context, user) => {
@@ -22,7 +22,7 @@ export const GET = withAuth(async (_request, _context, user) => {
       prisma.booking.count({
         where: {
           userId: user.id,
-          status: "ACCEPTED",
+          status: 'ACCEPTED',
           startTime: { gte: now, lte: next7Days },
         },
       }),
@@ -30,7 +30,7 @@ export const GET = withAuth(async (_request, _context, user) => {
       prisma.booking.count({
         where: {
           userId: user.id,
-          status: "PENDING",
+          status: 'PENDING',
         },
       }),
       // Count bookings created this calendar month
@@ -44,7 +44,7 @@ export const GET = withAuth(async (_request, _context, user) => {
       prisma.booking.findMany({
         where: {
           userId: user.id,
-          status: "ACCEPTED",
+          status: 'ACCEPTED',
           startTime: { gte: now },
         },
         include: {
@@ -58,7 +58,7 @@ export const GET = withAuth(async (_request, _context, user) => {
             },
           },
         },
-        orderBy: { startTime: "asc" },
+        orderBy: { startTime: 'asc' },
         take: 5,
       }),
       // Last 30 days bookings for time-series chart
@@ -72,14 +72,14 @@ export const GET = withAuth(async (_request, _context, user) => {
           status: true,
           eventTypeId: true,
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: 'asc' },
       }),
       // Bookings per event type (all time for this user)
       prisma.booking.groupBy({
-        by: ["eventTypeId"],
+        by: ['eventTypeId'],
         where: { userId: user.id },
         _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
+        orderBy: { _count: { id: 'desc' } },
       }),
     ]);
 
@@ -101,9 +101,9 @@ export const GET = withAuth(async (_request, _context, user) => {
     // Aggregate bookings by status
     const statusCounts = { ACCEPTED: 0, PENDING: 0, CANCELLED: 0 };
     for (const booking of recentBookings) {
-      if (booking.status === "ACCEPTED") statusCounts.ACCEPTED++;
-      else if (booking.status === "PENDING") statusCounts.PENDING++;
-      else if (booking.status === "CANCELLED" || booking.status === "REJECTED") {
+      if (booking.status === 'ACCEPTED') statusCounts.ACCEPTED++;
+      else if (booking.status === 'PENDING') statusCounts.PENDING++;
+      else if (booking.status === 'CANCELLED' || booking.status === 'REJECTED') {
         statusCounts.CANCELLED++;
       }
     }
@@ -121,7 +121,7 @@ export const GET = withAuth(async (_request, _context, user) => {
     const nameById = new Map(eventTypeNames.map((et) => [et.id, et.title]));
 
     const bookingsByEventType = eventTypeCounts.map((e) => ({
-      title: nameById.get(e.eventTypeId) ?? "Unknown",
+      title: nameById.get(e.eventTypeId) ?? 'Unknown',
       count: e._count.id,
     }));
 
@@ -142,7 +142,7 @@ export const GET = withAuth(async (_request, _context, user) => {
       bookingsByStatus: statusCounts,
     });
   } catch (error) {
-    console.error("GET /api/dashboard error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/dashboard error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

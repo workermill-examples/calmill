@@ -1,15 +1,16 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/api-auth";
-import { bookingActionSchema, bookingRescheduleSchema } from "@/lib/validations";
-import { getAvailableSlots } from "@/lib/slots";
-import { sendEmail } from "@/lib/email";
-import { formatDateInTimezone } from "@/lib/utils";
-import { buildGoogleCalendarUrl } from "@/lib/ics";
-import { BookingAcceptedEmail } from "@/emails/booking-accepted";
-import { BookingCancelledEmail } from "@/emails/booking-cancelled";
-import React from "react";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { getAuthenticatedUser } from '@/lib/api-auth';
+import { bookingActionSchema, bookingRescheduleSchema } from '@/lib/validations';
+import { getAvailableSlots } from '@/lib/slots';
+import { sendEmail } from '@/lib/email';
+import { formatDateInTimezone } from '@/lib/utils';
+import { buildGoogleCalendarUrl } from '@/lib/ics';
+import { BookingAcceptedEmail } from '@/emails/booking-accepted';
+import { BookingCancelledEmail } from '@/emails/booking-cancelled';
+import { deliverWebhookEvent, buildBookingPayload, type WebhookEventType } from '@/lib/webhooks';
+import React from 'react';
 
 type Params = { params: Promise<{ uid: string }> };
 
@@ -17,8 +18,8 @@ type Params = { params: Promise<{ uid: string }> };
 
 // Valid status transitions
 const STATUS_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["ACCEPTED", "REJECTED", "CANCELLED"],
-  ACCEPTED: ["CANCELLED"],
+  PENDING: ['ACCEPTED', 'REJECTED', 'CANCELLED'],
+  ACCEPTED: ['CANCELLED'],
   REJECTED: [],
   CANCELLED: [],
   RESCHEDULED: [],
@@ -30,10 +31,14 @@ function canTransition(current: string, next: string): boolean {
 
 function actionToStatus(action: string): string {
   switch (action) {
-    case "accept": return "ACCEPTED";
-    case "reject": return "REJECTED";
-    case "cancel": return "CANCELLED";
-    default: return action.toUpperCase();
+    case 'accept':
+      return 'ACCEPTED';
+    case 'reject':
+      return 'REJECTED';
+    case 'cancel':
+      return 'CANCELLED';
+    default:
+      return action.toUpperCase();
   }
 }
 
@@ -69,13 +74,13 @@ export async function GET(_request: Request, { params }: Params) {
     });
 
     if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, data: booking });
   } catch (error) {
-    console.error("GET /api/bookings/[uid] error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/bookings/[uid] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -83,6 +88,10 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function PATCH(request: Request, { params }: Params) {
   const { uid } = await params;
+
+  // Read cancelFuture query param (only applies to cancel action)
+  const { searchParams } = new URL(request.url);
+  const cancelFuture = searchParams.get('cancelFuture') === 'true';
 
   try {
     const body = await request.json();
@@ -97,19 +106,19 @@ export async function PATCH(request: Request, { params }: Params) {
     });
 
     if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
 
     // Authorization:
     // - accept/reject → host only (must be authenticated + own the event type)
     // - cancel → host OR attendee (attendee via UID, no auth required)
-    if (validated.action === "accept" || validated.action === "reject") {
+    if (validated.action === 'accept' || validated.action === 'reject') {
       const authResult = await getAuthenticatedUser();
       if (authResult.error) return authResult.error;
       const { user } = authResult;
 
       if (user.id !== booking.eventType.userId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
     // For "cancel", anyone with the UID can cancel (host or attendee)
@@ -126,54 +135,144 @@ export async function PATCH(request: Request, { params }: Params) {
 
     const updateData: Record<string, unknown> = { status: nextStatus };
 
-    if (nextStatus === "CANCELLED") {
+    if (nextStatus === 'CANCELLED') {
       updateData.cancellationReason = validated.reason ?? null;
       updateData.cancelledAt = new Date();
-    } else if (nextStatus === "REJECTED") {
+    } else if (nextStatus === 'REJECTED') {
       updateData.cancellationReason = validated.reason ?? null;
+    }
+
+    const eventTypeInclude = {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        duration: true,
+        locations: true,
+        color: true,
+        requiresConfirmation: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
+            timezone: true,
+            avatarUrl: true,
+            bio: true,
+          },
+        },
+      },
+    };
+
+    // ── Cancel future occurrences in the same recurring series ───────────────
+    if (cancelFuture && nextStatus === 'CANCELLED' && booking.recurringEventId) {
+      const cancelledAt = new Date();
+      const cancelUpdateData = {
+        status: 'CANCELLED' as const,
+        cancellationReason: validated.reason ?? null,
+        cancelledAt,
+      };
+
+      // Cancel this booking and all future bookings in the series
+      await prisma.booking.updateMany({
+        where: {
+          recurringEventId: booking.recurringEventId,
+          startTime: { gte: booking.startTime },
+          status: { in: ['PENDING', 'ACCEPTED'] },
+        },
+        data: cancelUpdateData,
+      });
+
+      // Fetch the updated booking for the response
+      const updated = await prisma.booking.findUnique({
+        where: { uid },
+        include: { eventType: eventTypeInclude },
+      });
+
+      if (!updated) {
+        return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+      }
+
+      void sendStatusChangeEmails(updated, nextStatus, validated.reason).catch((err) => {
+        console.error('[Bookings] Status change email notification failed:', err);
+      });
+
+      void deliverWebhookEvent({
+        userId: updated.userId,
+        eventType: 'BOOKING_CANCELLED',
+        payload: buildBookingPayload('BOOKING_CANCELLED', {
+          uid: updated.uid,
+          title: updated.title,
+          startTime: updated.startTime,
+          endTime: updated.endTime,
+          status: updated.status,
+          attendeeName: updated.attendeeName,
+          attendeeEmail: updated.attendeeEmail,
+          attendeeTimezone: updated.attendeeTimezone,
+          eventType: {
+            title: updated.eventType.title,
+            slug: updated.eventType.slug,
+            duration: updated.eventType.duration,
+          },
+        }),
+      }).catch((err) => {
+        console.error('[Webhooks] BOOKING_CANCELLED delivery failed:', err);
+      });
+
+      return NextResponse.json({ success: true, data: updated });
     }
 
     const updated = await prisma.booking.update({
       where: { uid },
       data: updateData,
-      include: {
-        eventType: {
-          select: {
-            id: true,
-            title: true,
-            duration: true,
-            locations: true,
-            color: true,
-            requiresConfirmation: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-                timezone: true,
-                avatarUrl: true,
-                bio: true,
-              },
-            },
-          },
-        },
-      },
+      include: { eventType: eventTypeInclude },
     });
 
     // ── Fire-and-forget email notifications ──────────────────────────────────
     void sendStatusChangeEmails(updated, nextStatus, validated.reason).catch((err) => {
-      console.error("[Bookings] Status change email notification failed:", err);
+      console.error('[Bookings] Status change email notification failed:', err);
     });
+
+    // ── Fire-and-forget webhook delivery ─────────────────────────────────────
+    const webhookEventMap: Record<string, WebhookEventType> = {
+      ACCEPTED: 'BOOKING_ACCEPTED',
+      REJECTED: 'BOOKING_REJECTED',
+      CANCELLED: 'BOOKING_CANCELLED',
+    };
+    const webhookEvent = webhookEventMap[nextStatus];
+    if (webhookEvent) {
+      void deliverWebhookEvent({
+        userId: updated.userId,
+        eventType: webhookEvent,
+        payload: buildBookingPayload(webhookEvent, {
+          uid: updated.uid,
+          title: updated.title,
+          startTime: updated.startTime,
+          endTime: updated.endTime,
+          status: updated.status,
+          attendeeName: updated.attendeeName,
+          attendeeEmail: updated.attendeeEmail,
+          attendeeTimezone: updated.attendeeTimezone,
+          eventType: {
+            title: updated.eventType.title,
+            slug: updated.eventType.slug,
+            duration: updated.eventType.duration,
+          },
+        }),
+      }).catch((err) => {
+        console.error(`[Webhooks] ${webhookEvent} delivery failed:`, err);
+      });
+    }
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -181,8 +280,8 @@ export async function PATCH(request: Request, { params }: Params) {
       );
     }
 
-    console.error("PATCH /api/bookings/[uid] error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('PATCH /api/bookings/[uid] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -218,11 +317,11 @@ export async function PUT(request: Request, { params }: Params) {
     });
 
     if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
 
     // Only PENDING or ACCEPTED bookings can be rescheduled
-    if (booking.status !== "PENDING" && booking.status !== "ACCEPTED") {
+    if (booking.status !== 'PENDING' && booking.status !== 'ACCEPTED') {
       return NextResponse.json(
         { error: `Cannot reschedule a booking with status ${booking.status}` },
         { status: 409 }
@@ -253,7 +352,7 @@ export async function PUT(request: Request, { params }: Params) {
 
     if (!isAvailable) {
       return NextResponse.json(
-        { error: "The requested time slot is not available" },
+        { error: 'The requested time slot is not available' },
         { status: 409 }
       );
     }
@@ -264,7 +363,7 @@ export async function PUT(request: Request, { params }: Params) {
       prisma.booking.update({
         where: { uid },
         data: {
-          status: "RESCHEDULED",
+          status: 'RESCHEDULED',
           cancellationReason: validated.reason ?? null,
         },
       }),
@@ -275,7 +374,7 @@ export async function PUT(request: Request, { params }: Params) {
           description: booking.description,
           startTime: newStartTime,
           endTime: newEndTime,
-          status: booking.eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
+          status: booking.eventType.requiresConfirmation ? 'PENDING' : 'ACCEPTED',
           attendeeName: booking.attendeeName,
           attendeeEmail: booking.attendeeEmail,
           attendeeTimezone: booking.attendeeTimezone,
@@ -291,6 +390,7 @@ export async function PUT(request: Request, { params }: Params) {
             select: {
               id: true,
               title: true,
+              slug: true,
               duration: true,
               locations: true,
               color: true,
@@ -309,14 +409,37 @@ export async function PUT(request: Request, { params }: Params) {
       }),
     ]);
 
+    // ── Fire-and-forget webhook delivery ─────────────────────────────────────
+    void deliverWebhookEvent({
+      userId: booking.userId,
+      eventType: 'BOOKING_RESCHEDULED',
+      payload: buildBookingPayload('BOOKING_RESCHEDULED', {
+        uid: newBooking.uid,
+        title: newBooking.title,
+        startTime: newBooking.startTime,
+        endTime: newBooking.endTime,
+        status: newBooking.status,
+        attendeeName: newBooking.attendeeName,
+        attendeeEmail: newBooking.attendeeEmail,
+        attendeeTimezone: newBooking.attendeeTimezone,
+        eventType: {
+          title: newBooking.eventType.title,
+          slug: newBooking.eventType.slug,
+          duration: newBooking.eventType.duration,
+        },
+      }),
+    }).catch((err) => {
+      console.error('[Webhooks] BOOKING_RESCHEDULED delivery failed:', err);
+    });
+
     return NextResponse.json({ success: true, data: newBooking }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -324,8 +447,8 @@ export async function PUT(request: Request, { params }: Params) {
       );
     }
 
-    console.error("PUT /api/bookings/[uid] error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('PUT /api/bookings/[uid] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -344,6 +467,7 @@ type UpdatedBooking = {
   eventType: {
     id: string;
     title: string;
+    slug: string;
     duration: number;
     requiresConfirmation: boolean;
     user: {
@@ -361,17 +485,21 @@ async function sendStatusChangeEmails(
   nextStatus: string,
   reason?: string | null
 ): Promise<void> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://calmill.workermill.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calmill.workermill.com';
   const host = booking.eventType.user;
   const hostName = host.name ?? host.email;
   const hostTimezone = host.timezone;
   const attendeeTimezone = booking.attendeeTimezone;
 
   const DATE_FORMAT = "MMM d, yyyy 'at' h:mm a";
-  const startTimeForAttendee = formatDateInTimezone(booking.startTime, attendeeTimezone, DATE_FORMAT);
-  const endTimeForAttendee = formatDateInTimezone(booking.endTime, attendeeTimezone, "h:mm a");
+  const startTimeForAttendee = formatDateInTimezone(
+    booking.startTime,
+    attendeeTimezone,
+    DATE_FORMAT
+  );
+  const endTimeForAttendee = formatDateInTimezone(booking.endTime, attendeeTimezone, 'h:mm a');
   const startTimeForHost = formatDateInTimezone(booking.startTime, hostTimezone, DATE_FORMAT);
-  const endTimeForHost = formatDateInTimezone(booking.endTime, hostTimezone, "h:mm a");
+  const endTimeForHost = formatDateInTimezone(booking.endTime, hostTimezone, 'h:mm a');
 
   const rescheduleUrl = `${appUrl}/${host.username}/${booking.eventType.id}?reschedule=${booking.uid}`;
   const cancelUrl = `${appUrl}/api/bookings/${booking.uid}`;
@@ -387,7 +515,7 @@ async function sendStatusChangeEmails(
 
   const emailPromises: Promise<void>[] = [];
 
-  if (nextStatus === "ACCEPTED") {
+  if (nextStatus === 'ACCEPTED') {
     // Attendee gets the "meeting confirmed by host" email
     emailPromises.push(
       sendEmail({
@@ -408,8 +536,8 @@ async function sendStatusChangeEmails(
         }),
       })
     );
-  } else if (nextStatus === "CANCELLED" || nextStatus === "REJECTED") {
-    const isRejection = nextStatus === "REJECTED";
+  } else if (nextStatus === 'CANCELLED' || nextStatus === 'REJECTED') {
+    const isRejection = nextStatus === 'REJECTED';
     const cancellationReason = reason ?? booking.cancellationReason ?? undefined;
 
     // Attendee gets cancellation/rejection email

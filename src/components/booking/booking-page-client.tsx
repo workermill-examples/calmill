@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
-import { cn } from "@/lib/utils";
-import { CalendarPicker } from "@/components/booking/calendar-picker";
-import { SlotList } from "@/components/booking/slot-list";
-import { TimezoneSelect, detectTimezone } from "@/components/booking/timezone-select";
-import { BookingForm } from "@/components/booking/booking-form";
-import type { AvailableSlot, EventTypeLocation, CustomQuestion } from "@/types";
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { CalendarPicker } from '@/components/booking/calendar-picker';
+import { SlotList } from '@/components/booking/slot-list';
+import { TimezoneSelect, detectTimezone } from '@/components/booking/timezone-select';
+import { BookingForm } from '@/components/booking/booking-form';
+import type { AvailableSlot, EventTypeLocation, CustomQuestion } from '@/types';
 
 // ─── PROPS ───────────────────────────────────────────────────
 
@@ -31,31 +31,36 @@ export interface BookingPageClientProps {
   weekStart?: 0 | 1;
   /** Optional pre-selected date from query param (YYYY-MM-DD) */
   initialDate?: string | null;
+  /** Optional pre-set timezone (IANA string). Overrides browser detection when provided. */
+  initialTimezone?: string | null;
   /** Override the "Back to profile" link href. Defaults to /{username}. */
   backHref?: string;
+  /**
+   * Override the default booking success handler.
+   * When provided, called instead of router.push("/booking/[uid]").
+   * Used by the embed variant to send postMessage before navigating.
+   */
+  onBookingSuccess?: (booking: Record<string, unknown>) => void;
+  /** When true, hides the "Back to profile" link (used in embed mode). */
+  isEmbed?: boolean;
 }
 
 // ─── BOOKING FLOW STATE ──────────────────────────────────────
 
-type BookingView = "calendar" | "form";
+type BookingView = 'calendar' | 'form';
 
 // ─── ICONS ───────────────────────────────────────────────────
 
 function ChevronLeftIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 19l-7-7 7-7"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
     </svg>
   );
 }
@@ -63,7 +68,7 @@ function ChevronLeftIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -82,7 +87,7 @@ function ClockIcon({ className }: { className?: string }) {
 function VideoIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -101,7 +106,7 @@ function VideoIcon({ className }: { className?: string }) {
 function MapPinIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -126,7 +131,7 @@ function MapPinIcon({ className }: { className?: string }) {
 function PhoneIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -149,19 +154,14 @@ function LocationDisplay({ locations }: { locations: EventTypeLocation[] | null 
 
   const loc = locations[0];
   if (!loc) return null;
-  const Icon =
-    loc.type === "link"
-      ? VideoIcon
-      : loc.type === "phone"
-      ? PhoneIcon
-      : MapPinIcon;
+  const Icon = loc.type === 'link' ? VideoIcon : loc.type === 'phone' ? PhoneIcon : MapPinIcon;
 
   const label =
-    loc.type === "link"
-      ? "Video call"
-      : loc.type === "phone"
-      ? "Phone call"
-      : loc.value || "In person";
+    loc.type === 'link'
+      ? 'Video call'
+      : loc.type === 'phone'
+        ? 'Phone call'
+        : loc.value || 'In person';
 
   return (
     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -210,11 +210,11 @@ async function fetchSlots(
   const byDate: Record<string, AvailableSlot[]> = {};
   for (const slot of slots) {
     const utcDate = new Date(slot.time);
-    const localDateStr = new Intl.DateTimeFormat("en-CA", {
+    const localDateStr = new Intl.DateTimeFormat('en-CA', {
       timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
     }).format(utcDate);
 
     const existing = byDate[localDateStr];
@@ -252,17 +252,18 @@ export function BookingPageClient({
   customQuestions,
   weekStart = 0,
   initialDate,
+  initialTimezone,
   backHref,
+  onBookingSuccess,
+  isEmbed = false,
 }: BookingPageClientProps) {
   const router = useRouter();
 
   // ── Timezone state ─────────────────────────────────────────
-  const [timezone, setTimezone] = React.useState<string>(() => detectTimezone());
+  const [timezone, setTimezone] = React.useState<string>(() => initialTimezone ?? detectTimezone());
 
   // ── Date selection ──────────────────────────────────────────
-  const [selectedDate, setSelectedDate] = React.useState<string | null>(
-    initialDate ?? null
-  );
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(initialDate ?? null);
 
   // ── Slot state ──────────────────────────────────────────────
   const [slotsData, setSlotsData] = React.useState<SlotsData>({
@@ -276,15 +277,15 @@ export function BookingPageClient({
   const [selectedSlot, setSelectedSlot] = React.useState<AvailableSlot | null>(null);
 
   // ── View state ──────────────────────────────────────────────
-  const [view, setView] = React.useState<BookingView>("calendar");
+  const [view, setView] = React.useState<BookingView>('calendar');
 
   // ── Date range for pre-fetch (3 months from today / initialDate month) ───
   const fetchRange = React.useMemo(() => {
     const base = initialDate
-      ? startOfMonth(new Date(initialDate + "T00:00:00"))
+      ? startOfMonth(new Date(initialDate + 'T00:00:00'))
       : startOfMonth(new Date());
-    const start = format(base, "yyyy-MM-dd");
-    const end = format(endOfMonth(addMonths(base, 2)), "yyyy-MM-dd");
+    const start = format(base, 'yyyy-MM-dd');
+    const end = format(endOfMonth(addMonths(base, 2)), 'yyyy-MM-dd');
     return { start, end };
   }, [initialDate]);
 
@@ -301,7 +302,7 @@ export function BookingPageClient({
           setIsSlotsLoading(false);
         })
         .catch(() => {
-          setSlotsError("Failed to load available times. Please try again.");
+          setSlotsError('Failed to load available times. Please try again.');
           setIsSlotsLoading(false);
         });
     },
@@ -328,15 +329,19 @@ export function BookingPageClient({
 
   const handleSlotConfirm = (slot: AvailableSlot) => {
     setSelectedSlot(slot);
-    setView("form");
+    setView('form');
   };
 
   const handleFormBack = () => {
-    setView("calendar");
+    setView('calendar');
     setSelectedSlot(null);
   };
 
   const handleBookingSuccess = (booking: Record<string, unknown>) => {
+    if (onBookingSuccess) {
+      onBookingSuccess(booking);
+      return;
+    }
     const uid = booking.uid as string;
     if (uid) {
       router.push(`/booking/${uid}`);
@@ -345,23 +350,24 @@ export function BookingPageClient({
 
   // ── Derived values ──────────────────────────────────────────
 
-  const slotsForSelectedDate: AvailableSlot[] =
-    selectedDate ? (slotsData.byDate[selectedDate] ?? []) : [];
+  const slotsForSelectedDate: AvailableSlot[] = selectedDate
+    ? (slotsData.byDate[selectedDate] ?? [])
+    : [];
 
-  const headerColor = color ?? "#3b82f6";
+  const headerColor = color ?? '#3b82f6';
 
   const selectedDateLabel = selectedDate
-    ? new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
+    ? new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
         timeZone: timezone,
-      }).format(new Date(selectedDate + "T12:00:00"))
+      }).format(new Date(selectedDate + 'T12:00:00'))
     : null;
 
   // ─── FORM VIEW (State 2) ────────────────────────────────────
 
-  if (view === "form" && selectedSlot) {
+  if (view === 'form' && selectedSlot) {
     return (
       <div className="mx-auto max-w-lg">
         {/* Color bar */}
@@ -371,16 +377,18 @@ export function BookingPageClient({
           aria-hidden="true"
         />
 
-        {/* Back to profile */}
-        <div className="mb-4">
-          <a
-            href={backHref ?? `/${username}`}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <ChevronLeftIcon />
-            Back to profile
-          </a>
-        </div>
+        {/* Back to profile — hidden in embed mode */}
+        {!isEmbed && (
+          <div className="mb-4">
+            <a
+              href={backHref ?? `/${username}`}
+              className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <ChevronLeftIcon />
+              Back to profile
+            </a>
+          </div>
+        )}
 
         {/* Event info summary */}
         <div className="mb-6 space-y-1">
@@ -419,14 +427,16 @@ export function BookingPageClient({
 
       {/* Back link + event info */}
       <div className="mb-6">
-        <a
-          href={backHref ?? `/${username}`}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <ChevronLeftIcon />
-          Back to profile
-        </a>
-        <div className="mt-3 space-y-1">
+        {!isEmbed && (
+          <a
+            href={backHref ?? `/${username}`}
+            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <ChevronLeftIcon />
+            Back to profile
+          </a>
+        )}
+        <div className={isEmbed ? 'space-y-1' : 'mt-3 space-y-1'}>
           <h1 className="text-2xl font-semibold text-gray-900">{eventTypeTitle}</h1>
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
@@ -461,9 +471,7 @@ export function BookingPageClient({
           {selectedDate ? (
             <div className="rounded-lg border border-gray-200 bg-white p-4">
               {selectedDateLabel && (
-                <h2 className="mb-4 text-sm font-semibold text-gray-900">
-                  {selectedDateLabel}
-                </h2>
+                <h2 className="mb-4 text-sm font-semibold text-gray-900">{selectedDateLabel}</h2>
               )}
 
               {slotsError ? (
@@ -492,8 +500,8 @@ export function BookingPageClient({
             <div className="rounded-lg border border-gray-200 bg-white p-6 text-center">
               <p className="text-sm text-gray-500">
                 {isSlotsLoading
-                  ? "Loading available times..."
-                  : "Select a date to see available times"}
+                  ? 'Loading available times...'
+                  : 'Select a date to see available times'}
               </p>
             </div>
           )}

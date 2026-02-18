@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { teamSchema } from "@/lib/validations";
-import { generateSlug } from "@/lib/utils";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { teamSchema } from '@/lib/validations';
+import { generateSlug } from '@/lib/utils';
 
 // GET /api/teams — List teams the authenticated user belongs to
 export const GET = withAuth(async (_request, _context, user) => {
@@ -19,7 +19,7 @@ export const GET = withAuth(async (_request, _context, user) => {
           },
         },
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
 
     const teams = memberships.map((m) => ({
@@ -31,8 +31,8 @@ export const GET = withAuth(async (_request, _context, user) => {
 
     return NextResponse.json({ success: true, data: teams });
   } catch (error) {
-    console.error("GET /api/teams error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/teams error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -44,7 +44,7 @@ export const POST = withAuth(async (request, _context, user) => {
     // Allow name-only creation — auto-generate slug if not provided
     const createSchema = teamSchema.extend({
       slug: teamSchema.shape.slug.optional(),
-      logoUrl: z.string().url("Invalid logo URL").optional().nullable(),
+      logoUrl: z.string().url('Invalid logo URL').optional().nullable(),
     });
 
     const validated = createSchema.parse(body);
@@ -84,7 +84,7 @@ export const POST = withAuth(async (request, _context, user) => {
         data: {
           userId: user.id,
           teamId: newTeam.id,
-          role: "OWNER",
+          role: 'OWNER',
           accepted: true,
         },
       });
@@ -104,9 +104,9 @@ export const POST = withAuth(async (request, _context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -114,7 +114,7 @@ export const POST = withAuth(async (request, _context, user) => {
       );
     }
 
-    console.error("POST /api/teams error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('POST /api/teams error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

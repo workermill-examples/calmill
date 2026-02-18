@@ -1,6 +1,6 @@
-import { Button, Column, Hr, Link, Row, Section, Text } from "@react-email/components";
-import { EmailLayout, colors } from "./components/email-layout";
-import { DetailRow } from "./components/detail-row";
+import { Button, Column, Hr, Link, Row, Section, Text } from '@react-email/components';
+import { EmailLayout, colors } from './components/email-layout';
+import { DetailRow } from './components/detail-row';
 
 export interface BookingReminderEmailProps {
   /** Display name of the person receiving the email */
@@ -61,8 +61,8 @@ export function BookingReminderEmail({
 
       <Text style={styles.heading}>Your meeting is coming up</Text>
       <Text style={styles.subheading}>
-        Hi {recipientName}, you have a meeting with{" "}
-        <strong>{otherParty}</strong> in <strong>{timeUntil}</strong>.
+        Hi {recipientName}, you have a meeting with <strong>{otherParty}</strong> in{' '}
+        <strong>{timeUntil}</strong>.
       </Text>
 
       <Hr style={styles.divider} />
@@ -81,7 +81,7 @@ export function BookingReminderEmail({
           {duration} minutes
         </DetailRow>
 
-        <DetailRow icon="👤" label={isHost ? "Attendee" : "Host"}>
+        <DetailRow icon="👤" label={isHost ? 'Attendee' : 'Host'}>
           {otherParty}
         </DetailRow>
 
@@ -101,7 +101,7 @@ export function BookingReminderEmail({
             Join Meeting
           </Button>
           <Text style={styles.meetingLinkText}>
-            Or copy the link:{" "}
+            Or copy the link:{' '}
             <Link href={meetingUrl} style={styles.link}>
               {meetingUrl}
             </Link>
@@ -128,111 +128,109 @@ export function BookingReminderEmail({
         </Row>
       )}
 
-      {!meetingUrl && !rescheduleUrl && (
-        <Text style={styles.hint}>See you soon!</Text>
-      )}
+      {!meetingUrl && !rescheduleUrl && <Text style={styles.hint}>See you soon!</Text>}
     </EmailLayout>
   );
 }
 
 const styles = {
   centeredSection: {
-    textAlign: "center" as const,
+    textAlign: 'center' as const,
   },
   statusIcon: {
-    fontSize: "48px",
-    margin: "0 auto 16px",
-    textAlign: "center" as const,
+    fontSize: '48px',
+    margin: '0 auto 16px',
+    textAlign: 'center' as const,
   },
   heading: {
     color: colors.text,
-    fontSize: "24px",
-    fontWeight: "700",
-    lineHeight: "1.3",
-    margin: "0 0 8px",
-    textAlign: "center" as const,
+    fontSize: '24px',
+    fontWeight: '700',
+    lineHeight: '1.3',
+    margin: '0 0 8px',
+    textAlign: 'center' as const,
   },
   subheading: {
     color: colors.textMuted,
-    fontSize: "15px",
-    lineHeight: "1.6",
-    margin: "0 0 24px",
-    textAlign: "center" as const,
+    fontSize: '15px',
+    lineHeight: '1.6',
+    margin: '0 0 24px',
+    textAlign: 'center' as const,
   },
   divider: {
     borderColor: colors.border,
-    margin: "24px 0",
+    margin: '24px 0',
   },
   detailsCard: {
     backgroundColor: colors.warningLight,
-    borderRadius: "8px",
-    padding: "16px 20px",
+    borderRadius: '8px',
+    padding: '16px 20px',
   },
   eventTitle: {
     color: colors.warning,
-    fontSize: "17px",
-    fontWeight: "700",
-    margin: "0 0 16px",
+    fontSize: '17px',
+    fontWeight: '700',
+    margin: '0 0 16px',
   },
   timezone: {
     color: colors.textMuted,
-    fontSize: "13px",
+    fontSize: '13px',
   },
   primaryButton: {
     backgroundColor: colors.primary,
-    borderRadius: "6px",
+    borderRadius: '6px',
     color: colors.white,
-    display: "inline-block",
-    fontSize: "15px",
-    fontWeight: "600",
-    marginBottom: "12px",
-    padding: "12px 24px",
-    textDecoration: "none",
+    display: 'inline-block',
+    fontSize: '15px',
+    fontWeight: '600',
+    marginBottom: '12px',
+    padding: '12px 24px',
+    textDecoration: 'none',
   },
   meetingLinkText: {
     color: colors.textMuted,
-    fontSize: "13px",
-    lineHeight: "1.5",
-    margin: "12px 0 0",
-    textAlign: "center" as const,
+    fontSize: '13px',
+    lineHeight: '1.5',
+    margin: '12px 0 0',
+    textAlign: 'center' as const,
   },
   link: {
     color: colors.primary,
-    textDecoration: "none",
+    textDecoration: 'none',
   },
   secondaryActions: {
-    textAlign: "center" as const,
-    width: "100%",
+    textAlign: 'center' as const,
+    width: '100%',
   },
   actionColumn: {
-    textAlign: "center" as const,
-    width: "auto",
+    textAlign: 'center' as const,
+    width: 'auto',
   },
   dotColumn: {
-    textAlign: "center" as const,
-    width: "24px",
+    textAlign: 'center' as const,
+    width: '24px',
   },
   secondaryLink: {
     color: colors.primary,
-    fontSize: "14px",
-    textDecoration: "none",
+    fontSize: '14px',
+    textDecoration: 'none',
   },
   dot: {
     color: colors.textMuted,
-    fontSize: "14px",
-    margin: "0",
+    fontSize: '14px',
+    margin: '0',
   },
   cancelLink: {
     color: colors.textMuted,
-    fontSize: "14px",
-    textDecoration: "none",
+    fontSize: '14px',
+    textDecoration: 'none',
   },
   hint: {
     color: colors.textMuted,
-    fontSize: "13px",
-    lineHeight: "1.5",
-    margin: "0",
-    textAlign: "center" as const,
+    fontSize: '13px',
+    lineHeight: '1.5',
+    margin: '0',
+    textAlign: 'center' as const,
   },
 } as const;
 

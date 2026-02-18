@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -16,8 +16,8 @@ import {
   format,
   parseISO,
   startOfDay,
-} from "date-fns";
-import { cn } from "@/lib/utils";
+} from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export interface CalendarPickerProps {
   /** Set of available date strings in "YYYY-MM-DD" format */
@@ -34,25 +34,20 @@ export interface CalendarPickerProps {
 
 /** Format a Date to "YYYY-MM-DD" key string */
 function toDateKey(date: Date): string {
-  return format(date, "yyyy-MM-dd");
+  return format(date, 'yyyy-MM-dd');
 }
 
 /** Chevron left icon */
 function ChevronLeftIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 19l-7-7 7-7"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
     </svg>
   );
 }
@@ -61,33 +56,28 @@ function ChevronLeftIcon({ className }: { className?: string }) {
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-5 w-5", className)}
+      className={cn('h-5 w-5', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 5l7 7-7 7"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
   );
 }
 
 const FULL_DAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
 ];
 
-const SHORT_DAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const SHORT_DAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 /**
  * CalendarPicker — interactive month-grid calendar for date selection.
@@ -124,9 +114,7 @@ export function CalendarPicker({
 
   // Track focused day for keyboard navigation (separate from selected).
   // Initialised to today so that keyboard users have a sensible entry point.
-  const [focusedDate, setFocusedDate] = React.useState<Date | null>(
-    () => new Date()
-  );
+  const [focusedDate, setFocusedDate] = React.useState<Date | null>(() => new Date());
 
   // Ref map so we can imperatively focus day buttons
   const dayRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -188,55 +176,52 @@ export function CalendarPicker({
     onSelect(key);
   }
 
-  function handleDayKeyDown(
-    e: React.KeyboardEvent<HTMLButtonElement>,
-    day: Date
-  ) {
+  function handleDayKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, day: Date) {
     let newFocus: Date | null = null;
 
     switch (e.key) {
-      case "ArrowLeft":
+      case 'ArrowLeft':
         e.preventDefault();
         newFocus = new Date(day);
         newFocus.setDate(day.getDate() - 1);
         break;
-      case "ArrowRight":
+      case 'ArrowRight':
         e.preventDefault();
         newFocus = new Date(day);
         newFocus.setDate(day.getDate() + 1);
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         e.preventDefault();
         newFocus = new Date(day);
         newFocus.setDate(day.getDate() - 7);
         break;
-      case "ArrowDown":
+      case 'ArrowDown':
         e.preventDefault();
         newFocus = new Date(day);
         newFocus.setDate(day.getDate() + 7);
         break;
-      case "Home":
+      case 'Home':
         e.preventDefault();
         // Jump to first day of current week
         newFocus = startOfWeek(day, { weekStartsOn: weekStart });
         break;
-      case "End":
+      case 'End':
         e.preventDefault();
         // Jump to last day of current week
         newFocus = endOfWeek(day, { weekStartsOn: weekStart });
         break;
-      case "PageUp":
+      case 'PageUp':
         e.preventDefault();
         newFocus = subMonths(day, 1);
         setDisplayMonth(startOfMonth(newFocus));
         break;
-      case "PageDown":
+      case 'PageDown':
         e.preventDefault();
         newFocus = addMonths(day, 1);
         setDisplayMonth(startOfMonth(newFocus));
         break;
-      case "Enter":
-      case " ":
+      case 'Enter':
+      case ' ':
         e.preventDefault();
         handleDayClick(day);
         return;
@@ -253,11 +238,11 @@ export function CalendarPicker({
     }
   }
 
-  const monthLabel = format(displayMonth, "MMMM yyyy");
+  const monthLabel = format(displayMonth, 'MMMM yyyy');
 
   return (
     <div
-      className={cn("w-full select-none", className)}
+      className={cn('w-full select-none', className)}
       role="group"
       aria-label={`Calendar — ${monthLabel}`}
     >
@@ -268,19 +253,15 @@ export function CalendarPicker({
           onClick={prevMonth}
           aria-label="Go to previous month"
           className={cn(
-            "rounded-md p-1.5 text-gray-600 transition-colors",
-            "hover:bg-gray-100 hover:text-gray-900",
-            "focus-ring"
+            'rounded-md p-1.5 text-gray-600 transition-colors',
+            'hover:bg-gray-100 hover:text-gray-900',
+            'focus-ring'
           )}
         >
           <ChevronLeftIcon />
         </button>
 
-        <h2
-          className="text-sm font-semibold text-gray-900"
-          aria-live="polite"
-          aria-atomic="true"
-        >
+        <h2 className="text-sm font-semibold text-gray-900" aria-live="polite" aria-atomic="true">
           {monthLabel}
         </h2>
 
@@ -289,9 +270,9 @@ export function CalendarPicker({
           onClick={nextMonth}
           aria-label="Go to next month"
           className={cn(
-            "rounded-md p-1.5 text-gray-600 transition-colors",
-            "hover:bg-gray-100 hover:text-gray-900",
-            "focus-ring"
+            'rounded-md p-1.5 text-gray-600 transition-colors',
+            'hover:bg-gray-100 hover:text-gray-900',
+            'focus-ring'
           )}
         >
           <ChevronRightIcon />
@@ -299,11 +280,7 @@ export function CalendarPicker({
       </div>
 
       {/* ── Day-of-week headers ───────────────────────────── */}
-      <div
-        className="mb-1 grid grid-cols-7 text-center"
-        role="row"
-        aria-hidden="true"
-      >
+      <div className="mb-1 grid grid-cols-7 text-center" role="row" aria-hidden="true">
         {dayOrder.map((dayIndex) => (
           <div
             key={dayIndex}
@@ -316,11 +293,7 @@ export function CalendarPicker({
       </div>
 
       {/* ── Calendar grid ─────────────────────────────────── */}
-      <div
-        role="grid"
-        aria-label={monthLabel}
-        className="grid grid-cols-7"
-      >
+      <div role="grid" aria-label={monthLabel} className="grid grid-cols-7">
         {calendarDays.map((day) => {
           const key = toDateKey(day);
           const isCurrentMonth = isSameMonth(day, displayMonth);
@@ -350,41 +323,36 @@ export function CalendarPicker({
                 disabled={isDisabled}
                 onClick={() => handleDayClick(day)}
                 onKeyDown={(e) => handleDayKeyDown(e, day)}
-                aria-label={format(day, "EEEE, MMMM d, yyyy")}
+                aria-label={format(day, 'EEEE, MMMM d, yyyy')}
                 aria-pressed={isSelected}
-                aria-current={isTodayDate ? "date" : undefined}
-                tabIndex={
-                  focusedDate && isSameDay(day, focusedDate) ? 0 : -1
-                }
+                aria-current={isTodayDate ? 'date' : undefined}
+                tabIndex={focusedDate && isSameDay(day, focusedDate) ? 0 : -1}
                 className={cn(
                   // Base layout
-                  "relative flex h-9 w-9 flex-col items-center justify-center",
-                  "rounded-full text-sm transition-colors",
-                  "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
+                  'relative flex h-9 w-9 flex-col items-center justify-center',
+                  'rounded-full text-sm transition-colors',
+                  'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
 
                   // Out-of-month days: invisible but in grid
-                  !isCurrentMonth && "invisible pointer-events-none",
+                  !isCurrentMonth && 'invisible pointer-events-none',
 
                   // Default state for current-month, available days
                   isCurrentMonth &&
                     !isDisabled &&
                     !isSelected &&
-                    "font-medium text-gray-900 hover:bg-primary-50 hover:text-primary-700",
+                    'font-medium text-gray-900 hover:bg-primary-50 hover:text-primary-700',
 
                   // Disabled / past / unavailable
-                  isDisabled &&
-                    isCurrentMonth &&
-                    "cursor-not-allowed font-normal text-gray-300",
+                  isDisabled && isCurrentMonth && 'cursor-not-allowed font-normal text-gray-300',
 
                   // Selected date
-                  isSelected &&
-                    "bg-primary-600 font-semibold text-white hover:bg-primary-700",
+                  isSelected && 'bg-primary-600 font-semibold text-white hover:bg-primary-700',
 
                   // Today (not selected)
-                  isTodayDate && !isSelected && "font-semibold text-primary-600"
+                  isTodayDate && !isSelected && 'font-semibold text-primary-600'
                 )}
               >
-                <span>{format(day, "d")}</span>
+                <span>{format(day, 'd')}</span>
 
                 {/* Today dot indicator */}
                 {isTodayDate && !isSelected && (

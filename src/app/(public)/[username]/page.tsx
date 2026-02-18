@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { getInitials } from "@/lib/utils";
-import { EventTypeCard } from "@/components/booking/event-type-card";
-import type { EventTypeLocation } from "@/types";
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { getInitials } from '@/lib/utils';
+import { EventTypeCard } from '@/components/booking/event-type-card';
+import type { EventTypeLocation } from '@/types';
 
 interface PublicProfilePageProps {
   params: Promise<{ username: string }>;
@@ -42,7 +42,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
       currency: true,
       color: true,
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
   });
 
   const initials = user.name ? getInitials(user.name) : username.charAt(0).toUpperCase();
@@ -66,13 +66,9 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
           </div>
         )}
 
-        <h1 className="mt-4 text-2xl font-bold text-gray-900">
-          {user.name ?? `@${username}`}
-        </h1>
+        <h1 className="mt-4 text-2xl font-bold text-gray-900">{user.name ?? `@${username}`}</h1>
 
-        {user.bio && (
-          <p className="mt-2 text-gray-600">{user.bio}</p>
-        )}
+        {user.bio && <p className="mt-2 text-gray-600">{user.bio}</p>}
       </div>
 
       {/* Event types grid */}

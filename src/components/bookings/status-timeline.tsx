@@ -1,10 +1,10 @@
-import { formatDateInTimezone } from "@/lib/utils";
-import type { BookingStatus } from "@/generated/prisma/client";
+import { formatDateInTimezone } from '@/lib/utils';
+import type { BookingStatus } from '@/generated/prisma/client';
 
 interface TimelineEvent {
   label: string;
   timestamp: Date | string | null;
-  status: "done" | "current" | "pending";
+  status: 'done' | 'current' | 'pending';
 }
 
 interface StatusTimelineProps {
@@ -26,42 +26,42 @@ export function StatusTimeline({
 }: StatusTimelineProps) {
   const events: TimelineEvent[] = [
     {
-      label: "Booking received",
+      label: 'Booking received',
       timestamp: createdAt,
-      status: "done",
+      status: 'done',
     },
   ];
 
-  if (status === "ACCEPTED") {
+  if (status === 'ACCEPTED') {
     events.push({
-      label: "Booking confirmed",
+      label: 'Booking confirmed',
       // No acceptedAt in the schema — omit timestamp to avoid misleading display
       timestamp: null,
-      status: "done",
+      status: 'done',
     });
-  } else if (status === "PENDING") {
+  } else if (status === 'PENDING') {
     events.push({
-      label: "Awaiting confirmation",
+      label: 'Awaiting confirmation',
       timestamp: null,
-      status: "current",
+      status: 'current',
     });
-  } else if (status === "REJECTED") {
+  } else if (status === 'REJECTED') {
     events.push({
-      label: "Booking rejected",
+      label: 'Booking rejected',
       timestamp: cancelledAt ?? null,
-      status: "done",
+      status: 'done',
     });
-  } else if (status === "CANCELLED") {
+  } else if (status === 'CANCELLED') {
     events.push({
-      label: "Booking cancelled",
+      label: 'Booking cancelled',
       timestamp: cancelledAt ?? null,
-      status: "done",
+      status: 'done',
     });
-  } else if (status === "RESCHEDULED") {
+  } else if (status === 'RESCHEDULED') {
     events.push({
-      label: "Booking rescheduled",
+      label: 'Booking rescheduled',
       timestamp: cancelledAt ?? null,
-      status: "done",
+      status: 'done',
     });
   }
 
@@ -85,15 +85,15 @@ export function StatusTimeline({
                   {/* Dot */}
                   <div
                     className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ring-4 ring-white ${
-                      event.status === "done"
-                        ? "bg-primary-500"
-                        : event.status === "current"
-                        ? "bg-yellow-400"
-                        : "bg-gray-200"
+                      event.status === 'done'
+                        ? 'bg-primary-500'
+                        : event.status === 'current'
+                          ? 'bg-yellow-400'
+                          : 'bg-gray-200'
                     }`}
                     aria-hidden="true"
                   >
-                    {event.status === "done" ? (
+                    {event.status === 'done' ? (
                       <svg
                         className="h-3.5 w-3.5 text-white"
                         fill="none"
@@ -102,13 +102,9 @@ export function StatusTimeline({
                         strokeWidth={3}
                         aria-hidden="true"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 13l4 4L19 7"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                    ) : event.status === "current" ? (
+                    ) : event.status === 'current' ? (
                       <svg
                         className="h-3.5 w-3.5 text-white"
                         fill="none"

@@ -1,16 +1,19 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { verifyTeamRole } from "@/lib/team-auth";
-import { generateSlug } from "@/lib/utils";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { verifyTeamRole } from '@/lib/team-auth';
+import { generateSlug } from '@/lib/utils';
 
 const createTeamEventTypeSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255, "Title too long").trim(),
-  duration: z.number().int().min(5, "Duration must be at least 5 minutes").max(720),
-  schedulingType: z.enum(["ROUND_ROBIN", "COLLECTIVE"]),
+  title: z.string().min(1, 'Title is required').max(255, 'Title too long').trim(),
+  duration: z.number().int().min(5, 'Duration must be at least 5 minutes').max(720),
+  schedulingType: z.enum(['ROUND_ROBIN', 'COLLECTIVE']),
   description: z.string().max(5000).optional(),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
   requiresConfirmation: z.boolean().optional(),
 });
 
@@ -18,16 +21,16 @@ const createTeamEventTypeSchema = z.object({
 export const GET = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
-    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug) return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
-    const memberResult = await verifyTeamRole(user.id, slug, "MEMBER");
+    const memberResult = await verifyTeamRole(user.id, slug, 'MEMBER');
     if (memberResult.error) return memberResult.error;
 
     const { member } = memberResult;
 
     const eventTypes = await prisma.eventType.findMany({
       where: { teamId: member.teamId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       select: {
         id: true,
         title: true,
@@ -43,8 +46,8 @@ export const GET = withAuth(async (_request, context, user) => {
 
     return NextResponse.json({ success: true, data: eventTypes });
   } catch (error) {
-    console.error("GET /api/teams/[slug]/event-types error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/teams/[slug]/event-types error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -52,15 +55,15 @@ export const GET = withAuth(async (_request, context, user) => {
 export const POST = withAuth(async (request, context, user) => {
   try {
     const { slug } = await context.params;
-    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug) return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
-    const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
+    const roleResult = await verifyTeamRole(user.id, slug, 'ADMIN');
     if (roleResult.error) return roleResult.error;
 
     const { member } = roleResult;
 
     if (!member.accepted) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -116,9 +119,9 @@ export const POST = withAuth(async (request, context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -126,7 +129,7 @@ export const POST = withAuth(async (request, context, user) => {
       );
     }
 
-    console.error("POST /api/teams/[slug]/event-types error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('POST /api/teams/[slug]/event-types error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

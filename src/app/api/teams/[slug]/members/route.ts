@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { inviteTeamMemberSchema } from "@/lib/validations";
-import { verifyTeamRole } from "@/lib/team-auth";
-import type { TeamRole } from "@/generated/prisma/client";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { inviteTeamMemberSchema } from '@/lib/validations';
+import { verifyTeamRole } from '@/lib/team-auth';
+import type { TeamRole } from '@/generated/prisma/client';
 
 // Role tier for restricting which roles an inviter can assign
 const ROLE_TIER: Record<TeamRole, number> = {
@@ -18,7 +18,7 @@ const ROLE_TIER: Record<TeamRole, number> = {
 export const GET = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
-    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug) return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
     // Require accepted membership to view member list
     const actorMembership = await prisma.teamMember.findFirst({
@@ -27,7 +27,7 @@ export const GET = withAuth(async (_request, context, user) => {
     });
 
     if (!actorMembership) {
-      return NextResponse.json({ error: "Team not found or not a member" }, { status: 404 });
+      return NextResponse.json({ error: 'Team not found or not a member' }, { status: 404 });
     }
 
     const members = await prisma.teamMember.findMany({
@@ -43,13 +43,13 @@ export const GET = withAuth(async (_request, context, user) => {
           },
         },
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
 
     return NextResponse.json({ success: true, data: members });
   } catch (error) {
-    console.error("GET /api/teams/[slug]/members error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('GET /api/teams/[slug]/members error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -57,17 +57,17 @@ export const GET = withAuth(async (_request, context, user) => {
 export const POST = withAuth(async (request, context, user) => {
   try {
     const { slug } = await context.params;
-    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
+    if (!slug) return NextResponse.json({ error: 'Invalid route' }, { status: 400 });
 
     // Require ADMIN or OWNER role (verifyTeamRole currently allows pending members — we need accepted check)
-    const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
+    const roleResult = await verifyTeamRole(user.id, slug, 'ADMIN');
     if (roleResult.error) return roleResult.error;
 
     const { member: inviterMember } = roleResult;
 
     // Ensure the inviter has accepted their membership (not just invited as ADMIN)
     if (!inviterMember.accepted) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -76,7 +76,7 @@ export const POST = withAuth(async (request, context, user) => {
     // Non-OWNER inviter cannot grant OWNER role
     if (ROLE_TIER[validated.role] > ROLE_TIER[inviterMember.role]) {
       return NextResponse.json(
-        { error: "Cannot grant a role higher than your own" },
+        { error: 'Cannot grant a role higher than your own' },
         { status: 403 }
       );
     }
@@ -89,7 +89,7 @@ export const POST = withAuth(async (request, context, user) => {
 
     if (!invitedUser) {
       return NextResponse.json(
-        { error: "User not found. They must have an account before being invited." },
+        { error: 'User not found. They must have an account before being invited.' },
         { status: 404 }
       );
     }
@@ -100,7 +100,7 @@ export const POST = withAuth(async (request, context, user) => {
     });
 
     if (existing) {
-      const status = existing.accepted ? "already a member" : "already has a pending invitation";
+      const status = existing.accepted ? 'already a member' : 'already has a pending invitation';
       return NextResponse.json({ error: `User is ${status} of this team.` }, { status: 409 });
     }
 
@@ -135,14 +135,14 @@ export const POST = withAuth(async (request, context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
-          details: error.issues.map((e) => ({ field: e.path.join("."), message: e.message })),
+          error: 'Validation failed',
+          details: error.issues.map((e) => ({ field: e.path.join('.'), message: e.message })),
         },
         { status: 400 }
       );
     }
 
-    console.error("POST /api/teams/[slug]/members error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error('POST /api/teams/[slug]/members error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

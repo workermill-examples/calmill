@@ -1,42 +1,32 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // ─── AUTH SCHEMAS ───────────────────────────────────────────
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Invalid email address")
-    .toLowerCase()
-    .trim(),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().min(1, 'Email is required').email('Invalid email address').toLowerCase().trim(),
+  password: z.string().min(1, 'Password is required'),
 });
 
 export const signupSchema = z.object({
   name: z
     .string()
-    .min(1, "Name is required")
-    .max(255, "Name must be less than 255 characters")
+    .min(1, 'Name is required')
+    .max(255, 'Name must be less than 255 characters')
     .trim(),
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Invalid email address")
-    .toLowerCase()
-    .trim(),
+  email: z.string().min(1, 'Email is required').email('Invalid email address').toLowerCase().trim(),
   username: z
     .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(50, "Username must be less than 50 characters")
+    .min(3, 'Username must be at least 3 characters')
+    .max(50, 'Username must be less than 50 characters')
     .regex(
       /^[a-z0-9_-]+$/,
-      "Username can only contain lowercase letters, numbers, hyphens, and underscores"
+      'Username can only contain lowercase letters, numbers, hyphens, and underscores'
     )
     .trim(),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100, "Password must be less than 100 characters"),
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password must be less than 100 characters'),
 });
 
 // ─── EVENT TYPE SCHEMAS ─────────────────────────────────────
@@ -44,70 +34,59 @@ export const signupSchema = z.object({
 export const eventTypeSchema = z.object({
   title: z
     .string()
-    .min(1, "Title is required")
-    .max(255, "Title must be less than 255 characters")
+    .min(1, 'Title is required')
+    .max(255, 'Title must be less than 255 characters')
     .trim(),
   slug: z
     .string()
-    .min(1, "Slug is required")
-    .max(100, "Slug must be less than 100 characters")
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens"
-    ),
-  description: z.string().max(5000, "Description too long").optional(),
+    .min(1, 'Slug is required')
+    .max(100, 'Slug must be less than 100 characters')
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
+  description: z.string().max(5000, 'Description too long').optional(),
   duration: z
     .number()
     .int()
-    .min(5, "Duration must be at least 5 minutes")
-    .max(480, "Duration must be less than 8 hours"),
+    .min(5, 'Duration must be at least 5 minutes')
+    .max(480, 'Duration must be less than 8 hours'),
   locations: z
     .array(
       z.object({
-        type: z.enum(["inPerson", "link", "phone"]),
-        value: z.string().min(1, "Location value is required"),
+        type: z.enum(['inPerson', 'link', 'phone']),
+        value: z.string().min(1, 'Location value is required'),
       })
     )
     .optional(),
   isActive: z.boolean().default(true),
   requiresConfirmation: z.boolean().default(false),
-  price: z.number().int().min(0, "Price cannot be negative").default(0),
-  currency: z.string().length(3, "Currency must be 3 characters").default("USD"),
-  minimumNotice: z
-    .number()
-    .int()
-    .min(0, "Minimum notice cannot be negative")
-    .default(120),
+  price: z.number().int().min(0, 'Price cannot be negative').default(0),
+  currency: z.string().length(3, 'Currency must be 3 characters').default('USD'),
+  minimumNotice: z.number().int().min(0, 'Minimum notice cannot be negative').default(120),
   beforeBuffer: z.number().int().min(0).default(0),
   afterBuffer: z.number().int().min(0).default(0),
   slotInterval: z.number().int().min(5).optional(),
   maxBookingsPerDay: z.number().int().min(1).optional(),
   maxBookingsPerWeek: z.number().int().min(1).optional(),
   futureLimit: z.number().int().min(1).max(365).default(60),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color hex").optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid color hex')
+    .optional(),
   customQuestions: z
     .array(
       z.object({
         id: z.string(),
-        label: z.string().min(1, "Question label is required"),
-        type: z.enum([
-          "text",
-          "textarea",
-          "select",
-          "radio",
-          "checkbox",
-          "phone",
-        ]),
+        label: z.string().min(1, 'Question label is required'),
+        type: z.enum(['text', 'textarea', 'select', 'radio', 'checkbox', 'phone']),
         required: z.boolean().default(false),
         options: z.array(z.string()).optional(),
       })
     )
     .optional(),
-  successRedirectUrl: z.string().url("Invalid redirect URL").optional(),
+  successRedirectUrl: z.string().url('Invalid redirect URL').optional(),
   recurringEnabled: z.boolean().default(false),
   recurringMaxOccurrences: z.number().int().min(2).max(52).optional(),
-  recurringFrequency: z.enum(["weekly", "biweekly", "monthly"]).optional(),
-  schedulingType: z.enum(["ROUND_ROBIN", "COLLECTIVE"]).optional(),
+  recurringFrequency: z.enum(['weekly', 'biweekly', 'monthly']).optional(),
+  schedulingType: z.enum(['ROUND_ROBIN', 'COLLECTIVE']).optional(),
   scheduleId: z.string().optional(),
   teamId: z.string().optional(),
 });
@@ -115,70 +94,49 @@ export const eventTypeSchema = z.object({
 // ─── BOOKING SCHEMAS ────────────────────────────────────────
 
 export const bookingSchema = z.object({
-  eventTypeId: z.string().min(1, "Event type is required"),
+  eventTypeId: z.string().min(1, 'Event type is required'),
   startTime: z.coerce.date(),
-  attendeeName: z
-    .string()
-    .min(1, "Name is required")
-    .max(255, "Name too long")
-    .trim(),
-  attendeeEmail: z
-    .string()
-    .min(1, "Email is required")
-    .email("Invalid email")
-    .toLowerCase()
-    .trim(),
-  attendeeTimezone: z.string().min(1, "Timezone is required"),
-  attendeeNotes: z.string().max(5000, "Notes too long").optional(),
+  attendeeName: z.string().min(1, 'Name is required').max(255, 'Name too long').trim(),
+  attendeeEmail: z.string().min(1, 'Email is required').email('Invalid email').toLowerCase().trim(),
+  attendeeTimezone: z.string().min(1, 'Timezone is required'),
+  attendeeNotes: z.string().max(5000, 'Notes too long').optional(),
   responses: z.record(z.string(), z.any()).optional(),
 });
 
 export const cancelBookingSchema = z.object({
-  cancellationReason: z
-    .string()
-    .max(1000, "Reason too long")
-    .optional()
-    .nullable(),
+  cancellationReason: z.string().max(1000, 'Reason too long').optional().nullable(),
 });
 
 export const rescheduleBookingSchema = z.object({
   startTime: z.coerce.date(),
-  rescheduleReason: z.string().max(1000, "Reason too long").optional(),
+  rescheduleReason: z.string().max(1000, 'Reason too long').optional(),
 });
 
 // ─── SCHEDULE SCHEMAS ───────────────────────────────────────
 
 export const availabilitySchema = z.object({
-  day: z.number().int().min(0, "Invalid day").max(6, "Invalid day"),
-  startTime: z
-    .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:mm)"),
-  endTime: z
-    .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:mm)"),
+  day: z.number().int().min(0, 'Invalid day').max(6, 'Invalid day'),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:mm)'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:mm)'),
 });
 
 export const scheduleSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Schedule name is required")
-    .max(100, "Name too long")
-    .trim(),
-  timezone: z.string().min(1, "Timezone is required"),
+  name: z.string().min(1, 'Schedule name is required').max(100, 'Name too long').trim(),
+  timezone: z.string().min(1, 'Timezone is required'),
   isDefault: z.boolean().default(false),
-  availability: z.array(availabilitySchema).min(1, "At least one availability slot is required"),
+  availability: z.array(availabilitySchema).min(1, 'At least one availability slot is required'),
 });
 
 export const dateOverrideSchema = z.object({
   date: z.coerce.date(),
   startTime: z
     .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format")
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format')
     .optional()
     .nullable(),
   endTime: z
     .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format")
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format')
     .optional()
     .nullable(),
   isUnavailable: z.boolean().default(false),
@@ -198,50 +156,72 @@ export const updateUserSchema = z.object({
   bio: z.string().max(5000).optional().nullable(),
   timezone: z.string().optional(),
   weekStart: z.number().int().min(0).max(6).optional(),
-  theme: z.enum(["light", "dark"]).optional(),
-  avatarUrl: z.string().url("Invalid URL").optional().nullable(),
+  theme: z.enum(['light', 'dark']).optional(),
+  avatarUrl: z.string().url('Invalid URL').optional().nullable(),
 });
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(100),
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z.string().min(8, 'Password must be at least 8 characters').max(100),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
   });
 
 // ─── TEAM SCHEMAS ───────────────────────────────────────────
 
 export const teamSchema = z.object({
-  name: z.string().min(1, "Team name is required").max(100, "Name too long").trim(),
+  name: z.string().min(1, 'Team name is required').max(100, 'Name too long').trim(),
   slug: z
     .string()
-    .min(3, "Slug must be at least 3 characters")
-    .max(50, "Slug too long")
-    .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
-  bio: z.string().max(5000, "Bio too long").optional().nullable(),
+    .min(3, 'Slug must be at least 3 characters')
+    .max(50, 'Slug too long')
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
+  bio: z.string().max(5000, 'Bio too long').optional().nullable(),
 });
 
 export const inviteTeamMemberSchema = z.object({
-  email: z.string().email("Invalid email").toLowerCase().trim(),
-  role: z.enum(["OWNER", "ADMIN", "MEMBER"]).default("MEMBER"),
+  email: z.string().email('Invalid email').toLowerCase().trim(),
+  role: z.enum(['OWNER', 'ADMIN', 'MEMBER']).default('MEMBER'),
 });
 
 // ─── WEBHOOK SCHEMAS ────────────────────────────────────────
 
+export const WEBHOOK_EVENT_TRIGGERS = [
+  'BOOKING_CREATED',
+  'BOOKING_CANCELLED',
+  'BOOKING_RESCHEDULED',
+  'BOOKING_ACCEPTED',
+  'BOOKING_REJECTED',
+] as const;
+
+export type WebhookEventTrigger = (typeof WEBHOOK_EVENT_TRIGGERS)[number];
+
 export const webhookSchema = z.object({
-  url: z.string().url("Invalid webhook URL"),
-  eventTriggers: z
-    .array(z.string())
-    .min(1, "At least one event trigger is required"),
+  url: z.string().url('Invalid webhook URL'),
+  eventTriggers: z.array(z.string()).min(1, 'At least one event trigger is required'),
   active: z.boolean().default(true),
-  secret: z.string().min(16, "Secret must be at least 16 characters").optional(),
+  secret: z.string().min(16, 'Secret must be at least 16 characters').optional(),
+});
+
+export const webhookCreateSchema = z.object({
+  url: z.string().url('Invalid webhook URL'),
+  eventTriggers: z
+    .array(z.enum(WEBHOOK_EVENT_TRIGGERS))
+    .min(1, 'At least one event trigger is required'),
+  active: z.boolean().optional().default(true),
+});
+
+export const webhookUpdateSchema = z.object({
+  url: z.string().url('Invalid webhook URL').optional(),
+  eventTriggers: z
+    .array(z.enum(WEBHOOK_EVENT_TRIGGERS))
+    .min(1, 'At least one event trigger is required')
+    .optional(),
+  active: z.boolean().optional(),
 });
 
 // ─── API-SPECIFIC EVENT TYPE SCHEMAS ────────────────────────
@@ -254,7 +234,7 @@ export const eventTypeCreateSchema = z.object({
   locations: z
     .array(
       z.object({
-        type: z.enum(["inPerson", "link", "phone"]),
+        type: z.enum(['inPerson', 'link', 'phone']),
         value: z.string(),
       })
     )
@@ -278,7 +258,7 @@ export const eventTypeCreateSchema = z.object({
       z.object({
         id: z.string(),
         label: z.string().min(1),
-        type: z.enum(["text", "textarea", "select", "radio", "checkbox", "phone"]),
+        type: z.enum(['text', 'textarea', 'select', 'radio', 'checkbox', 'phone']),
         required: z.boolean(),
         options: z.array(z.string()).optional(),
       })
@@ -287,7 +267,7 @@ export const eventTypeCreateSchema = z.object({
   scheduleId: z.string().cuid().optional(),
   recurringEnabled: z.boolean().optional(),
   recurringMaxOccurrences: z.number().int().min(1).max(52).optional(),
-  recurringFrequency: z.enum(["weekly", "biweekly", "monthly"]).optional(),
+  recurringFrequency: z.enum(['weekly', 'biweekly', 'monthly']).optional(),
 });
 
 export const eventTypeUpdateSchema = eventTypeCreateSchema.partial();
@@ -337,7 +317,7 @@ export const bookingCreateSchema = z.object({
 });
 
 export const bookingActionSchema = z.object({
-  action: z.enum(["accept", "reject", "cancel"]),
+  action: z.enum(['accept', 'reject', 'cancel']),
   reason: z.string().max(500).optional(),
 });
 
@@ -379,3 +359,5 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type TeamInput = z.infer<typeof teamSchema>;
 export type InviteTeamMemberInput = z.infer<typeof inviteTeamMemberSchema>;
 export type WebhookInput = z.infer<typeof webhookSchema>;
+export type WebhookCreateInput = z.infer<typeof webhookCreateSchema>;
+export type WebhookUpdateInput = z.infer<typeof webhookUpdateSchema>;

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 
 // ─── AUTH HELPERS ────────────────────────────────────────────
 
@@ -11,7 +11,7 @@ export async function getAuthenticatedUser() {
   const session = await auth();
   if (!session?.user?.id) {
     return {
-      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
     };
   }
   return { user: session.user };
@@ -26,7 +26,7 @@ export async function verifyOwnership(
   resourceUserId: string
 ): Promise<NextResponse | null> {
   if (userId !== resourceUserId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   return null;
 }

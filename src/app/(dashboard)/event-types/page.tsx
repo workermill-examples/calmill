@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { EventTypeListClient } from "./event-types-list";
-import type { EventTypeCardData } from "@/components/event-types/event-type-card";
-import type { EventTypeLocation } from "@/types";
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { EventTypeListClient } from './event-types-list';
+import type { EventTypeCardData } from '@/components/event-types/event-type-card';
+import type { EventTypeLocation } from '@/types';
 
 export default async function EventTypesPage() {
   const session = await auth();
@@ -23,7 +23,7 @@ export default async function EventTypesPage() {
       isActive: true,
       _count: { select: { bookings: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
   });
 
   // Cast the JSON `locations` field to the typed location array
@@ -32,13 +32,7 @@ export default async function EventTypesPage() {
     locations: (row.locations as EventTypeLocation[] | null) ?? null,
   }));
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
-  return (
-    <EventTypeListClient
-      initialEventTypes={eventTypes}
-      username={username}
-      appUrl={appUrl}
-    />
-  );
+  return <EventTypeListClient initialEventTypes={eventTypes} username={username} appUrl={appUrl} />;
 }

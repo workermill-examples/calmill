@@ -1,6 +1,6 @@
-import { Section, Text } from "@react-email/components";
-import type { ReactNode } from "react";
-import { colors } from "./email-layout";
+import { Section, Text } from '@react-email/components';
+import type { ReactNode } from 'react';
+import { colors } from './email-layout';
 
 interface DetailRowProps {
   icon: string;
@@ -21,23 +21,23 @@ export function DetailRow({ icon, label, children }: DetailRowProps) {
 
 const styles = {
   row: {
-    marginBottom: "12px",
+    marginBottom: '12px',
   },
   icon: {
-    marginRight: "6px",
+    marginRight: '6px',
   },
   label: {
     color: colors.textMuted,
-    fontSize: "12px",
-    fontWeight: "600",
-    letterSpacing: "0.05em",
-    margin: "0 0 2px",
-    textTransform: "uppercase" as const,
+    fontSize: '12px',
+    fontWeight: '600',
+    letterSpacing: '0.05em',
+    margin: '0 0 2px',
+    textTransform: 'uppercase' as const,
   },
   value: {
     color: colors.text,
-    fontSize: "15px",
-    lineHeight: "1.5",
-    margin: "0",
+    fontSize: '15px',
+    lineHeight: '1.5',
+    margin: '0',
   },
 } as const;

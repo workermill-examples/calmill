@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { signupSchema } from "@/lib/validations";
-import { z } from "zod";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { signupSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -26,20 +26,20 @@ export default function SignupPage() {
     setErrors({});
 
     const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
-    const username = formData.get("username") as string;
-    const password = formData.get("password") as string;
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
 
     try {
       // Validate with Zod
       const validated = signupSchema.parse({ name, email, username, password });
 
       // Create account via API
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(validated),
       });
@@ -58,13 +58,13 @@ export default function SignupPage() {
           });
           setErrors(fieldErrors as any);
         } else {
-          setErrors({ general: data.error || "Failed to create account" });
+          setErrors({ general: data.error || 'Failed to create account' });
         }
         return;
       }
 
       // Account created successfully - auto-login
-      const signInResult = await signIn("credentials", {
+      const signInResult = await signIn('credentials', {
         email: validated.email,
         password: validated.password,
         redirect: false,
@@ -72,10 +72,10 @@ export default function SignupPage() {
 
       if (signInResult?.error) {
         // Login failed after signup - redirect to login page
-        router.push("/login?message=Account created. Please sign in.");
+        router.push('/login?message=Account created. Please sign in.');
       } else {
         // Success - redirect to onboarding
-        router.push("/getting-started");
+        router.push('/getting-started');
         router.refresh();
       }
     } catch (error) {
@@ -88,7 +88,7 @@ export default function SignupPage() {
         });
         setErrors(fieldErrors as any);
       } else {
-        setErrors({ general: "An unexpected error occurred" });
+        setErrors({ general: 'An unexpected error occurred' });
       }
     } finally {
       setIsLoading(false);
@@ -119,9 +119,7 @@ export default function SignupPage() {
             <span className="text-2xl font-semibold text-gray-900">CalMill</span>
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">Create your account</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Get started with your free CalMill account
-          </p>
+          <p className="mt-2 text-sm text-gray-600">Get started with your free CalMill account</p>
         </div>
 
         {/* Signup Form */}
@@ -189,7 +187,7 @@ export default function SignupPage() {
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-600">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link
               href="/login"
               className="font-medium text-primary-600 hover:text-primary-500 transition-colors"

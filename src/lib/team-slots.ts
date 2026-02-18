@@ -1,14 +1,14 @@
-import { prisma } from "@/lib/prisma";
-import { getAvailableSlots } from "@/lib/slots";
-import type { AvailableSlot } from "@/types";
+import { prisma } from '@/lib/prisma';
+import { getAvailableSlots } from '@/lib/slots';
+import type { AvailableSlot } from '@/types';
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
 type TeamSlotParams = {
   eventTypeId: string;
   startDate: string; // YYYY-MM-DD in attendee's timezone
-  endDate: string;   // YYYY-MM-DD in attendee's timezone
-  timezone: string;  // Attendee's IANA timezone
+  endDate: string; // YYYY-MM-DD in attendee's timezone
+  timezone: string; // Attendee's IANA timezone
 };
 
 // ─── ROUND-ROBIN SLOTS ───────────────────────────────────────────────────────
@@ -29,7 +29,13 @@ export async function getRoundRobinSlots(params: TeamSlotParams): Promise<Availa
   // Compute available slots for each member in parallel
   const memberSlotSets = await Promise.all(
     memberIds.map((memberId) =>
-      getMemberAvailableSlots({ memberId, teamEventTypeId: eventTypeId, startDate, endDate, timezone })
+      getMemberAvailableSlots({
+        memberId,
+        teamEventTypeId: eventTypeId,
+        startDate,
+        endDate,
+        timezone,
+      })
     )
   );
 
@@ -63,7 +69,13 @@ export async function getCollectiveSlots(params: TeamSlotParams): Promise<Availa
   // Compute available slots for each member in parallel
   const memberSlotSets = await Promise.all(
     memberIds.map((memberId) =>
-      getMemberAvailableSlots({ memberId, teamEventTypeId: eventTypeId, startDate, endDate, timezone })
+      getMemberAvailableSlots({
+        memberId,
+        teamEventTypeId: eventTypeId,
+        startDate,
+        endDate,
+        timezone,
+      })
     )
   );
 
@@ -97,9 +109,9 @@ export async function getCollectiveSlots(params: TeamSlotParams): Promise<Availa
  */
 export async function getRoundRobinAssignment(params: {
   eventTypeId: string;
-  slotTime: string;  // ISO 8601 datetime (UTC)
+  slotTime: string; // ISO 8601 datetime (UTC)
   startDate: string; // YYYY-MM-DD (same day as slotTime)
-  endDate: string;   // YYYY-MM-DD (same day as slotTime)
+  endDate: string; // YYYY-MM-DD (same day as slotTime)
   timezone: string;
 }): Promise<string | null> {
   const { eventTypeId, slotTime, startDate, endDate, timezone } = params;
@@ -124,9 +136,7 @@ export async function getRoundRobinAssignment(params: {
     })
   );
 
-  const availableIds = memberAvailability
-    .filter((m) => m.isAvailable)
-    .map((m) => m.memberId);
+  const availableIds = memberAvailability.filter((m) => m.isAvailable).map((m) => m.memberId);
 
   if (availableIds.length === 0) {
     return null;
@@ -151,11 +161,11 @@ export async function getRoundRobinAssignment(params: {
     where: {
       eventTypeId,
       userId: { in: tied },
-      status: { in: ["PENDING", "ACCEPTED"] },
+      status: { in: ['PENDING', 'ACCEPTED'] },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     select: { userId: true, createdAt: true },
-    distinct: ["userId"],
+    distinct: ['userId'],
   });
 
   const lastAssigned = new Map(lastBookings.map((b) => [b.userId, b.createdAt]));
@@ -186,11 +196,11 @@ export async function getBookingCountByMember(
   since.setDate(since.getDate() - days);
 
   const rows = await prisma.booking.groupBy({
-    by: ["userId"],
+    by: ['userId'],
     where: {
       eventTypeId,
       userId: { in: memberIds },
-      status: { in: ["PENDING", "ACCEPTED"] },
+      status: { in: ['PENDING', 'ACCEPTED'] },
       createdAt: { gte: since },
     },
     _count: { id: true },
@@ -275,7 +285,7 @@ async function getMemberAvailableSlots(params: {
       scheduleId: { not: null },
     },
     select: { id: true },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
   });
 
   if (memberEventType) {

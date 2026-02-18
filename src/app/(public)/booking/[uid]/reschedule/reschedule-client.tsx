@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
-import { cn } from "@/lib/utils";
-import { CalendarPicker } from "@/components/booking/calendar-picker";
-import { SlotList } from "@/components/booking/slot-list";
-import { TimezoneSelect, detectTimezone } from "@/components/booking/timezone-select";
-import type { AvailableSlot, EventTypeLocation } from "@/types";
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { CalendarPicker } from '@/components/booking/calendar-picker';
+import { SlotList } from '@/components/booking/slot-list';
+import { TimezoneSelect, detectTimezone } from '@/components/booking/timezone-select';
+import type { AvailableSlot, EventTypeLocation } from '@/types';
 
 // ─── PROPS ────────────────────────────────────────────────────────────────────
 
@@ -54,11 +54,11 @@ async function fetchSlots(
   const byDate: Record<string, AvailableSlot[]> = {};
   for (const slot of slots) {
     const utcDate = new Date(slot.time);
-    const localDateStr = new Intl.DateTimeFormat("en-CA", {
+    const localDateStr = new Intl.DateTimeFormat('en-CA', {
       timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
     }).format(utcDate);
 
     const existing = byDate[localDateStr];
@@ -77,7 +77,7 @@ async function fetchSlots(
 function ChevronLeftIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -91,7 +91,7 @@ function ChevronLeftIcon({ className }: { className?: string }) {
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -110,7 +110,7 @@ function ClockIcon({ className }: { className?: string }) {
 function VideoIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -129,7 +129,7 @@ function VideoIcon({ className }: { className?: string }) {
 function MapPinIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -154,7 +154,7 @@ function MapPinIcon({ className }: { className?: string }) {
 function PhoneIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("h-4 w-4", className)}
+      className={cn('h-4 w-4', className)}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -177,11 +177,14 @@ function LocationDisplay({ locations }: { locations: EventTypeLocation[] | null 
 
   const loc = locations[0];
   if (!loc) return null;
-  const Icon =
-    loc.type === "link" ? VideoIcon : loc.type === "phone" ? PhoneIcon : MapPinIcon;
+  const Icon = loc.type === 'link' ? VideoIcon : loc.type === 'phone' ? PhoneIcon : MapPinIcon;
 
   const label =
-    loc.type === "link" ? "Video call" : loc.type === "phone" ? "Phone call" : loc.value || "In person";
+    loc.type === 'link'
+      ? 'Video call'
+      : loc.type === 'phone'
+        ? 'Phone call'
+        : loc.value || 'In person';
 
   return (
     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -236,7 +239,7 @@ export default function ReschedulePageClient({
   const [timezone, setTimezone] = React.useState<string>(() => detectTimezone());
   const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = React.useState<AvailableSlot | null>(null);
-  const [reason, setReason] = React.useState("");
+  const [reason, setReason] = React.useState('');
   const [slotsData, setSlotsData] = React.useState<SlotsData>({
     byDate: {},
     availableDates: new Set(),
@@ -249,8 +252,8 @@ export default function ReschedulePageClient({
   // ── Fetch range: 3 months from today ──────────────────────────────────────
   const fetchRange = React.useMemo(() => {
     const base = startOfMonth(new Date());
-    const start = format(base, "yyyy-MM-dd");
-    const end = format(endOfMonth(addMonths(base, 2)), "yyyy-MM-dd");
+    const start = format(base, 'yyyy-MM-dd');
+    const end = format(endOfMonth(addMonths(base, 2)), 'yyyy-MM-dd');
     return { start, end };
   }, []);
 
@@ -267,7 +270,7 @@ export default function ReschedulePageClient({
           setIsSlotsLoading(false);
         })
         .catch(() => {
-          setSlotsError("Failed to load available times. Please try again.");
+          setSlotsError('Failed to load available times. Please try again.');
           setIsSlotsLoading(false);
         });
     },
@@ -297,8 +300,8 @@ export default function ReschedulePageClient({
 
     try {
       const res = await fetch(`/api/bookings/${uid}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           startTime: slot.time,
           reason: reason.trim() || undefined,
@@ -309,10 +312,10 @@ export default function ReschedulePageClient({
         const data = await res.json().catch(() => ({}));
         if (res.status === 409) {
           setSubmitError(
-            data.error ?? "That time slot is no longer available. Please select another."
+            data.error ?? 'That time slot is no longer available. Please select another.'
           );
         } else {
-          setSubmitError("Something went wrong. Please try again.");
+          setSubmitError('Something went wrong. Please try again.');
         }
         setIsSubmitting(false);
         return;
@@ -326,31 +329,30 @@ export default function ReschedulePageClient({
         router.push(`/booking/${uid}`);
       }
     } catch {
-      setSubmitError("Network error. Please check your connection and try again.");
+      setSubmitError('Network error. Please check your connection and try again.');
       setIsSubmitting(false);
     }
   };
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
-  const slotsForSelectedDate: AvailableSlot[] =
-    selectedDate ? (slotsData.byDate[selectedDate] ?? []) : [];
+  const slotsForSelectedDate: AvailableSlot[] = selectedDate
+    ? (slotsData.byDate[selectedDate] ?? [])
+    : [];
 
   const selectedDateLabel = selectedDate
-    ? new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
+    ? new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
         timeZone: timezone,
-      }).format(new Date(selectedDate + "T12:00:00"))
+      }).format(new Date(selectedDate + 'T12:00:00'))
     : null;
 
-  const headerColor = eventTypeColor ?? "#3b82f6";
+  const headerColor = eventTypeColor ?? '#3b82f6';
 
   const formattedDuration =
-    duration >= 60
-      ? `${duration / 60} hr${duration > 60 ? "s" : ""}`
-      : `${duration} min`;
+    duration >= 60 ? `${duration / 60} hr${duration > 60 ? 's' : ''}` : `${duration} min`;
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
 
@@ -379,7 +381,10 @@ export default function ReschedulePageClient({
           {/* Original time — crossed out */}
           <div className="flex items-start gap-2 text-sm">
             <span className="text-gray-500">Original time:</span>
-            <span className="line-through text-gray-400" aria-label={`Original time: ${originalFormattedTime}`}>
+            <span
+              className="line-through text-gray-400"
+              aria-label={`Original time: ${originalFormattedTime}`}
+            >
               {originalFormattedTime}
             </span>
             <span className="text-xs text-gray-400">({originalTimezone})</span>
@@ -454,7 +459,7 @@ export default function ReschedulePageClient({
                       htmlFor="reschedule-reason"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Reason for rescheduling{" "}
+                      Reason for rescheduling{' '}
                       <span className="font-normal text-gray-500">(optional)</span>
                     </label>
                     <textarea
@@ -478,11 +483,11 @@ export default function ReschedulePageClient({
                     onClick={() => handleReschedule(selectedSlot)}
                     disabled={isSubmitting}
                     className={cn(
-                      "flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5",
-                      "bg-blue-600 text-sm font-semibold text-white shadow-sm",
-                      "hover:bg-blue-700 transition-colors",
-                      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                      "disabled:opacity-50 disabled:cursor-not-allowed"
+                      'flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5',
+                      'bg-blue-600 text-sm font-semibold text-white shadow-sm',
+                      'hover:bg-blue-700 transition-colors',
+                      'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                      'disabled:opacity-50 disabled:cursor-not-allowed'
                     )}
                   >
                     {isSubmitting ? (
@@ -510,7 +515,7 @@ export default function ReschedulePageClient({
                         Rescheduling...
                       </>
                     ) : (
-                      "Confirm Reschedule"
+                      'Confirm Reschedule'
                     )}
                   </button>
                 </div>
@@ -520,8 +525,8 @@ export default function ReschedulePageClient({
             <div className="rounded-lg border border-gray-200 bg-white p-6 text-center">
               <p className="text-sm text-gray-500">
                 {isSlotsLoading
-                  ? "Loading available times..."
-                  : "Select a new date to see available times"}
+                  ? 'Loading available times...'
+                  : 'Select a new date to see available times'}
               </p>
             </div>
           )}

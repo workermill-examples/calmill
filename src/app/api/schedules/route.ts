@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth } from "@/lib/api-auth";
-import { scheduleCreateSchema } from "@/lib/validations";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/api-auth';
+import { scheduleCreateSchema } from '@/lib/validations';
 
 // GET /api/schedules — List user's schedules with availability and date overrides
 export const GET = withAuth(async (_request, _context, user) => {
@@ -12,22 +12,19 @@ export const GET = withAuth(async (_request, _context, user) => {
       include: {
         availability: true,
         dateOverrides: {
-          orderBy: { date: "asc" },
+          orderBy: { date: 'asc' },
         },
         _count: {
           select: { eventTypes: true },
         },
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
 
     return NextResponse.json({ success: true, data: schedules });
   } catch (error) {
-    console.error("GET /api/schedules error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('GET /api/schedules error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -38,12 +35,9 @@ export const POST = withAuth(async (request, _context, user) => {
     const validated = scheduleCreateSchema.parse(body);
 
     // Validate timezone against Intl.supportedValuesOf
-    const validTimezones = Intl.supportedValuesOf("timeZone");
+    const validTimezones = Intl.supportedValuesOf('timeZone');
     if (!validTimezones.includes(validated.timezone)) {
-      return NextResponse.json(
-        { error: "Invalid timezone" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 });
     }
 
     // If isDefault: true, unset any existing default schedule for this user
@@ -71,7 +65,7 @@ export const POST = withAuth(async (request, _context, user) => {
       include: {
         availability: true,
         dateOverrides: {
-          orderBy: { date: "asc" },
+          orderBy: { date: 'asc' },
         },
         _count: {
           select: { eventTypes: true },
@@ -84,9 +78,9 @@ export const POST = withAuth(async (request, _context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -94,10 +88,7 @@ export const POST = withAuth(async (request, _context, user) => {
       );
     }
 
-    console.error("POST /api/schedules error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('POST /api/schedules error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

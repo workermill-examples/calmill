@@ -1,8 +1,15 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { signIn } from "@/lib/auth";
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { auth, signIn } from '@/lib/auth';
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
+
+  if (session?.user) {
+    redirect('/dashboard');
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Header */}
@@ -45,14 +52,14 @@ export default function LandingPage() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-32">
         <div className="text-center">
           <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-            Open Scheduling for{" "}
+            Open Scheduling for{' '}
             <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
               Everyone
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 sm:text-xl text-balance">
-            Create booking pages, manage availability, and let people schedule time with you —
-            no back-and-forth emails.
+            Create booking pages, manage availability, and let people schedule time with you — no
+            back-and-forth emails.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/signup">
@@ -62,11 +69,11 @@ export default function LandingPage() {
             </Link>
             <form
               action={async () => {
-                "use server";
-                await signIn("credentials", {
-                  email: "demo@workermill.com",
-                  password: "demo1234",
-                  redirectTo: "/event-types",
+                'use server';
+                await signIn('credentials', {
+                  email: 'demo@workermill.com',
+                  password: 'demo1234',
+                  redirectTo: '/event-types',
                 });
               }}
             >
@@ -124,8 +131,8 @@ export default function LandingPage() {
             </div>
             <h3 className="mb-2 text-xl font-semibold text-gray-900">Smart Scheduling</h3>
             <p className="text-gray-600">
-              Timezone-aware availability with calendar conflict detection. Only show times
-              when you&apos;re actually available.
+              Timezone-aware availability with calendar conflict detection. Only show times when
+              you&apos;re actually available.
             </p>
           </div>
 
@@ -148,8 +155,8 @@ export default function LandingPage() {
             </div>
             <h3 className="mb-2 text-xl font-semibold text-gray-900">Team Booking</h3>
             <p className="text-gray-600">
-              Round-robin and collective scheduling for your team. Distribute meetings evenly
-              or require all members to attend.
+              Round-robin and collective scheduling for your team. Distribute meetings evenly or
+              require all members to attend.
             </p>
           </div>
         </div>

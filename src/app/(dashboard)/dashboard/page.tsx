@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { StatCards } from "@/components/dashboard/stat-cards";
-import { UpcomingList } from "@/components/dashboard/upcoming-list";
-import { DashboardCharts } from "@/components/dashboard/charts";
-import type { EventTypeLocation } from "@/types";
+import Link from 'next/link';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { StatCards } from '@/components/dashboard/stat-cards';
+import { UpcomingList } from '@/components/dashboard/upcoming-list';
+import { DashboardCharts } from '@/components/dashboard/charts';
+import type { EventTypeLocation } from '@/types';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -27,36 +27,36 @@ export default async function DashboardPage() {
     prisma.booking.count({
       where: {
         userId,
-        status: "ACCEPTED",
+        status: 'ACCEPTED',
         startTime: { gte: now, lte: next7Days },
       },
     }),
     prisma.booking.count({
-      where: { userId, status: "PENDING" },
+      where: { userId, status: 'PENDING' },
     }),
     prisma.booking.count({
       where: { userId, createdAt: { gte: startOfMonth } },
     }),
     prisma.booking.findMany({
-      where: { userId, status: "ACCEPTED", startTime: { gte: now } },
+      where: { userId, status: 'ACCEPTED', startTime: { gte: now } },
       include: {
         eventType: {
           select: { id: true, title: true, duration: true, locations: true, color: true },
         },
       },
-      orderBy: { startTime: "asc" },
+      orderBy: { startTime: 'asc' },
       take: 5,
     }),
     prisma.booking.findMany({
       where: { userId, createdAt: { gte: last30Days } },
       select: { createdAt: true, status: true, eventTypeId: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     }),
     prisma.booking.groupBy({
-      by: ["eventTypeId"],
+      by: ['eventTypeId'],
       where: { userId },
       _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
+      orderBy: { _count: { id: 'desc' } },
     }),
   ]);
 
@@ -76,9 +76,9 @@ export default async function DashboardPage() {
   // Aggregate bookings by status (last 30 days)
   const bookingsByStatus = { ACCEPTED: 0, PENDING: 0, CANCELLED: 0 };
   for (const booking of recentBookings) {
-    if (booking.status === "ACCEPTED") bookingsByStatus.ACCEPTED++;
-    else if (booking.status === "PENDING") bookingsByStatus.PENDING++;
-    else if (booking.status === "CANCELLED" || booking.status === "REJECTED") {
+    if (booking.status === 'ACCEPTED') bookingsByStatus.ACCEPTED++;
+    else if (booking.status === 'PENDING') bookingsByStatus.PENDING++;
+    else if (booking.status === 'CANCELLED' || booking.status === 'REJECTED') {
       bookingsByStatus.CANCELLED++;
     }
   }
@@ -94,7 +94,7 @@ export default async function DashboardPage() {
       : [];
   const nameById = new Map(eventTypeNames.map((et) => [et.id, et.title]));
   const bookingsByEventType = eventTypeCounts.map((e) => ({
-    title: nameById.get(e.eventTypeId) ?? "Unknown",
+    title: nameById.get(e.eventTypeId) ?? 'Unknown',
     count: e._count.id,
   }));
 
@@ -130,9 +130,7 @@ export default async function DashboardPage() {
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Overview of your scheduling activity
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Overview of your scheduling activity</p>
       </div>
 
       {/* Summary stat cards */}

@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import type { TeamRole } from "@/generated/prisma/client";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import type { TeamRole } from '@/generated/prisma/client';
 
 // Role tier for comparison — higher = more privilege
 const ROLE_TIER: Record<TeamRole, number> = {
@@ -41,7 +41,7 @@ export async function verifyTeamMembership(
 
   if (!member) {
     return {
-      error: NextResponse.json({ error: "Team not found or not a member" }, { status: 404 }),
+      error: NextResponse.json({ error: 'Team not found or not a member' }, { status: 404 }),
     };
   }
 
@@ -64,7 +64,7 @@ export async function verifyTeamRole(
 
   if (ROLE_TIER[member.role] < ROLE_TIER[requiredRole]) {
     return {
-      error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
     };
   }
 

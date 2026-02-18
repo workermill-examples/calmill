@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { BookingsList } from "@/components/bookings/bookings-list";
-import type { BookingCardData } from "@/components/bookings/booking-card";
-import type { EventTypeLocation } from "@/types";
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { BookingsList } from '@/components/bookings/bookings-list';
+import type { BookingCardData } from '@/components/bookings/booking-card';
+import type { EventTypeLocation } from '@/types';
 
 export default async function BookingsPage() {
   const session = await auth();
@@ -16,7 +16,7 @@ export default async function BookingsPage() {
     where: {
       userId,
       startTime: { gte: now },
-      status: { in: ["PENDING", "ACCEPTED"] },
+      status: { in: ['PENDING', 'ACCEPTED'] },
     },
     select: {
       uid: true,
@@ -39,7 +39,7 @@ export default async function BookingsPage() {
         },
       },
     },
-    orderBy: { startTime: "asc" },
+    orderBy: { startTime: 'asc' },
     take: 20,
   });
 
@@ -54,10 +54,5 @@ export default async function BookingsPage() {
       },
     }));
 
-  return (
-    <BookingsList
-      initialBookings={initialBookings}
-      initialTotal={initialBookings.length}
-    />
-  );
+  return <BookingsList initialBookings={initialBookings} initialTotal={initialBookings.length} />;
 }

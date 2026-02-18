@@ -1,6 +1,6 @@
-import { Button, Hr, Link, Row, Column, Section, Text } from "@react-email/components";
-import { EmailLayout, colors } from "./components/email-layout";
-import { DetailRow } from "./components/detail-row";
+import { Button, Hr, Link, Row, Column, Section, Text } from '@react-email/components';
+import { EmailLayout, colors } from './components/email-layout';
+import { DetailRow } from './components/detail-row';
 
 export interface BookingConfirmedEmailProps {
   /** Host's display name */
@@ -53,9 +53,7 @@ export function BookingConfirmedEmail({
       </Section>
 
       <Text style={styles.heading}>Meeting confirmed!</Text>
-      <Text style={styles.subheading}>
-        Hi {attendeeName}, your meeting has been scheduled.
-      </Text>
+      <Text style={styles.subheading}>Hi {attendeeName}, your meeting has been scheduled.</Text>
 
       <Hr style={styles.divider} />
 
@@ -128,98 +126,98 @@ export function BookingConfirmedEmail({
 }
 
 function isUrl(str: string): boolean {
-  return str.startsWith("http://") || str.startsWith("https://");
+  return str.startsWith('http://') || str.startsWith('https://');
 }
 
 const styles = {
   centeredSection: {
-    textAlign: "center" as const,
+    textAlign: 'center' as const,
   },
   statusIconCircle: {
     backgroundColor: colors.success,
-    borderRadius: "50%",
+    borderRadius: '50%',
     color: colors.white,
-    fontSize: "24px",
-    fontWeight: "700",
-    margin: "0 auto 16px",
-    padding: "12px 16px",
-    textAlign: "center" as const,
+    fontSize: '24px',
+    fontWeight: '700',
+    margin: '0 auto 16px',
+    padding: '12px 16px',
+    textAlign: 'center' as const,
   },
   heading: {
     color: colors.text,
-    fontSize: "24px",
-    fontWeight: "700",
-    lineHeight: "1.3",
-    margin: "0 0 8px",
-    textAlign: "center" as const,
+    fontSize: '24px',
+    fontWeight: '700',
+    lineHeight: '1.3',
+    margin: '0 0 8px',
+    textAlign: 'center' as const,
   },
   subheading: {
     color: colors.textMuted,
-    fontSize: "15px",
-    lineHeight: "1.6",
-    margin: "0 0 24px",
-    textAlign: "center" as const,
+    fontSize: '15px',
+    lineHeight: '1.6',
+    margin: '0 0 24px',
+    textAlign: 'center' as const,
   },
   divider: {
     borderColor: colors.border,
-    margin: "24px 0",
+    margin: '24px 0',
   },
   detailsCard: {
     backgroundColor: colors.primaryLight,
-    borderRadius: "8px",
-    padding: "16px 20px",
+    borderRadius: '8px',
+    padding: '16px 20px',
   },
   eventTitle: {
     color: colors.primary,
-    fontSize: "17px",
-    fontWeight: "700",
-    margin: "0 0 16px",
+    fontSize: '17px',
+    fontWeight: '700',
+    margin: '0 0 16px',
   },
   timezone: {
     color: colors.textMuted,
-    fontSize: "13px",
+    fontSize: '13px',
   },
   link: {
     color: colors.primary,
-    textDecoration: "none",
+    textDecoration: 'none',
   },
   primaryButton: {
     backgroundColor: colors.primary,
-    borderRadius: "6px",
+    borderRadius: '6px',
     color: colors.white,
-    display: "inline-block",
-    fontSize: "15px",
-    fontWeight: "600",
-    marginBottom: "16px",
-    padding: "12px 24px",
-    textDecoration: "none",
+    display: 'inline-block',
+    fontSize: '15px',
+    fontWeight: '600',
+    marginBottom: '16px',
+    padding: '12px 24px',
+    textDecoration: 'none',
   },
   secondaryActions: {
-    textAlign: "center" as const,
-    width: "100%",
+    textAlign: 'center' as const,
+    width: '100%',
   },
   actionColumn: {
-    textAlign: "center" as const,
-    width: "auto",
+    textAlign: 'center' as const,
+    width: 'auto',
   },
   dotColumn: {
-    textAlign: "center" as const,
-    width: "24px",
+    textAlign: 'center' as const,
+    width: '24px',
   },
   secondaryLink: {
     color: colors.primary,
-    fontSize: "14px",
-    textDecoration: "none",
+    fontSize: '14px',
+    textDecoration: 'none',
   },
   dot: {
     color: colors.textMuted,
-    fontSize: "14px",
-    margin: "0",
+    fontSize: '14px',
+    margin: '0',
   },
   cancelLink: {
     color: colors.textMuted,
-    fontSize: "14px",
-    textDecoration: "none",
+    fontSize: '14px',
+    textDecoration: 'none',
   },
 } as const;
 

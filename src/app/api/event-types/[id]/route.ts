@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { withAuth, verifyOwnership } from "@/lib/api-auth";
-import { eventTypeUpdateSchema } from "@/lib/validations";
-import { generateSlug } from "@/lib/utils";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { withAuth, verifyOwnership } from '@/lib/api-auth';
+import { eventTypeUpdateSchema } from '@/lib/validations';
+import { generateSlug } from '@/lib/utils';
 
 // GET /api/event-types/[id] — Get a single event type
 export const GET = withAuth(async (_request, context, user) => {
@@ -26,7 +26,7 @@ export const GET = withAuth(async (_request, context, user) => {
     });
 
     if (!eventType) {
-      return NextResponse.json({ error: "Event type not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Event type not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, eventType.userId);
@@ -34,11 +34,8 @@ export const GET = withAuth(async (_request, context, user) => {
 
     return NextResponse.json({ success: true, data: eventType });
   } catch (error) {
-    console.error("GET /api/event-types/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('GET /api/event-types/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -53,7 +50,7 @@ export const PUT = withAuth(async (request, context, user) => {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Event type not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Event type not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, existing.userId);
@@ -165,9 +162,9 @@ export const PUT = withAuth(async (request, context, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.issues.map((e) => ({
-            field: e.path.join("."),
+            field: e.path.join('.'),
             message: e.message,
           })),
         },
@@ -175,11 +172,8 @@ export const PUT = withAuth(async (request, context, user) => {
       );
     }
 
-    console.error("PUT /api/event-types/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('PUT /api/event-types/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -194,7 +188,7 @@ export const DELETE = withAuth(async (_request, context, user) => {
     });
 
     if (!eventType) {
-      return NextResponse.json({ error: "Event type not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Event type not found' }, { status: 404 });
     }
 
     const ownershipError = await verifyOwnership(user.id, eventType.userId);
@@ -204,31 +198,28 @@ export const DELETE = withAuth(async (_request, context, user) => {
     await prisma.booking.deleteMany({
       where: {
         eventTypeId: id,
-        status: "CANCELLED",
+        status: 'CANCELLED',
       },
     });
 
     await prisma.eventType.delete({ where: { id } });
 
-    return NextResponse.json({ success: true, message: "Event type deleted" });
+    return NextResponse.json({ success: true, message: 'Event type deleted' });
   } catch (error) {
     // Prisma foreign key constraint error (P2003) — active bookings still exist
     if (
-      typeof error === "object" &&
+      typeof error === 'object' &&
       error !== null &&
-      "code" in error &&
-      (error as { code: string }).code === "P2003"
+      'code' in error &&
+      (error as { code: string }).code === 'P2003'
     ) {
       return NextResponse.json(
-        { error: "Cannot delete event type with active bookings" },
+        { error: 'Cannot delete event type with active bookings' },
         { status: 409 }
       );
     }
 
-    console.error("DELETE /api/event-types/[id] error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error('DELETE /api/event-types/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

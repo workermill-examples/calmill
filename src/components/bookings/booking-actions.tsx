@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type { BookingStatus } from "@/generated/prisma/client";
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { BookingStatus } from '@/generated/prisma/client';
 
 // ─── Reason Dialog ────────────────────────────────────────────────────────────
 
@@ -13,12 +13,12 @@ function ReasonDialog({
   onCancel,
   loading,
 }: {
-  action: "reject" | "cancel";
+  action: 'reject' | 'cancel';
   onConfirm: (reason: string) => void;
   onCancel: () => void;
   loading: boolean;
 }) {
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -28,19 +28,19 @@ function ReasonDialog({
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && !loading) onCancel();
+      if (e.key === 'Escape' && !loading) onCancel();
     }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [loading, onCancel]);
 
-  const isReject = action === "reject";
-  const title = isReject ? "Reject booking?" : "Cancel booking?";
+  const isReject = action === 'reject';
+  const title = isReject ? 'Reject booking?' : 'Cancel booking?';
   const description = isReject
-    ? "Provide an optional reason for rejecting this booking."
-    : "Provide an optional reason for cancelling this booking.";
-  const confirmLabel = isReject ? "Reject" : "Cancel Booking";
-  const confirmLoadingLabel = isReject ? "Rejecting…" : "Cancelling…";
+    ? 'Provide an optional reason for rejecting this booking.'
+    : 'Provide an optional reason for cancelling this booking.';
+  const confirmLabel = isReject ? 'Reject' : 'Cancel Booking';
+  const confirmLoadingLabel = isReject ? 'Rejecting…' : 'Cancelling…';
 
   return (
     <div
@@ -49,16 +49,9 @@ function ReasonDialog({
       aria-modal="true"
       aria-labelledby="reason-dialog-title"
     >
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onCancel}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onCancel} aria-hidden="true" />
       <div className="relative z-10 w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-        <h3
-          id="reason-dialog-title"
-          className="text-base font-semibold text-gray-900"
-        >
+        <h3 id="reason-dialog-title" className="text-base font-semibold text-gray-900">
           {title}
         </h3>
         <p className="mt-2 text-sm text-gray-600">{description}</p>
@@ -111,20 +104,15 @@ export function BookingActions({
 }: BookingActionsProps) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [showReasonDialog, setShowReasonDialog] = useState<
-    "reject" | "cancel" | null
-  >(null);
+  const [showReasonDialog, setShowReasonDialog] = useState<'reject' | 'cancel' | null>(null);
   const [currentStatus, setCurrentStatus] = useState<BookingStatus>(status);
 
-  async function performAction(
-    action: "accept" | "reject" | "cancel",
-    reason?: string
-  ) {
+  async function performAction(action: 'accept' | 'reject' | 'cancel', reason?: string) {
     setActionLoading(action);
     try {
       const res = await fetch(`/api/bookings/${uid}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, ...(reason ? { reason } : {}) }),
       });
 
@@ -147,16 +135,16 @@ export function BookingActions({
   }
 
   async function handleAccept() {
-    await performAction("accept");
+    await performAction('accept');
   }
 
   async function handleRejectConfirm(reason: string) {
-    await performAction("reject", reason);
+    await performAction('reject', reason);
     setShowReasonDialog(null);
   }
 
   async function handleCancelConfirm(reason: string) {
-    await performAction("cancel", reason);
+    await performAction('cancel', reason);
     setShowReasonDialog(null);
   }
 
@@ -164,13 +152,13 @@ export function BookingActions({
     rebookUsername && rebookEventTypeSlug
       ? `/${rebookUsername}/${rebookEventTypeSlug}`
       : rebookUsername
-      ? `/${rebookUsername}`
-      : null;
+        ? `/${rebookUsername}`
+        : null;
 
   return (
     <>
       <div className="flex flex-wrap items-center gap-3">
-        {currentStatus === "PENDING" && (
+        {currentStatus === 'PENDING' && (
           <>
             <button
               type="button"
@@ -178,11 +166,11 @@ export function BookingActions({
               disabled={actionLoading !== null}
               className="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus-ring disabled:opacity-50 transition-colors"
             >
-              {actionLoading === "accept" ? "Accepting…" : "Accept"}
+              {actionLoading === 'accept' ? 'Accepting…' : 'Accept'}
             </button>
             <button
               type="button"
-              onClick={() => setShowReasonDialog("reject")}
+              onClick={() => setShowReasonDialog('reject')}
               disabled={actionLoading !== null}
               className="inline-flex items-center rounded-md bg-danger px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-600 focus-ring disabled:opacity-50 transition-colors"
             >
@@ -191,10 +179,10 @@ export function BookingActions({
           </>
         )}
 
-        {currentStatus === "ACCEPTED" && (
+        {currentStatus === 'ACCEPTED' && (
           <button
             type="button"
-            onClick={() => setShowReasonDialog("cancel")}
+            onClick={() => setShowReasonDialog('cancel')}
             disabled={actionLoading !== null}
             className="inline-flex items-center rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 focus-ring disabled:opacity-50 transition-colors"
           >
@@ -202,15 +190,14 @@ export function BookingActions({
           </button>
         )}
 
-        {(currentStatus === "CANCELLED" || currentStatus === "REJECTED") &&
-          rebookHref && (
-            <Link
-              href={rebookHref}
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-ring transition-colors"
-            >
-              Rebook
-            </Link>
-          )}
+        {(currentStatus === 'CANCELLED' || currentStatus === 'REJECTED') && rebookHref && (
+          <Link
+            href={rebookHref}
+            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-ring transition-colors"
+          >
+            Rebook
+          </Link>
+        )}
 
         {/* Back to bookings list */}
         <Link
@@ -222,20 +209,20 @@ export function BookingActions({
       </div>
 
       {/* Reason dialogs */}
-      {showReasonDialog === "reject" && (
+      {showReasonDialog === 'reject' && (
         <ReasonDialog
           action="reject"
           onConfirm={handleRejectConfirm}
           onCancel={() => setShowReasonDialog(null)}
-          loading={actionLoading === "reject"}
+          loading={actionLoading === 'reject'}
         />
       )}
-      {showReasonDialog === "cancel" && (
+      {showReasonDialog === 'cancel' && (
         <ReasonDialog
           action="cancel"
           onConfirm={handleCancelConfirm}
           onCancel={() => setShowReasonDialog(null)}
-          loading={actionLoading === "cancel"}
+          loading={actionLoading === 'cancel'}
         />
       )}
     </>

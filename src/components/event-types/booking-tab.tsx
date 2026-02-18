@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { EditorEventType, EventTypeFields } from "./editor";
-import type { CustomQuestion } from "@/types";
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import type { EditorEventType, EventTypeFields } from './editor';
+import type { CustomQuestion } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 const QUESTION_TYPES = [
-  { value: "text", label: "Short Text" },
-  { value: "textarea", label: "Long Text" },
-  { value: "select", label: "Dropdown Select" },
-  { value: "radio", label: "Radio Buttons" },
-  { value: "checkbox", label: "Checkbox" },
-  { value: "phone", label: "Phone Number" },
+  { value: 'text', label: 'Short Text' },
+  { value: 'textarea', label: 'Long Text' },
+  { value: 'select', label: 'Dropdown Select' },
+  { value: 'radio', label: 'Radio Buttons' },
+  { value: 'checkbox', label: 'Checkbox' },
+  { value: 'phone', label: 'Phone Number' },
 ] as const;
 
-type QuestionType = CustomQuestion["type"];
+type QuestionType = CustomQuestion['type'];
 
 function makeId() {
   return Math.random().toString(36).slice(2, 10);
@@ -43,16 +43,24 @@ interface QuestionRowProps {
   onMoveDown: () => void;
 }
 
-function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onMoveDown }: QuestionRowProps) {
+function QuestionRow({
+  question,
+  index,
+  total,
+  onChange,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+}: QuestionRowProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const hasOptions = question.type === "select" || question.type === "radio";
+  const hasOptions = question.type === 'select' || question.type === 'radio';
 
   function updateField<K extends keyof CustomQuestion>(field: K, value: CustomQuestion[K]) {
     onChange({ ...question, [field]: value });
   }
 
   function addOption() {
-    const opts = [...(question.options ?? []), ""];
+    const opts = [...(question.options ?? []), ''];
     onChange({ ...question, options: opts });
   }
 
@@ -78,8 +86,19 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
             aria-label="Move question up"
             className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 focus-ring disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 15l7-7 7 7"
+              />
             </svg>
           </button>
           <button
@@ -89,8 +108,19 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
             aria-label="Move question down"
             className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 focus-ring disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
           <span className="text-xs text-gray-400 ml-1">Question {index + 1}</span>
@@ -101,8 +131,19 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
           aria-label={`Delete question ${index + 1}`}
           className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-danger focus-ring transition-colors"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
           </svg>
         </button>
       </div>
@@ -137,7 +178,7 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
         <input
           type="text"
           value={question.label}
-          onChange={(e) => updateField("label", e.target.value)}
+          onChange={(e) => updateField('label', e.target.value)}
           placeholder="e.g. What's your company name?"
           className="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
         />
@@ -153,7 +194,7 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
               const newType = e.target.value as QuestionType;
               const updates: Partial<CustomQuestion> = { type: newType };
               // Clear options when switching away from select/radio
-              if (newType !== "select" && newType !== "radio") {
+              if (newType !== 'select' && newType !== 'radio') {
                 updates.options = undefined;
               }
               onChange({ ...question, ...updates });
@@ -173,7 +214,7 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
             type="checkbox"
             id={`q-required-${question.id}`}
             checked={question.required}
-            onChange={(e) => updateField("required", e.target.checked)}
+            onChange={(e) => updateField('required', e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
           />
           <label htmlFor={`q-required-${question.id}`} className="text-sm text-gray-700">
@@ -201,8 +242,19 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
                 aria-label={`Remove option ${optIdx + 1}`}
                 className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 focus-ring transition-colors"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -223,15 +275,9 @@ function QuestionRow({ question, index, total, onChange, onDelete, onMoveUp, onM
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function BookingTab({ eventType, onSave }: BookingTabProps) {
-  const [requiresConfirmation, setRequiresConfirmation] = useState(
-    eventType.requiresConfirmation
-  );
-  const [questions, setQuestions] = useState<CustomQuestion[]>(
-    eventType.customQuestions ?? []
-  );
-  const [successRedirectUrl, setSuccessRedirectUrl] = useState(
-    eventType.successRedirectUrl ?? ""
-  );
+  const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
+  const [questions, setQuestions] = useState<CustomQuestion[]>(eventType.customQuestions ?? []);
+  const [successRedirectUrl, setSuccessRedirectUrl] = useState(eventType.successRedirectUrl ?? '');
 
   function handleConfirmationToggle() {
     const next = !requiresConfirmation;
@@ -247,8 +293,8 @@ export function BookingTab({ eventType, onSave }: BookingTabProps) {
   function addQuestion() {
     const newQ: CustomQuestion = {
       id: makeId(),
-      label: "",
-      type: "text",
+      label: '',
+      type: 'text',
       required: false,
     };
     saveQuestions([...questions, newQ]);
@@ -263,9 +309,9 @@ export function BookingTab({ eventType, onSave }: BookingTabProps) {
     saveQuestions(questions.filter((_, i) => i !== index));
   }
 
-  function moveQuestion(index: number, direction: "up" | "down") {
+  function moveQuestion(index: number, direction: 'up' | 'down') {
     const next = [...questions];
-    const swapWith = direction === "up" ? index - 1 : index + 1;
+    const swapWith = direction === 'up' ? index - 1 : index + 1;
     if (swapWith < 0 || swapWith >= next.length) return;
     [next[index], next[swapWith]] = [next[swapWith]!, next[index]!];
     saveQuestions(next);
@@ -293,14 +339,14 @@ export function BookingTab({ eventType, onSave }: BookingTabProps) {
             aria-label="Require confirmation"
             onClick={handleConfirmationToggle}
             className={cn(
-              "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-ring mt-0.5",
-              requiresConfirmation ? "bg-primary-600" : "bg-gray-200"
+              'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-ring mt-0.5',
+              requiresConfirmation ? 'bg-primary-600' : 'bg-gray-200'
             )}
           >
             <span
               className={cn(
-                "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-                requiresConfirmation ? "translate-x-4" : "translate-x-0.5"
+                'inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                requiresConfirmation ? 'translate-x-4' : 'translate-x-0.5'
               )}
             />
           </button>
@@ -342,8 +388,8 @@ export function BookingTab({ eventType, onSave }: BookingTabProps) {
                 total={questions.length}
                 onChange={(updated) => updateQuestion(index, updated)}
                 onDelete={() => deleteQuestion(index)}
-                onMoveUp={() => moveQuestion(index, "up")}
-                onMoveDown={() => moveQuestion(index, "down")}
+                onMoveUp={() => moveQuestion(index, 'up')}
+                onMoveDown={() => moveQuestion(index, 'down')}
               />
             ))}
           </div>
@@ -355,7 +401,8 @@ export function BookingTab({ eventType, onSave }: BookingTabProps) {
         <div>
           <h2 className="text-sm font-semibold text-gray-900">Success Redirect</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Redirect attendees to a custom URL after they book. Leave blank to show the default confirmation page.
+            Redirect attendees to a custom URL after they book. Leave blank to show the default
+            confirmation page.
           </p>
         </div>
         <Input
