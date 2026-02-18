@@ -18,6 +18,7 @@ const createTeamEventTypeSchema = z.object({
 export const GET = withAuth(async (_request, context, user) => {
   try {
     const { slug } = await context.params;
+    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     const memberResult = await verifyTeamRole(user.id, slug, "MEMBER");
     if (memberResult.error) return memberResult.error;
@@ -51,6 +52,7 @@ export const GET = withAuth(async (_request, context, user) => {
 export const POST = withAuth(async (request, context, user) => {
   try {
     const { slug } = await context.params;
+    if (!slug) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     const roleResult = await verifyTeamRole(user.id, slug, "ADMIN");
     if (roleResult.error) return roleResult.error;
