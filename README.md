@@ -1,134 +1,99 @@
 # CalMill
 
-> **Open Scheduling for Everyone**
->
-> A modern scheduling platform built entirely by autonomous AI workers, orchestrated by [WorkerMill](https://workermill.com).
+**A full-stack scheduling platform built entirely by AI agents.**
+
+CalMill is a showcase application demonstrating [WorkerMill](https://workermill.com) — an autonomous AI coding platform that takes Jira/Linear/GitHub tickets and ships production code. Every line of code in this repository was written, tested, and deployed by WorkerMill's AI workers.
+
+[Live Demo](https://calmill.workermill.com) | [WorkerMill Platform](https://workermill.com) | [Documentation](https://workermill.com/docs)
 
 [![CI](https://github.com/workermill-examples/calmill/actions/workflows/ci.yml/badge.svg)](https://github.com/workermill-examples/calmill/actions/workflows/ci.yml)
 [![Deploy](https://github.com/workermill-examples/calmill/actions/workflows/deploy.yml/badge.svg)](https://github.com/workermill-examples/calmill/actions/workflows/deploy.yml)
 
-**Live Demo:** [calmill.workermill.com](https://calmill.workermill.com)
-
 ---
 
-## What is CalMill?
+## What's Inside
 
-CalMill is an open-source scheduling platform that lets individuals and teams create customizable booking pages, manage availability, and coordinate meetings — all without the back-and-forth of email scheduling.
+CalMill is a real, functional scheduling platform — not a toy demo. It includes:
 
-**Key Features:**
+- **Event Types** — Create different meeting types with custom durations, locations, and questions
+- **Smart Scheduling** — Timezone-aware availability with automatic conflict detection
+- **Team Booking** — Round-robin and collective scheduling for teams
+- **Public Booking Pages** — Share your personalized link (e.g., `calmill.workermill.com/demo`)
+- **Google Calendar Sync** — Connect Google Calendar for real-time busy/free detection
+- **Email Notifications** — Booking confirmations and reminders via Resend
+- **Authentication** — Email/password and Google OAuth support
+- **Responsive UI** — Works on desktop and mobile
 
-- 📅 **Event Types** — Create different meeting types with custom durations, locations, and questions
-- ⏰ **Smart Scheduling** — Timezone-aware availability with automatic conflict detection
-- 👥 **Team Booking** — Round-robin and collective scheduling for teams
-- 🔗 **Public Booking Pages** — Share your personalized booking link (e.g., `calmill.workermill.com/demo`)
-- 🔐 **Secure Authentication** — Email/password and Google OAuth support
-- 🎨 **Modern UI** — Built with Next.js 16, React 19, and TailwindCSS 4
-- 🧩 **Embeddable Widgets** — Inline and popup booking widgets for any website
-- 🔔 **Webhooks** — Event-driven notifications for booking lifecycle events
-- 🔁 **Recurring Bookings** — Weekly, biweekly, and monthly recurring event support
+## How It Was Built
 
----
+CalMill was created across multiple WorkerMill task runs (called "epics"), each triggered by tickets on a project board:
+
+| Epic | Stories | What Was Built |
+|------|---------|----------------|
+| CM-1 | 9 | Project scaffolding, auth, database schema, Prisma 7 + Neon adapter, CI/CD, Vercel deployment |
+| CM-2 | 7 | Event types CRUD, schedule/availability management, booking API routes |
+| CM-3 | 6 | Public booking pages, timezone-aware slot calculation, booking confirmation flow |
+| CM-4 | 8 | Dashboard analytics, Google Calendar integration, email notifications, team features |
+| CM-5 | 6 | Settings pages, calendar connection UI, webhook support |
+| CM-6 | 5 | Polish — responsive layout, color themes, loading states, error handling |
+| CM-7 | 4 | Comprehensive test suite — 202 unit tests + E2E flows |
+| CM-8 | 3 | Dashboard page, stat cards, booking charts, upcoming list |
+
+Each epic was planned by a WorkerMill planner agent, decomposed into parallel stories, executed by specialist AI personas (frontend developer, backend developer, QA engineer), reviewed by a tech lead agent, and consolidated into a single PR.
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|-----------|
-| **Framework** | Next.js 16.1+ (App Router, Server Components) |
-| **UI Library** | React 19.2+ |
-| **Language** | TypeScript 5.7+ (strict mode) |
-| **Styling** | TailwindCSS 4.1+ (CSS-first configuration) |
-| **Database** | PostgreSQL (Neon serverless) |
-| **ORM** | Prisma 7.4+ (with Neon adapter) |
-| **Authentication** | NextAuth v5 (beta.30) |
-| **Validation** | Zod 4.3+ |
-| **Testing** | Vitest 4+ (unit), Playwright 1.58+ (E2E) |
-| **Deployment** | Vercel (with GitHub Actions CI/CD) |
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router, Server Components) |
+| UI | React 19 + TailwindCSS 4 |
+| Database | PostgreSQL via Prisma 7 ORM (Neon serverless) |
+| Auth | NextAuth v5 |
+| Validation | Zod 4 |
+| Testing | Vitest (unit) + Playwright (E2E) |
+| Hosting | Vercel |
+| CI/CD | GitHub Actions |
 
----
+## Try the Demo
 
-## Getting Started
+Visit [calmill.workermill.com](https://calmill.workermill.com) and click **Try the Demo**, or sign in manually:
 
-### Prerequisites
+| | |
+|-|-|
+| **Email** | demo@workermill.com |
+| **Password** | demo1234 |
 
-- **Node.js 24+** (required)
-- **PostgreSQL database** (Neon recommended)
-- **npm** or **pnpm**
+The demo account comes pre-configured with availability schedules, event types, and sample bookings.
 
-### 1. Clone the Repository
+## Run Locally
 
 ```bash
 git clone https://github.com/workermill-examples/calmill.git
 cd calmill
+npm ci
 ```
 
-### 2. Install Dependencies
+Create `.env.local`:
 
-```bash
-npm install
-```
-
-### 3. Configure Environment Variables
-
-Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-Update `.env` with your values:
-
-```bash
-# Database (required)
-DATABASE_URL="postgresql://user:password@host:5432/calmill"
-DIRECT_DATABASE_URL="postgresql://user:password@host:5432/calmill"
-
-# Authentication (required)
-AUTH_SECRET="run: openssl rand -base64 32"
+```env
+DATABASE_URL="postgresql://user:pass@localhost:5432/calmill"
+DIRECT_DATABASE_URL="postgresql://user:pass@localhost:5432/calmill"
+AUTH_SECRET="any-random-string"
 NEXTAUTH_URL="http://localhost:3000"
-
-# Application
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# Optional: Google OAuth
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-
-# Optional: Email (Resend)
-RESEND_API_KEY=""
-EMAIL_FROM="CalMill <noreply@yourdomain.com>"
-
-# Seed Protection
-SEED_TOKEN="your-secret-seed-token"
+SEED_TOKEN="any-random-string"
 ```
 
-### 4. Set Up Database
-
-Generate the Prisma Client and push the schema to your database:
+Set up the database and start:
 
 ```bash
 npx prisma generate
 npx prisma db push
-```
-
-Seed the database with demo data:
-
-```bash
 npx prisma db seed
-```
-
-This creates a demo user:
-- **Email:** demo@workermill.com
-- **Password:** demo1234
-
-### 5. Run Development Server
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
+Open [localhost:3000](http://localhost:3000).
 
 ---
 
@@ -249,297 +214,76 @@ function verifyWebhookSignature(payload, signature, secret) {
 ## Project Structure
 
 ```
-calmill/
-├── prisma/
-│   ├── schema.prisma          # Database schema (12 models, 3 enums)
-│   └── seed.ts                # Demo data seeding
-├── prisma.config.ts           # Prisma 7 configuration
-├── vercel.json                # Vercel deployment config (CORS, iframe headers)
-├── public/
-│   ├── embed/
-│   │   └── calmill-embed.js   # Embed script (inline + popup widgets)
-│   └── calmill-embed-demo.html # Live embed demo page
-├── src/
-│   ├── app/                   # Next.js App Router
-│   │   ├── (dashboard)/       # Authenticated layout (sidebar + header)
-│   │   │   ├── event-types/   # Event type management
-│   │   │   │   └── [id]/embed/ # Embed code generator
-│   │   │   ├── bookings/      # Booking management
-│   │   │   ├── availability/  # Schedule editor
-│   │   │   └── settings/
-│   │   │       └── webhooks/  # Webhook management
-│   │   ├── (public)/          # Public booking pages
-│   │   │   └── [username]/    # User profile and booking pages
-│   │   ├── embed/             # Embed-optimized booking pages
-│   │   │   ├── layout.tsx     # Minimal layout (no nav)
-│   │   │   └── [username]/[slug]/ # Embed booking page
-│   │   ├── login/             # Authentication pages
-│   │   ├── signup/
-│   │   └── api/               # API routes
-│   │       ├── health/        # Health check endpoint
-│   │       ├── webhooks/      # Webhook CRUD + delivery
-│   │       └── bookings/      # Booking routes (with webhook integration)
-│   ├── components/
-│   │   └── ui/                # Reusable UI components
-│   ├── generated/
-│   │   └── prisma/            # Generated Prisma Client (gitignored)
-│   ├── lib/
-│   │   ├── auth.ts            # NextAuth v5 configuration
-│   │   ├── prisma.ts          # PrismaClient singleton
-│   │   ├── utils.ts           # Utility functions
-│   │   ├── validations.ts     # Zod schemas
-│   │   └── webhooks.ts        # Webhook delivery with HMAC signing
-│   └── types/
-│       ├── index.ts           # TypeScript types
-│       └── next-auth.d.ts     # NextAuth type extensions
-├── e2e/                       # Playwright E2E tests (88 tests)
-│   ├── helpers/               # Auth, booking, seed utilities
-│   └── *.spec.ts              # Test suites by feature
-├── tests/
-│   ├── unit/                  # Vitest unit tests
-│   └── e2e/                   # Legacy E2E tests
-└── .github/workflows/         # CI/CD pipelines
+src/
+  app/                    # Next.js App Router pages
+    api/                  # Server-side API routes
+    (dashboard)/          # Authenticated layout (sidebar + header)
+      dashboard/          # Dashboard with analytics
+      event-types/        # Event type management
+      bookings/           # Booking management
+      availability/       # Schedule editor
+      settings/           # User and calendar settings
+    (public)/             # Public booking pages
+      [username]/         # User profile and booking flow
+    login/ signup/        # Auth pages
+  components/
+    ui/                   # Reusable UI components (Button, Input, etc.)
+    dashboard/            # Dashboard stat cards, charts, lists
+    event-types/          # Event type editor tabs
+  lib/
+    auth.ts               # NextAuth v5 configuration
+    prisma.ts             # PrismaClient singleton
+    utils.ts              # Utility functions
+    validations.ts        # Zod schemas
+prisma/
+  schema.prisma           # Database schema (12 models, 3 enums)
+  seed.ts                 # Demo data seeder
+tests/
+  unit/                   # Vitest unit tests (202 tests)
+  e2e/                    # Playwright E2E tests
 ```
-
----
 
 ## Database Schema
 
-CalMill uses **12 Prisma models** organized into logical groups:
+```
+User ──< Schedule ──< Availability
+  │         │
+  │         └──< DateOverride
+  │
+  ├──< EventType ──< Booking
+  │
+  ├──< CalendarConnection
+  │
+  └──< TeamMember >── Team
+```
 
-### Authentication (NextAuth)
-- **Account** — OAuth provider accounts
-- **Session** — User sessions
-
-### Core Models
-- **User** — User profiles, preferences, timezone
-- **EventType** — Meeting types with custom settings
-- **Booking** — Scheduled meetings
-- **Schedule** — User availability templates
-- **Availability** — Weekly availability rules
-- **DateOverride** — Specific date exceptions
-
-### Team Features
-- **Team** — Team profiles
-- **TeamMember** — Team membership with roles
-
-### Integrations
-- **CalendarConnection** — Google/Outlook calendar sync
-- **Webhook** — Event webhooks for integrations
-
-### Enums
-- **BookingStatus** — PENDING, ACCEPTED, CANCELLED, REJECTED, RESCHEDULED
-- **SchedulingType** — ROUND_ROBIN, COLLECTIVE
-- **TeamRole** — OWNER, ADMIN, MEMBER
-
----
-
-## Environment Variables
-
-### Required
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | Pooled database connection (for app) | `postgresql://user:pass@host:5432/db` |
-| `DIRECT_DATABASE_URL` | Direct database connection (for Prisma CLI) | `postgresql://user:pass@host:5432/db` |
-| `AUTH_SECRET` | NextAuth encryption secret | `openssl rand -base64 32` |
-| `NEXTAUTH_URL` | Application URL | `https://calmill.workermill.com` |
-| `NEXT_PUBLIC_APP_URL` | Public-facing app URL | `https://calmill.workermill.com` |
-
-### Optional
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth secret | From Google Console |
-| `RESEND_API_KEY` | Email service API key | From Resend |
-| `EMAIL_FROM` | Sender email address | `CalMill <noreply@calmill.workermill.com>` |
-| `SEED_TOKEN` | Protect seed endpoint | Any secure random string |
-
----
+12 models: User, EventType, Booking, Schedule, Availability, DateOverride, Team, TeamMember, CalendarConnection, Webhook, Account, Session.
 
 ## Development
 
-### Common Commands
-
 ```bash
-# Development
-npm run dev              # Start dev server
-npm run build            # Build for production
-npm start                # Start production server
-
-# Code Quality
-npm run lint             # Run ESLint
-npm run typecheck        # Run TypeScript compiler
-
-# Testing
-npm run test             # Run unit tests
-npm run test:watch       # Run tests in watch mode
-npm run test:e2e         # Run E2E tests
-npm run test:e2e:ui      # Run E2E tests with UI
-
-# Database
-npx prisma generate      # Generate Prisma Client
-npx prisma db push       # Push schema to database
-npx prisma studio        # Open database GUI
-npx prisma db seed       # Seed database with demo data
+npm run dev          # Start dev server
+npm run lint         # ESLint
+npm run typecheck    # TypeScript check
+npm test             # Unit tests (Vitest)
+npm run test:e2e     # E2E tests (Playwright)
 ```
 
-### Testing
+## About WorkerMill
 
-CalMill uses a comprehensive testing strategy:
+[WorkerMill](https://workermill.com) is an autonomous AI coding platform. Point it at a ticket, and it:
 
-**Unit Tests (Vitest):**
-- Fast, isolated tests for utilities, validations, and business logic
-- Coverage tracking with v8
-- Run with `npm run test`
+1. **Plans** — Decomposes the task into parallel stories with file targets
+2. **Executes** — Specialist AI personas (frontend dev, backend dev, QA) work in parallel
+3. **Reviews** — Tech lead agent reviews each story for quality
+4. **Ships** — Creates a consolidated PR with all changes
 
-**E2E Tests (Playwright):**
-- Full browser automation testing user flows
-- Chromium-only for speed
-- Run with `npm run test:e2e`
+CalMill exists to demonstrate that WorkerMill can build and maintain a real application end-to-end. Every commit in this repo's history traces back to a WorkerMill task.
 
----
+## For AI Agents
 
-## Deployment
-
-### Production Setup
-
-#### Required GitHub Secrets
-
-Set these in your repository's **Settings → Secrets and variables → Actions**:
-
-| Secret | Description |
-|--------|-------------|
-| `VERCEL_TOKEN` | Vercel API token |
-| `VERCEL_ORG_ID` | Vercel organization ID |
-| `VERCEL_PROJECT_ID` | Vercel project ID |
-| `DATABASE_URL` | Pooled Neon PostgreSQL connection string |
-| `DIRECT_DATABASE_URL` | Direct Neon PostgreSQL connection string |
-| `AUTH_SECRET` | NextAuth secret (`openssl rand -base64 32`) |
-| `SEED_TOKEN` | Token to protect the `/api/seed` endpoint |
-
-#### Production Deployment Checklist
-
-Before going live, verify:
-
-- [ ] All GitHub secrets are configured
-- [ ] Vercel environment variables match your `.env` file
-- [ ] Database migrations applied: `npx prisma db push`
-- [ ] Demo data seeded via `/api/seed` or `npx prisma db seed`
-- [ ] Health check passes: `GET https://calmill.workermill.com/api/health`
-- [ ] Public booking page works: `https://calmill.workermill.com/demo/30min`
-- [ ] Embed script accessible: `https://calmill.workermill.com/embed/calmill-embed.js`
-- [ ] Embed script has CORS header `Access-Control-Allow-Origin: *`
-- [ ] Embed pages allow iframe embedding (`X-Frame-Options: ALLOWALL`)
-
-### CI/CD Pipeline
-
-CalMill uses GitHub Actions for continuous integration and deployment:
-
-#### CI Workflow (`.github/workflows/ci.yml`)
-
-Runs on every push and pull request:
-
-1. **Lint** — ESLint and Prettier checks
-2. **Type Check** — TypeScript compilation
-3. **Unit Tests** — Vitest with coverage
-4. **Build** — Next.js production build
-5. **E2E Tests** — Playwright browser tests
-
-#### Deploy Workflow (`.github/workflows/deploy.yml`)
-
-Runs on every push to `main` branch:
-
-1. Run database migrations (`prisma db push`)
-2. Seed demo data
-3. Deploy to Vercel using CLI
-4. Health check verification (`/api/health`)
-5. Embed script accessibility check (CORS headers)
-6. Deployment summary
-
-### Manual Deployment
-
-To deploy manually to Vercel:
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Login
-vercel login
-
-# Deploy
-vercel --prod
-```
-
----
-
-## Architecture Decisions
-
-### Prisma 7 Configuration
-
-CalMill uses **Prisma 7.4+** with breaking changes from previous versions:
-
-- **Configuration file:** `prisma.config.ts` (NOT schema.prisma datasource)
-- **Generated client location:** `src/generated/prisma/` (NOT node_modules)
-- **Import path:** `@/generated/prisma/client` (NOT `@prisma/client`)
-- **Neon adapter:** Required for Neon PostgreSQL connections
-
-### TailwindCSS 4 CSS-First
-
-CalMill uses **TailwindCSS 4.1+** with CSS-first configuration:
-
-- **NO JavaScript config** (`tailwind.config.js`)
-- **All customization in CSS** via `@theme` block
-- **PostCSS plugin:** `@tailwindcss/postcss`
-
-### NextAuth v5
-
-CalMill uses **NextAuth v5 (beta.30)** with modern patterns:
-
-- **Export handlers directly:** `export { GET, POST } from "@/lib/auth"`
-- **Server Components:** Use `auth()` function
-- **Client Components:** Use `useSession()` hook
-- **Session strategy:** JWT (not database sessions)
-
----
-
-## Contributing
-
-CalMill is built entirely by AI workers orchestrated by WorkerMill. To contribute:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `npm run test && npm run test:e2e`
-5. Submit a pull request
-
-All PRs must pass CI checks (lint, typecheck, tests, build).
-
----
+If you're an AI worker building on this codebase, see [CLAUDE.md](./CLAUDE.md) for development guidelines, version constraints, and deployment instructions.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-## Credits
-
-**Built by:** [WorkerMill](https://workermill.com) — Autonomous AI worker orchestration platform
-
-**Inspired by:** [Cal.com](https://cal.com) — Open source scheduling infrastructure
-
----
-
-## Support
-
-- **Documentation:** [CLAUDE.md](CLAUDE.md) (worker development guide)
-- **Issues:** [GitHub Issues](https://github.com/workermill-examples/calmill/issues)
-- **Website:** [workermill.com](https://workermill.com)
-
----
-
-**Last Updated:** 2026-02-17
-**Version:** 1.0.0
+MIT

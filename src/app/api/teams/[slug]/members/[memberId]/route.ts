@@ -12,6 +12,7 @@ const updateRoleSchema = z.object({
 export const PUT = withAuth(async (request, context, user) => {
   try {
     const { slug, memberId } = await context.params;
+    if (!slug || !memberId) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     // Require OWNER role
     const roleResult = await verifyTeamRole(user.id, slug, "OWNER");
@@ -92,6 +93,7 @@ export const PUT = withAuth(async (request, context, user) => {
 export const DELETE = withAuth(async (_request, context, user) => {
   try {
     const { slug, memberId } = await context.params;
+    if (!slug || !memberId) return NextResponse.json({ error: "Invalid route" }, { status: 400 });
 
     // Fetch the target member to remove (must belong to this team by slug)
     const targetMember = await prisma.teamMember.findFirst({

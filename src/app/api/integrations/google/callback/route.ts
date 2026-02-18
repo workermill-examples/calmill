@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+
+const STATE_MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
 
 // GET /api/integrations/google/callback — Exchange OAuth code for tokens
 export async function GET(request: Request) {
@@ -26,10 +29,33 @@ export async function GET(request: Request) {
     );
   }
 
-  // Decode user ID from state parameter
+  // Verify signed state: base64url(userId.timestamp).hmac
   let userId: string;
   try {
-    userId = Buffer.from(state, "base64url").toString("utf8");
+    const [payloadB64, hmac] = state.split(".");
+    if (!payloadB64 || !hmac) throw new Error("malformed state");
+
+    const payload = Buffer.from(payloadB64, "base64url").toString("utf8");
+    const secret = process.env.AUTH_SECRET ?? "";
+    const expectedHmac = crypto
+      .createHmac("sha256", secret)
+      .update(payload)
+      .digest("base64url");
+
+    if (!crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(expectedHmac))) {
+      throw new Error("invalid signature");
+    }
+
+    const [uid, timestamp] = payload.split(".");
+    if (!uid || !timestamp) throw new Error("malformed payload");
+
+    // Check expiry
+    const age = Date.now() - parseInt(timestamp, 10);
+    if (age > STATE_MAX_AGE_MS) {
+      throw new Error("state expired");
+    }
+
+    userId = uid;
   } catch {
     return NextResponse.redirect(
       `${errorRedirect}${encodeURIComponent("invalid_state")}`

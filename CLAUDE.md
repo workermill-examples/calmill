@@ -427,7 +427,7 @@ EMAIL_FROM="CalMill <noreply@calmill.workermill.com>"
 
 # Application
 NEXT_PUBLIC_APP_URL="http://localhost:3000"  # Public app URL
-SEED_TOKEN="calmill-seed-token-dev"          # Protect seed endpoint
+SEED_TOKEN="<random-string>"                 # Protect seed endpoint (openssl rand -hex 32)
 ```
 
 ---

@@ -339,7 +339,10 @@ export async function setDesktopViewport(page: Page) {
  * demo data in the database.
  */
 export async function triggerDatabaseSeed(page: Page) {
-  const token = process.env.SEED_TOKEN ?? "calmill-seed-token-dev";
+  const token = process.env.SEED_TOKEN;
+  if (!token) {
+    throw new Error("SEED_TOKEN environment variable is required for E2E tests");
+  }
   const response = await page.request.post(`/api/seed`, {
     headers: { "x-seed-token": token },
   });

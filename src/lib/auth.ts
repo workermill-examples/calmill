@@ -92,7 +92,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true, // Allow linking if email matches
+      // Account linking requires user to be authenticated first (via settings page)
     }),
   ],
   session: {
