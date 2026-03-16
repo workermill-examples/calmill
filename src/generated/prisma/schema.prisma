@@ -32,18 +32,18 @@ enum TeamRole {
 
 // Models
 model Account {
-  id                String  @id @default(cuid())
-  userId            String  @map("user_id")
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
   type              String
   provider          String
-  providerAccountId String  @map("provider_account_id")
-  refreshToken      String? @map("refresh_token") @db.Text
-  accessToken       String? @map("access_token") @db.Text
-  expiresAt         Int?    @map("expires_at")
-  tokenType         String? @map("token_type")
+  providerAccountId String   @map("provider_account_id")
+  refreshToken      String?  @map("refresh_token") @db.Text
+  accessToken       String?  @map("access_token") @db.Text
+  expiresAt         Int?     @map("expires_at")
+  tokenType         String?  @map("token_type")
   scope             String?
-  idToken           String? @map("id_token") @db.Text
-  sessionState      String? @map("session_state")
+  idToken           String?  @map("id_token") @db.Text
+  sessionState      String?  @map("session_state")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
@@ -67,18 +67,18 @@ model Session {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  username     String    @unique
-  passwordHash String?   @map("password_hash")
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String?  @map("password_hash")
   name         String?
   image        String?
-  timezone     String    @default("UTC")
-  weekStart    Int       @default(0) @map("week_start") // 0 = Sunday, 1 = Monday
+  timezone     String   @default("UTC")
+  weekStart    Int      @default(0) @map("week_start") // 0 = Sunday, 1 = Monday
   bio          String?
-  theme        String    @default("light")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  theme        String   @default("light")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
   accounts            Account[]
@@ -119,12 +119,12 @@ model EventType {
   updatedAt            DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  userId     String?  @map("user_id")
-  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scheduleId String?  @map("schedule_id")
+  userId     String?   @map("user_id")
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheduleId String?   @map("schedule_id")
   schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
-  teamId     String?  @map("team_id")
-  team       Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId     String?   @map("team_id")
+  team       Team?     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   bookings   Booking[]
 
   @@unique([userId, slug])
@@ -132,24 +132,24 @@ model EventType {
 }
 
 model Booking {
-  id                String        @id @default(cuid())
-  uid               String        @unique @default(cuid())
-  title             String
-  startTime         DateTime      @map("start_time")
-  endTime           DateTime      @map("end_time")
-  status            BookingStatus @default(PENDING)
-  attendeeName      String        @map("attendee_name")
-  attendeeEmail     String        @map("attendee_email")
-  attendeeTimezone  String        @map("attendee_timezone")
-  attendeeNotes     String?       @map("attendee_notes")
-  meetingUrl        String?       @map("meeting_url")
-  location          String?
-  responses         Json?         // Answers to custom questions
-  cancellationReason String?      @map("cancellation_reason")
-  recurringEventId  String?       @map("recurring_event_id")
-  calendarEventId   String?       @map("calendar_event_id")
-  createdAt         DateTime      @default(now()) @map("created_at")
-  updatedAt         DateTime      @updatedAt @map("updated_at")
+  id                 String        @id @default(cuid())
+  uid                String        @unique @default(cuid())
+  title              String
+  startTime          DateTime      @map("start_time")
+  endTime            DateTime      @map("end_time")
+  status             BookingStatus @default(PENDING)
+  attendeeName       String        @map("attendee_name")
+  attendeeEmail      String        @map("attendee_email")
+  attendeeTimezone   String        @map("attendee_timezone")
+  attendeeNotes      String?       @map("attendee_notes")
+  meetingUrl         String?       @map("meeting_url")
+  location           String?
+  responses          Json? // Answers to custom questions
+  cancellationReason String?       @map("cancellation_reason")
+  recurringEventId   String?       @map("recurring_event_id")
+  calendarEventId    String?       @map("calendar_event_id")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
 
   // Relations
   userId      String    @map("user_id")
@@ -182,7 +182,7 @@ model Availability {
   id        String   @id @default(cuid())
   day       Int // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
   startTime String   @map("start_time") // "HH:mm" format
-  endTime   String   @map("end_time")   // "HH:mm" format
+  endTime   String   @map("end_time") // "HH:mm" format
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -197,7 +197,7 @@ model DateOverride {
   id            String   @id @default(cuid())
   date          DateTime @db.Date
   startTime     String?  @map("start_time") // "HH:mm" format, null if unavailable
-  endTime       String?  @map("end_time")   // "HH:mm" format, null if unavailable
+  endTime       String?  @map("end_time") // "HH:mm" format, null if unavailable
   isUnavailable Boolean  @default(false) @map("is_unavailable")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -278,13 +278,13 @@ model Webhook {
 }
 
 model WebhookDelivery {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   event      String
   payload    Json
-  statusCode Int?      @map("status_code")
+  statusCode Int?     @map("status_code")
   error      String?
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
   webhookId String  @map("webhook_id")
