@@ -11,8 +11,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Use more workers in CI for faster execution */
-  workers: process.env.CI ? 4 : undefined,
+  /* Use limited workers in CI to balance speed and stability */
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -53,6 +53,6 @@ export default defineConfig({
       ...process.env,
       AUTH_TRUST_HOST: "true",
     },
-    timeout: 120000,
+    timeout: 180000,
   },
 });
