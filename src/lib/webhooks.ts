@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
+import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
 
 export interface WebhookEvent {
   id: string;
@@ -17,10 +17,13 @@ export interface WebhookDeliveryResult {
 /**
  * Generate HMAC-SHA256 signature for webhook payload
  */
-export function generateWebhookSignature(payload: string, secret: string): string {
-  const hmac = crypto.createHmac('sha256', secret);
+export function generateWebhookSignature(
+  payload: string,
+  secret: string,
+): string {
+  const hmac = crypto.createHmac("sha256", secret);
   hmac.update(payload);
-  return hmac.digest('hex');
+  return hmac.digest("hex");
 }
 
 /**
@@ -29,13 +32,23 @@ export function generateWebhookSignature(payload: string, secret: string): strin
 export function verifyWebhookSignature(
   payload: string,
   signature: string,
-  secret: string
+  secret: string,
 ): boolean {
-  const expectedSignature = generateWebhookSignature(payload, secret);
-  return crypto.timingSafeEqual(
-    Buffer.from(signature, 'hex'),
-    Buffer.from(expectedSignature, 'hex')
-  );
+  try {
+    const expectedSignature = generateWebhookSignature(payload, secret);
+    const sigBuffer = Buffer.from(signature, "hex");
+    const expectedBuffer = Buffer.from(expectedSignature, "hex");
+
+    // Ensure buffers have same length for timing-safe comparison
+    if (sigBuffer.length !== expectedBuffer.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(sigBuffer, expectedBuffer);
+  } catch {
+    // If signature is not valid hex, return false
+    return false;
+  }
 }
 
 /**
@@ -44,24 +57,23 @@ export function verifyWebhookSignature(
 export async function deliverWebhook(
   url: string,
   event: WebhookEvent,
-  secret: string
+  secret: string,
 ): Promise<WebhookDeliveryResult> {
-  const payload = JSON.stringify(event);
-  const signature = generateWebhookSignature(payload, secret);
-  const deliveryId = crypto.randomUUID();
-
   try {
+    const payload = JSON.stringify(event);
+    const signature = generateWebhookSignature(payload, secret);
+    const deliveryId = crypto.randomUUID();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-CalMill-Signature': signature,
-        'X-CalMill-Event': event.event,
-        'X-CalMill-Delivery': deliveryId,
-        'User-Agent': 'CalMill-Webhooks/1.0',
+        "Content-Type": "application/json",
+        "X-CalMill-Signature": signature,
+        "X-CalMill-Event": event.event,
+        "X-CalMill-Delivery": deliveryId,
+        "User-Agent": "CalMill-Webhooks/1.0",
       },
       body: payload,
       signal: controller.signal,
@@ -76,7 +88,7 @@ export async function deliverWebhook(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -87,7 +99,7 @@ export async function deliverWebhook(
 export async function triggerWebhooks(
   userId: string,
   event: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
 ): Promise<void> {
   // Fire-and-forget: don't await the result
   void processWebhookDeliveries(userId, event, data);
@@ -99,7 +111,7 @@ export async function triggerWebhooks(
 async function processWebhookDeliveries(
   userId: string,
   event: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
 ): Promise<void> {
   try {
     // Find all active webhooks for this user that listen to this event
@@ -126,7 +138,11 @@ async function processWebhookDeliveries(
 
     // Process all webhook deliveries in parallel
     const deliveryPromises = webhooks.map(async (webhook) => {
-      const result = await deliverWebhook(webhook.url, webhookEvent, webhook.secret);
+      const result = await deliverWebhook(
+        webhook.url,
+        webhookEvent,
+        webhook.secret,
+      );
 
       // Log delivery attempt to database
       try {
@@ -141,7 +157,7 @@ async function processWebhookDeliveries(
         });
       } catch (error) {
         // Silently fail if we can't log the delivery - don't break the webhook system
-        console.error('Failed to log webhook delivery:', error);
+        console.error("Failed to log webhook delivery:", error);
       }
     });
 
@@ -149,7 +165,7 @@ async function processWebhookDeliveries(
     await Promise.allSettled(deliveryPromises);
   } catch (error) {
     // Silently fail - webhook delivery should never break the main application flow
-    console.error('Failed to process webhook deliveries:', error);
+    console.error("Failed to process webhook deliveries:", error);
   }
 }
 
@@ -158,7 +174,7 @@ async function processWebhookDeliveries(
  */
 export async function testWebhookDelivery(
   webhookId: string,
-  userId: string
+  userId: string,
 ): Promise<WebhookDeliveryResult> {
   try {
     const webhook = await prisma.webhook.findFirst({
@@ -171,15 +187,15 @@ export async function testWebhookDelivery(
     if (!webhook) {
       return {
         success: false,
-        error: 'Webhook not found',
+        error: "Webhook not found",
       };
     }
 
     const testEvent: WebhookEvent = {
       id: crypto.randomUUID(),
-      event: 'WEBHOOK_TEST',
+      event: "WEBHOOK_TEST",
       data: {
-        message: 'This is a test webhook delivery from CalMill',
+        message: "This is a test webhook delivery from CalMill",
         timestamp: new Date().toISOString(),
       },
       timestamp: new Date().toISOString(),
@@ -199,25 +215,26 @@ export async function testWebhookDelivery(
         },
       });
     } catch (error) {
-      console.error('Failed to log test webhook delivery:', error);
+      console.error("Failed to log test webhook delivery:", error);
     }
 
     return result;
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
 
 // Common webhook event types
 export const WEBHOOK_EVENTS = {
-  BOOKING_CREATED: 'BOOKING_CREATED',
-  BOOKING_CANCELLED: 'BOOKING_CANCELLED',
-  BOOKING_RESCHEDULED: 'BOOKING_RESCHEDULED',
-  BOOKING_ACCEPTED: 'BOOKING_ACCEPTED',
-  BOOKING_REJECTED: 'BOOKING_REJECTED',
+  BOOKING_CREATED: "BOOKING_CREATED",
+  BOOKING_CANCELLED: "BOOKING_CANCELLED",
+  BOOKING_RESCHEDULED: "BOOKING_RESCHEDULED",
+  BOOKING_ACCEPTED: "BOOKING_ACCEPTED",
+  BOOKING_REJECTED: "BOOKING_REJECTED",
 } as const;
 
-export type WebhookEventType = typeof WEBHOOK_EVENTS[keyof typeof WEBHOOK_EVENTS];
+export type WebhookEventType =
+  (typeof WEBHOOK_EVENTS)[keyof typeof WEBHOOK_EVENTS];

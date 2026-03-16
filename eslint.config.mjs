@@ -4,9 +4,9 @@ const eslintConfig = [
   ...coreWebVitals,
   {
     rules: {
-      "no-console": "off"
-    }
-  }
+      "no-console": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

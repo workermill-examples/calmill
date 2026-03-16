@@ -1,89 +1,93 @@
 // Google Calendar integration via native fetch
 // OAuth token refresh and calendar API interactions
 
-import { prisma } from '@/lib/prisma'
-import type { CalendarConnection } from '@/generated/prisma'
+import { prisma } from "@/lib/prisma";
+import type { CalendarConnection } from "@/generated/prisma";
 
 // Google Calendar API scopes required
 export const GOOGLE_CALENDAR_SCOPES = [
-  'https://www.googleapis.com/auth/calendar.readonly',
-  'https://www.googleapis.com/auth/calendar.events'
-].join(' ')
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/calendar.events",
+].join(" ");
 
 // Google OAuth URLs
-export const GOOGLE_OAUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
-export const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+export const GOOGLE_OAUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+export const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 // Calendar API base URL
-const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3'
+const CALENDAR_API_BASE = "https://www.googleapis.com/calendar/v3";
 
 /**
  * Get a valid access token, refreshing if necessary
  */
-export async function getValidAccessToken(connectionId: string): Promise<string | null> {
+export async function getValidAccessToken(
+  connectionId: string,
+): Promise<string | null> {
   try {
     const connection = await prisma.calendarConnection.findUnique({
-      where: { id: connectionId }
-    })
+      where: { id: connectionId },
+    });
 
     if (!connection) {
-      return null
+      return null;
     }
 
     // Check if token is still valid (with 5 minute buffer)
-    const now = new Date()
-    const expiresAt = connection.expiresAt
-    const bufferTime = 5 * 60 * 1000 // 5 minutes in milliseconds
+    const now = new Date();
+    const expiresAt = connection.expiresAt;
+    const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-    if (expiresAt && now.getTime() < (expiresAt.getTime() - bufferTime)) {
-      return connection.accessToken
+    if (expiresAt && now.getTime() < expiresAt.getTime() - bufferTime) {
+      return connection.accessToken;
     }
 
     // Token expired or expiring soon, refresh it
     if (!connection.refreshToken) {
       // No refresh token available, need to re-authenticate
-      return null
+      return null;
     }
 
-    return await refreshAccessToken(connection)
+    return await refreshAccessToken(connection);
   } catch (error) {
-    console.error('Error getting valid access token:', error)
-    return null
+    console.error("Error getting valid access token:", error);
+    return null;
   }
 }
 
 /**
  * Refresh access token using refresh token
  */
-async function refreshAccessToken(connection: CalendarConnection): Promise<string | null> {
+async function refreshAccessToken(
+  connection: CalendarConnection,
+): Promise<string | null> {
   try {
     const response = await fetch(GOOGLE_TOKEN_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID || '',
-        client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
+        client_id: process.env.GOOGLE_CLIENT_ID || "",
+        client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
         refresh_token: connection.refreshToken!,
-        grant_type: 'refresh_token',
+        grant_type: "refresh_token",
       }),
-    })
+    });
 
     if (!response.ok) {
-      console.error('Failed to refresh token:', response.statusText)
-      return null
+      console.error("Failed to refresh token:", response.statusText);
+      return null;
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.error) {
-      console.error('Error refreshing token:', data.error)
-      return null
+      console.error("Error refreshing token:", data.error);
+      return null;
     }
 
     // Update the connection with new access token and expiration
-    const expiresAt = new Date(Date.now() + (data.expires_in * 1000))
+    const expiresAt = new Date(Date.now() + data.expires_in * 1000);
 
     await prisma.calendarConnection.update({
       where: { id: connection.id },
@@ -91,14 +95,14 @@ async function refreshAccessToken(connection: CalendarConnection): Promise<strin
         accessToken: data.access_token,
         expiresAt,
         // Some responses include a new refresh token
-        ...(data.refresh_token && { refreshToken: data.refresh_token })
-      }
-    })
+        ...(data.refresh_token && { refreshToken: data.refresh_token }),
+      },
+    });
 
-    return data.access_token
+    return data.access_token;
   } catch (error) {
-    console.error('Error refreshing access token:', error)
-    return null
+    console.error("Error refreshing access token:", error);
+    return null;
   }
 }
 
@@ -109,67 +113,70 @@ export async function getBusyTimes(
   connectionId: string,
   timeMin: string, // ISO string
   timeMax: string, // ISO string
-  calendarIds?: string[]
+  calendarIds?: string[],
 ): Promise<Array<{ start: string; end: string }>> {
   try {
-    const accessToken = await getValidAccessToken(connectionId)
+    const accessToken = await getValidAccessToken(connectionId);
     if (!accessToken) {
-      console.warn('No valid access token for calendar connection:', connectionId)
-      return []
+      console.warn(
+        "No valid access token for calendar connection:",
+        connectionId,
+      );
+      return [];
     }
 
     const connection = await prisma.calendarConnection.findUnique({
-      where: { id: connectionId }
-    })
+      where: { id: connectionId },
+    });
 
     if (!connection) {
-      return []
+      return [];
     }
 
     // Default to primary calendar if no specific calendars provided
-    const calendarsToCheck = calendarIds || [connection.email]
+    const calendarsToCheck = calendarIds || [connection.email];
 
     const requestBody = {
       timeMin,
       timeMax,
-      items: calendarsToCheck.map(id => ({ id }))
-    }
+      items: calendarsToCheck.map((id) => ({ id })),
+    };
 
     const response = await fetch(`${CALENDAR_API_BASE}/freeBusy`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
-    })
+    });
 
     if (!response.ok) {
-      console.error('Failed to fetch busy times:', response.statusText)
-      return []
+      console.error("Failed to fetch busy times:", response.statusText);
+      return [];
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     // Flatten all busy periods from all calendars
-    const busyTimes: Array<{ start: string; end: string }> = []
+    const busyTimes: Array<{ start: string; end: string }> = [];
 
     for (const calendar of Object.values(data.calendars || {}) as any[]) {
       if (calendar.busy) {
         for (const period of calendar.busy) {
           busyTimes.push({
             start: period.start,
-            end: period.end
-          })
+            end: period.end,
+          });
         }
       }
     }
 
-    return busyTimes
+    return busyTimes;
   } catch (error) {
-    console.error('Error getting busy times:', error)
+    console.error("Error getting busy times:", error);
     // Return empty array on error - don't fail the booking
-    return []
+    return [];
   }
 }
 
@@ -179,44 +186,47 @@ export async function getBusyTimes(
 export async function createEvent(
   connectionId: string,
   event: {
-    summary: string
-    description?: string
-    start: { dateTime: string; timeZone: string }
-    end: { dateTime: string; timeZone: string }
-    attendees?: Array<{ email: string; displayName?: string }>
-    location?: string
+    summary: string;
+    description?: string;
+    start: { dateTime: string; timeZone: string };
+    end: { dateTime: string; timeZone: string };
+    attendees?: Array<{ email: string; displayName?: string }>;
+    location?: string;
   },
-  calendarId = 'primary'
+  calendarId = "primary",
 ): Promise<string | null> {
   try {
-    const accessToken = await getValidAccessToken(connectionId)
+    const accessToken = await getValidAccessToken(connectionId);
     if (!accessToken) {
-      console.warn('No valid access token for calendar connection:', connectionId)
-      return null
+      console.warn(
+        "No valid access token for calendar connection:",
+        connectionId,
+      );
+      return null;
     }
 
     const response = await fetch(
       `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(event),
-      }
-    )
+      },
+    );
 
     if (!response.ok) {
-      console.error('Failed to create calendar event:', response.statusText)
-      return null
+      console.error("Failed to create calendar event:", response.statusText);
+      return null;
     }
 
-    const data = await response.json()
-    return data.id
+    const data = await response.json();
+    return data.id;
   } catch (error) {
-    console.error('Error creating calendar event:', error)
-    return null
+    console.error("Error creating calendar event:", error);
+    return null;
   }
 }
 
@@ -227,43 +237,46 @@ export async function updateEvent(
   connectionId: string,
   eventId: string,
   event: {
-    summary?: string
-    description?: string
-    start?: { dateTime: string; timeZone: string }
-    end?: { dateTime: string; timeZone: string }
-    attendees?: Array<{ email: string; displayName?: string }>
-    location?: string
+    summary?: string;
+    description?: string;
+    start?: { dateTime: string; timeZone: string };
+    end?: { dateTime: string; timeZone: string };
+    attendees?: Array<{ email: string; displayName?: string }>;
+    location?: string;
   },
-  calendarId = 'primary'
+  calendarId = "primary",
 ): Promise<boolean> {
   try {
-    const accessToken = await getValidAccessToken(connectionId)
+    const accessToken = await getValidAccessToken(connectionId);
     if (!accessToken) {
-      console.warn('No valid access token for calendar connection:', connectionId)
-      return false
+      console.warn(
+        "No valid access token for calendar connection:",
+        connectionId,
+      );
+      return false;
     }
 
     const response = await fetch(
       `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
       {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(event),
-      }
-    )
+      },
+    );
 
     if (!response.ok) {
-      console.error('Failed to update calendar event:', response.statusText)
-      return false
+      console.error("Failed to update calendar event:", response.statusText);
+      return false;
     }
 
-    return true
+    return true;
   } catch (error) {
-    console.error('Error updating calendar event:', error)
-    return false
+    console.error("Error updating calendar event:", error);
+    return false;
   }
 }
 
@@ -273,94 +286,105 @@ export async function updateEvent(
 export async function deleteEvent(
   connectionId: string,
   eventId: string,
-  calendarId = 'primary'
+  calendarId = "primary",
 ): Promise<boolean> {
   try {
-    const accessToken = await getValidAccessToken(connectionId)
+    const accessToken = await getValidAccessToken(connectionId);
     if (!accessToken) {
-      console.warn('No valid access token for calendar connection:', connectionId)
-      return false
+      console.warn(
+        "No valid access token for calendar connection:",
+        connectionId,
+      );
+      return false;
     }
 
     const response = await fetch(
       `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
       {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
-      }
-    )
+      },
+    );
 
     if (!response.ok && response.status !== 404) {
-      console.error('Failed to delete calendar event:', response.statusText)
-      return false
+      console.error("Failed to delete calendar event:", response.statusText);
+      return false;
     }
 
     // 404 is OK - event doesn't exist (maybe already deleted)
-    return true
+    return true;
   } catch (error) {
-    console.error('Error deleting calendar event:', error)
-    return false
+    console.error("Error deleting calendar event:", error);
+    return false;
   }
 }
 
 /**
  * Get user's calendars
  */
-export async function getCalendars(connectionId: string): Promise<Array<{
-  id: string
-  summary: string
-  primary?: boolean
-  accessRole: string
-}>> {
+export async function getCalendars(connectionId: string): Promise<
+  Array<{
+    id: string;
+    summary: string;
+    primary?: boolean;
+    accessRole: string;
+  }>
+> {
   try {
-    const accessToken = await getValidAccessToken(connectionId)
+    const accessToken = await getValidAccessToken(connectionId);
     if (!accessToken) {
-      console.warn('No valid access token for calendar connection:', connectionId)
-      return []
+      console.warn(
+        "No valid access token for calendar connection:",
+        connectionId,
+      );
+      return [];
     }
 
     const response = await fetch(`${CALENDAR_API_BASE}/users/me/calendarList`, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
-    })
+    });
 
     if (!response.ok) {
-      console.error('Failed to fetch calendars:', response.statusText)
-      return []
+      console.error("Failed to fetch calendars:", response.statusText);
+      return [];
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     return (data.items || []).map((cal: any) => ({
       id: cal.id,
       summary: cal.summary,
       primary: cal.primary,
-      accessRole: cal.accessRole
-    }))
+      accessRole: cal.accessRole,
+    }));
   } catch (error) {
-    console.error('Error getting calendars:', error)
-    return []
+    console.error("Error getting calendars:", error);
+    return [];
   }
 }
 
 /**
  * Helper function to build Google OAuth URL
  */
-export function buildGoogleAuthUrl(redirectUri: string, state?: string): string {
+export function buildGoogleAuthUrl(
+  redirectUri: string,
+  state?: string,
+): string {
   const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID || '',
+    client_id: process.env.GOOGLE_CLIENT_ID || "",
     redirect_uri: redirectUri,
-    response_type: 'code',
+    response_type: "code",
     scope: GOOGLE_CALENDAR_SCOPES,
-    access_type: 'offline',
-    prompt: 'consent', // Force consent to get refresh token
-    ...(state && { state })
-  })
+    access_type: "offline",
+    prompt: "consent", // Force consent to get refresh token
+    ...(state && { state }),
+  });
 
-  return `${GOOGLE_OAUTH_URL}?${params.toString()}`
+  return `${GOOGLE_OAUTH_URL}?${params.toString()}`;
 }
 
 /**
@@ -368,45 +392,45 @@ export function buildGoogleAuthUrl(redirectUri: string, state?: string): string 
  */
 export async function exchangeCodeForTokens(
   code: string,
-  redirectUri: string
+  redirectUri: string,
 ): Promise<{
-  access_token: string
-  refresh_token?: string
-  expires_in: number
-  scope: string
-  token_type: string
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  scope: string;
+  token_type: string;
 } | null> {
   try {
     const response = await fetch(GOOGLE_TOKEN_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID || '',
-        client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
+        client_id: process.env.GOOGLE_CLIENT_ID || "",
+        client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
         code,
-        grant_type: 'authorization_code',
+        grant_type: "authorization_code",
         redirect_uri: redirectUri,
       }),
-    })
+    });
 
     if (!response.ok) {
-      console.error('Failed to exchange code for tokens:', response.statusText)
-      return null
+      console.error("Failed to exchange code for tokens:", response.statusText);
+      return null;
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.error) {
-      console.error('Error exchanging code for tokens:', data.error)
-      return null
+      console.error("Error exchanging code for tokens:", data.error);
+      return null;
     }
 
-    return data
+    return data;
   } catch (error) {
-    console.error('Error exchanging code for tokens:', error)
-    return null
+    console.error("Error exchanging code for tokens:", error);
+    return null;
   }
 }
 
@@ -414,34 +438,34 @@ export async function exchangeCodeForTokens(
  * Get user info from Google
  */
 export async function getGoogleUserInfo(accessToken: string): Promise<{
-  email: string
-  name?: string
-  picture?: string
+  email: string;
+  name?: string;
+  picture?: string;
 } | null> {
   try {
     const response = await fetch(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
+      "https://www.googleapis.com/oauth2/v2/userinfo",
       {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
-      }
-    )
+      },
+    );
 
     if (!response.ok) {
-      console.error('Failed to get Google user info:', response.statusText)
-      return null
+      console.error("Failed to get Google user info:", response.statusText);
+      return null;
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     return {
       email: data.email,
       name: data.name,
-      picture: data.picture
-    }
+      picture: data.picture,
+    };
   } catch (error) {
-    console.error('Error getting Google user info:', error)
-    return null
+    console.error("Error getting Google user info:", error);
+    return null;
   }
 }

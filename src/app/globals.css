@@ -63,7 +63,9 @@
   --color-popover-foreground: var(--color-gray-900);
 
   --font-family-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-family-mono:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
 
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -79,8 +81,10 @@
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
 body {
@@ -97,8 +101,16 @@ body {
 }
 
 /* Smooth transitions */
-*, *::before, *::after {
-  transition: color 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out, opacity 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out;
+*,
+*::before,
+*::after {
+  transition:
+    color 150ms ease-out,
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    opacity 150ms ease-out,
+    transform 150ms ease-out,
+    box-shadow 150ms ease-out;
 }
 
 /* Focus styles */
@@ -119,6 +131,11 @@ body {
 
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(110deg, var(--color-muted) 8%, var(--color-gray-200) 18%, var(--color-muted) 33%);
+  background: linear-gradient(
+    110deg,
+    var(--color-muted) 8%,
+    var(--color-gray-200) 18%,
+    var(--color-muted) 33%
+  );
   background-size: 200px 100%;
 }

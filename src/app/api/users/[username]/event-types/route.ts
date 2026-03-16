@@ -1,34 +1,34 @@
 // Public user event types endpoint
 // GET /api/users/[username]/event-types - Get user's public event types
 
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: Promise<{ username: string }> },
 ) {
   try {
-    const { username } = await params
+    const { username } = await params;
 
     // Find user first
     const user = await prisma.user.findUnique({
       where: { username },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'not_found', message: 'User not found' },
-        { status: 404 }
-      )
+        { error: "not_found", message: "User not found" },
+        { status: 404 },
+      );
     }
 
     // Get user's active event types (public information only)
     const eventTypes = await prisma.eventType.findMany({
       where: {
         userId: user.id,
-        isActive: true
+        isActive: true,
       },
       select: {
         id: true,
@@ -55,8 +55,8 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            timezone: true
-          }
+            timezone: true,
+          },
         },
         // Include booking count for popularity
         _count: {
@@ -64,36 +64,33 @@ export async function GET(
             bookings: {
               where: {
                 status: {
-                  in: ['ACCEPTED', 'PENDING']
-                }
-              }
-            }
-          }
-        }
+                  in: ["ACCEPTED", "PENDING"],
+                },
+              },
+            },
+          },
+        },
       },
-      orderBy: [
-        { createdAt: 'desc' }
-      ]
-    })
+      orderBy: [{ createdAt: "desc" }],
+    });
 
     // Format response with JSON parsing for customQuestions
-    const formattedEventTypes = eventTypes.map(eventType => ({
+    const formattedEventTypes = eventTypes.map((eventType) => ({
       ...eventType,
       customQuestions: eventType.customQuestions
         ? JSON.parse(eventType.customQuestions as string)
         : [],
-      bookingCount: eventType._count.bookings
-    }))
+      bookingCount: eventType._count.bookings,
+    }));
 
     return NextResponse.json({
-      eventTypes: formattedEventTypes
-    })
-
+      eventTypes: formattedEventTypes,
+    });
   } catch (error) {
-    console.error('Error fetching public event types:', error)
+    console.error("Error fetching public event types:", error);
     return NextResponse.json(
-      { error: 'internal', message: 'Failed to fetch event types' },
-      { status: 500 }
-    )
+      { error: "internal", message: "Failed to fetch event types" },
+      { status: 500 },
+    );
   }
 }

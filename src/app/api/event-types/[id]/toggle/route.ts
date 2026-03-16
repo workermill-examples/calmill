@@ -1,40 +1,40 @@
 // Event Type Toggle API - Toggle active status
 // PATCH: Toggle isActive status of an event type
 
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Check authentication
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      )
+        { error: "unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
     }
 
     // Await params for Next.js 16 compatibility
-    const { id } = await params
+    const { id } = await params;
 
     // Check if event type exists and belongs to user
     const eventType = await prisma.eventType.findFirst({
       where: {
         id,
-        userId: session.user.id
-      }
-    })
+        userId: session.user.id,
+      },
+    });
 
     if (!eventType) {
       return NextResponse.json(
-        { error: 'not_found', message: 'Event type not found' },
-        { status: 404 }
-      )
+        { error: "not_found", message: "Event type not found" },
+        { status: 404 },
+      );
     }
 
     // If deactivating, check for active bookings
@@ -43,23 +43,23 @@ export async function PATCH(
         where: {
           eventTypeId: id,
           status: {
-            in: ['PENDING', 'ACCEPTED']
+            in: ["PENDING", "ACCEPTED"],
           },
           startTime: {
-            gte: new Date()
-          }
-        }
-      })
+            gte: new Date(),
+          },
+        },
+      });
 
       if (activeBookings > 0) {
         return NextResponse.json(
           {
-            error: 'conflict',
+            error: "conflict",
             message: `Cannot deactivate event type with ${activeBookings} active or future bookings`,
-            details: { activeBookings }
+            details: { activeBookings },
           },
-          { status: 409 }
-        )
+          { status: 409 },
+        );
       }
     }
 
@@ -67,29 +67,29 @@ export async function PATCH(
     const updatedEventType = await prisma.eventType.update({
       where: { id },
       data: {
-        isActive: !eventType.isActive
+        isActive: !eventType.isActive,
       },
       include: {
         schedule: {
           select: {
             id: true,
             name: true,
-            timezone: true
-          }
+            timezone: true,
+          },
         },
         _count: {
           select: {
             bookings: {
               where: {
                 status: {
-                  notIn: ['CANCELLED', 'REJECTED']
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+                  notIn: ["CANCELLED", "REJECTED"],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
       eventType: {
@@ -97,16 +97,18 @@ export async function PATCH(
         bookingCount: updatedEventType._count.bookings,
         customQuestions: updatedEventType.customQuestions
           ? JSON.parse(updatedEventType.customQuestions as string)
-          : null
+          : null,
       },
-      message: `Event type ${updatedEventType.isActive ? 'activated' : 'deactivated'} successfully`
-    })
-
+      message: `Event type ${updatedEventType.isActive ? "activated" : "deactivated"} successfully`,
+    });
   } catch (error) {
-    console.error('Error toggling event type status:', error)
+    console.error("Error toggling event type status:", error);
     return NextResponse.json(
-      { error: 'internal_server_error', message: 'Failed to toggle event type status' },
-      { status: 500 }
-    )
+      {
+        error: "internal_server_error",
+        message: "Failed to toggle event type status",
+      },
+      { status: 500 },
+    );
   }
 }

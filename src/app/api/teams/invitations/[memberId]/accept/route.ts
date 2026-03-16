@@ -1,29 +1,32 @@
 // Accept Team Invitation API
 // POST: Accept a pending team invitation
 
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ memberId: string }> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ memberId: string }> },
+) {
   try {
     // Check authentication
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      )
+        { error: "unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
     }
 
-    const { memberId } = await params
+    const { memberId } = await params;
 
     // Find the pending invitation
     const invitation = await prisma.teamMember.findFirst({
       where: {
         id: memberId,
         userId: session.user.id,
-        accepted: false
+        accepted: false,
       },
       include: {
         team: {
@@ -31,26 +34,29 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             id: true,
             name: true,
             slug: true,
-            logoUrl: true
-          }
-        }
-      }
-    })
+            logoUrl: true,
+          },
+        },
+      },
+    });
 
     if (!invitation) {
       return NextResponse.json(
-        { error: 'not_found', message: 'Invitation not found or already processed' },
-        { status: 404 }
-      )
+        {
+          error: "not_found",
+          message: "Invitation not found or already processed",
+        },
+        { status: 404 },
+      );
     }
 
     // Accept the invitation
     const acceptedMembership = await prisma.teamMember.update({
       where: {
-        id: memberId
+        id: memberId,
       },
       data: {
-        accepted: true
+        accepted: true,
       },
       include: {
         team: {
@@ -64,24 +70,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               select: {
                 members: {
                   where: {
-                    accepted: true
-                  }
+                    accepted: true,
+                  },
                 },
-                eventTypes: true
-              }
-            }
-          }
+                eventTypes: true,
+              },
+            },
+          },
         },
         user: {
           select: {
             id: true,
             name: true,
             email: true,
-            username: true
-          }
-        }
-      }
-    })
+            username: true,
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
       membership: {
@@ -92,17 +98,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         team: {
           ...acceptedMembership.team,
           memberCount: acceptedMembership.team._count.members,
-          eventTypeCount: acceptedMembership.team._count.eventTypes
-        }
+          eventTypeCount: acceptedMembership.team._count.eventTypes,
+        },
       },
-      message: `Successfully joined team "${acceptedMembership.team.name}"`
-    })
-
+      message: `Successfully joined team "${acceptedMembership.team.name}"`,
+    });
   } catch (error) {
-    console.error('Error accepting team invitation:', error)
+    console.error("Error accepting team invitation:", error);
     return NextResponse.json(
-      { error: 'internal_server_error', message: 'Failed to accept team invitation' },
-      { status: 500 }
-    )
+      {
+        error: "internal_server_error",
+        message: "Failed to accept team invitation",
+      },
+      { status: 500 },
+    );
   }
 }

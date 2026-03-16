@@ -19,7 +19,7 @@ export interface ICSEvent {
     email: string;
   }>;
   url?: string;
-  status?: 'TENTATIVE' | 'CONFIRMED' | 'CANCELLED';
+  status?: "TENTATIVE" | "CONFIRMED" | "CANCELLED";
   sequence?: number;
 }
 
@@ -28,10 +28,10 @@ export interface ICSEvent {
  */
 function escapeICSText(text: string): string {
   return text
-    .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,')
-    .replace(/\r?\n/g, '\\n');
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n");
 }
 
 /**
@@ -39,11 +39,11 @@ function escapeICSText(text: string): string {
  */
 function formatICSDate(date: Date): string {
   const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const hour = String(date.getUTCHours()).padStart(2, '0');
-  const minute = String(date.getUTCMinutes()).padStart(2, '0');
-  const second = String(date.getUTCSeconds()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const hour = String(date.getUTCHours()).padStart(2, "0");
+  const minute = String(date.getUTCMinutes()).padStart(2, "0");
+  const second = String(date.getUTCSeconds()).padStart(2, "0");
 
   return `${year}${month}${day}T${hour}${minute}${second}Z`;
 }
@@ -61,14 +61,14 @@ function foldLine(line: string): string {
 
   while (currentLine.length > 75) {
     lines.push(currentLine.substring(0, 75));
-    currentLine = ' ' + currentLine.substring(75); // Continuation lines start with space
+    currentLine = " " + currentLine.substring(75); // Continuation lines start with space
   }
 
   if (currentLine.length > 0) {
     lines.push(currentLine);
   }
 
-  return lines.join('\r\n');
+  return lines.join("\r\n");
 }
 
 /**
@@ -79,14 +79,14 @@ export function generateICS(event: ICSEvent): string {
   const lines: string[] = [];
 
   // Calendar header
-  lines.push('BEGIN:VCALENDAR');
-  lines.push('VERSION:2.0');
-  lines.push('PRODID:-//CalMill//CalMill Calendar//EN');
-  lines.push('CALSCALE:GREGORIAN');
-  lines.push('METHOD:PUBLISH');
+  lines.push("BEGIN:VCALENDAR");
+  lines.push("VERSION:2.0");
+  lines.push("PRODID:-//CalMill//CalMill Calendar//EN");
+  lines.push("CALSCALE:GREGORIAN");
+  lines.push("METHOD:PUBLISH");
 
   // Event
-  lines.push('BEGIN:VEVENT');
+  lines.push("BEGIN:VEVENT");
 
   // Required fields
   lines.push(`UID:${event.uid}@calmill.workermill.com`);
@@ -105,12 +105,16 @@ export function generateICS(event: ICSEvent): string {
   }
 
   if (event.organizer) {
-    lines.push(`ORGANIZER;CN=${escapeICSText(event.organizer.name)}:mailto:${event.organizer.email}`);
+    lines.push(
+      `ORGANIZER;CN=${escapeICSText(event.organizer.name)}:mailto:${event.organizer.email}`,
+    );
   }
 
   if (event.attendees && event.attendees.length > 0) {
-    event.attendees.forEach(attendee => {
-      lines.push(`ATTENDEE;CN=${escapeICSText(attendee.name)};ROLE=REQ-PARTICIPANT:mailto:${attendee.email}`);
+    event.attendees.forEach((attendee) => {
+      lines.push(
+        `ATTENDEE;CN=${escapeICSText(attendee.name)};ROLE=REQ-PARTICIPANT:mailto:${attendee.email}`,
+      );
     });
   }
 
@@ -128,17 +132,17 @@ export function generateICS(event: ICSEvent): string {
 
   // Default status if not provided
   if (!event.status) {
-    lines.push('STATUS:CONFIRMED');
+    lines.push("STATUS:CONFIRMED");
   }
 
   // End event
-  lines.push('END:VEVENT');
+  lines.push("END:VEVENT");
 
   // End calendar
-  lines.push('END:VCALENDAR');
+  lines.push("END:VCALENDAR");
 
   // Fold lines and join with CRLF
-  return lines.map(foldLine).join('\r\n');
+  return lines.map(foldLine).join("\r\n");
 }
 
 /**
@@ -147,8 +151,8 @@ export function generateICS(event: ICSEvent): string {
 export function generateMultiEventICS(events: ICSEvent[]): string {
   if (events.length === 0) {
     return generateICS({
-      uid: 'empty',
-      title: 'No Events',
+      uid: "empty",
+      title: "No Events",
       startTime: new Date(),
       endTime: new Date(),
     });
@@ -162,15 +166,15 @@ export function generateMultiEventICS(events: ICSEvent[]): string {
   const lines: string[] = [];
 
   // Calendar header
-  lines.push('BEGIN:VCALENDAR');
-  lines.push('VERSION:2.0');
-  lines.push('PRODID:-//CalMill//CalMill Calendar//EN');
-  lines.push('CALSCALE:GREGORIAN');
-  lines.push('METHOD:PUBLISH');
+  lines.push("BEGIN:VCALENDAR");
+  lines.push("VERSION:2.0");
+  lines.push("PRODID:-//CalMill//CalMill Calendar//EN");
+  lines.push("CALSCALE:GREGORIAN");
+  lines.push("METHOD:PUBLISH");
 
   // Add each event
-  events.forEach(event => {
-    lines.push('BEGIN:VEVENT');
+  events.forEach((event) => {
+    lines.push("BEGIN:VEVENT");
 
     // Required fields
     lines.push(`UID:${event.uid}@calmill.workermill.com`);
@@ -189,12 +193,16 @@ export function generateMultiEventICS(events: ICSEvent[]): string {
     }
 
     if (event.organizer) {
-      lines.push(`ORGANIZER;CN=${escapeICSText(event.organizer.name)}:mailto:${event.organizer.email}`);
+      lines.push(
+        `ORGANIZER;CN=${escapeICSText(event.organizer.name)}:mailto:${event.organizer.email}`,
+      );
     }
 
     if (event.attendees && event.attendees.length > 0) {
-      event.attendees.forEach(attendee => {
-        lines.push(`ATTENDEE;CN=${escapeICSText(attendee.name)};ROLE=REQ-PARTICIPANT:mailto:${attendee.email}`);
+      event.attendees.forEach((attendee) => {
+        lines.push(
+          `ATTENDEE;CN=${escapeICSText(attendee.name)};ROLE=REQ-PARTICIPANT:mailto:${attendee.email}`,
+        );
       });
     }
 
@@ -205,21 +213,21 @@ export function generateMultiEventICS(events: ICSEvent[]): string {
     if (event.status) {
       lines.push(`STATUS:${event.status}`);
     } else {
-      lines.push('STATUS:CONFIRMED');
+      lines.push("STATUS:CONFIRMED");
     }
 
     if (event.sequence !== undefined) {
       lines.push(`SEQUENCE:${event.sequence}`);
     }
 
-    lines.push('END:VEVENT');
+    lines.push("END:VEVENT");
   });
 
   // End calendar
-  lines.push('END:VCALENDAR');
+  lines.push("END:VCALENDAR");
 
   // Fold lines and join with CRLF
-  return lines.map(foldLine).join('\r\n');
+  return lines.map(foldLine).join("\r\n");
 }
 
 /**
@@ -238,7 +246,7 @@ export function createBookingICS(booking: {
   hostEmail: string;
   description?: string;
 }): string {
-  let description = booking.description || '';
+  let description = booking.description || "";
 
   // Add meeting details to description
   if (booking.meetingUrl) {
@@ -269,7 +277,7 @@ export function createBookingICS(booking: {
       },
     ],
     url: booking.meetingUrl,
-    status: 'CONFIRMED',
+    status: "CONFIRMED",
   };
 
   return generateICS(event);
@@ -281,12 +289,12 @@ export function createBookingICS(booking: {
 export function createICSFilename(title: string, date: Date): string {
   // Sanitize title for filename
   const sanitizedTitle = title
-    .replace(/[^a-zA-Z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
     .toLowerCase();
 
   // Format date as YYYY-MM-DD
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = date.toISOString().split("T")[0];
 
   return `${sanitizedTitle}-${dateStr}.ics`;
 }
@@ -295,7 +303,7 @@ export function createICSFilename(title: string, date: Date): string {
  * Get MIME type for ICS files
  */
 export function getICSMimeType(): string {
-  return 'text/calendar; charset=utf-8';
+  return "text/calendar; charset=utf-8";
 }
 
 /**
@@ -303,10 +311,10 @@ export function getICSMimeType(): string {
  */
 export function createICSHeaders(filename: string): Record<string, string> {
   return {
-    'Content-Type': getICSMimeType(),
-    'Content-Disposition': `attachment; filename="${filename}"`,
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
+    "Content-Type": getICSMimeType(),
+    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
   };
 }

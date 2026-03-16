@@ -1,15 +1,15 @@
 // Public user profile endpoint
 // GET /api/users/[username] - Get public user profile by username
 
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: Promise<{ username: string }> },
 ) {
   try {
-    const { username } = await params
+    const { username } = await params;
 
     // Get user public profile data
     const user = await prisma.user.findUnique({
@@ -26,18 +26,18 @@ export async function GET(
         _count: {
           select: {
             eventTypes: {
-              where: { isActive: true }
-            }
-          }
-        }
-      }
-    })
+              where: { isActive: true },
+            },
+          },
+        },
+      },
+    });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'not_found', message: 'User not found' },
-        { status: 404 }
-      )
+        { error: "not_found", message: "User not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({
@@ -50,16 +50,15 @@ export async function GET(
         timezone: user.timezone,
         createdAt: user.createdAt,
         stats: {
-          eventTypes: user._count.eventTypes
-        }
-      }
-    })
-
+          eventTypes: user._count.eventTypes,
+        },
+      },
+    });
   } catch (error) {
-    console.error('Error fetching public user profile:', error)
+    console.error("Error fetching public user profile:", error);
     return NextResponse.json(
-      { error: 'internal', message: 'Failed to fetch user profile' },
-      { status: 500 }
-    )
+      { error: "internal", message: "Failed to fetch user profile" },
+      { status: 500 },
+    );
   }
 }

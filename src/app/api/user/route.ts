@@ -1,19 +1,19 @@
 // User profile endpoint
 // GET /api/user - Get current user profile
 
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      )
+        { error: "unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
     }
 
     // Get user profile data
@@ -38,27 +38,27 @@ export async function GET(request: NextRequest) {
             provider: true,
             email: true,
             isPrimary: true,
-            createdAt: true
-          }
+            createdAt: true,
+          },
         },
         // Include basic stats
         _count: {
           select: {
             eventTypes: {
-              where: { isActive: true }
+              where: { isActive: true },
             },
             bookings: true,
-            schedules: true
-          }
-        }
-      }
-    })
+            schedules: true,
+          },
+        },
+      },
+    });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'not_found', message: 'User not found' },
-        { status: 404 }
-      )
+        { error: "not_found", message: "User not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({
@@ -78,16 +78,15 @@ export async function GET(request: NextRequest) {
         stats: {
           eventTypes: user._count.eventTypes,
           totalBookings: user._count.bookings,
-          schedules: user._count.schedules
-        }
-      }
-    })
-
+          schedules: user._count.schedules,
+        },
+      },
+    });
   } catch (error) {
-    console.error('Error fetching user profile:', error)
+    console.error("Error fetching user profile:", error);
     return NextResponse.json(
-      { error: 'internal', message: 'Failed to fetch user profile' },
-      { status: 500 }
-    )
+      { error: "internal", message: "Failed to fetch user profile" },
+      { status: 500 },
+    );
   }
 }

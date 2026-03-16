@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 export interface EmailRecipient {
   email: string;
@@ -28,23 +28,37 @@ export interface EmailResult {
   error?: string;
 }
 
-// Initialize Resend client if API key is available
+// Initialize Resend client lazily
 let resend: Resend | null = null;
 
-if (process.env.RESEND_API_KEY) {
-  resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    resend = null; // Clear cache if no API key
+    return null;
+  }
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
 }
 
 /**
  * Send email via Resend with graceful degradation
  */
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
+  const resendClient = getResendClient();
+
   // If no Resend API key, log the email attempt but don't fail
-  if (!resend || !process.env.RESEND_API_KEY) {
-    console.log('📧 Email would be sent (no RESEND_API_KEY):', {
-      to: Array.isArray(options.to) ? options.to.map(r => r.email) : [options.to.email],
+  if (!resendClient) {
+    console.log("📧 Email would be sent (no RESEND_API_KEY):", {
+      to: Array.isArray(options.to)
+        ? options.to.map((r) => r.email)
+        : [options.to.email],
       subject: options.subject,
-      from: options.from || process.env.EMAIL_FROM || 'CalMill <noreply@calmill.workermill.com>',
+      from:
+        options.from ||
+        process.env.EMAIL_FROM ||
+        "CalMill <noreply@calmill.workermill.com>",
     });
 
     // Return success to not break the application flow
@@ -55,11 +69,16 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   }
 
   try {
-    const fromAddress = options.from || process.env.EMAIL_FROM || 'CalMill <noreply@calmill.workermill.com>';
+    const fromAddress =
+      options.from ||
+      process.env.EMAIL_FROM ||
+      "CalMill <noreply@calmill.workermill.com>";
 
     // Format recipients
     const formatRecipient = (recipient: EmailRecipient): string => {
-      return recipient.name ? `${recipient.name} <${recipient.email}>` : recipient.email;
+      return recipient.name
+        ? `${recipient.name} <${recipient.email}>`
+        : recipient.email;
     };
 
     const to = Array.isArray(options.to)
@@ -70,7 +89,7 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
     const bcc = options.bcc?.map(formatRecipient);
 
     // Prepare attachments if any
-    const attachments = options.attachments?.map(attachment => ({
+    const attachments = options.attachments?.map((attachment) => ({
       filename: attachment.filename,
       content: attachment.content,
       type: attachment.contentType,
@@ -88,13 +107,13 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
     if (bcc) emailData.bcc = bcc;
     if (attachments) emailData.attachments = attachments;
 
-    const response = await resend.emails.send(emailData);
+    const response = await resendClient.emails.send(emailData);
 
     if (response.error) {
-      console.error('Resend API error:', response.error);
+      console.error("Resend API error:", response.error);
       return {
         success: false,
-        error: response.error.message || 'Failed to send email',
+        error: response.error.message || "Failed to send email",
       };
     }
 
@@ -103,10 +122,10 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
       messageId: response.data?.id,
     };
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error("Email sending error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -116,8 +135,8 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
  */
 export function sendEmailAsync(options: EmailOptions): void {
   // Don't await - fire and forget
-  void sendEmail(options).catch(error => {
-    console.error('Async email sending failed:', error);
+  void sendEmail(options).catch((error) => {
+    console.error("Async email sending failed:", error);
   });
 }
 
@@ -139,20 +158,22 @@ export function sendBookingConfirmationEmail(data: {
   rescheduleUrl: string;
 }): void {
   const formatDateTime = (date: Date, timezone: string): string => {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short',
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
       timeZone: timezone,
     }).format(date);
   };
 
   const startTimeFormatted = formatDateTime(data.startTime, data.timezone);
-  const duration = Math.round((data.endTime.getTime() - data.startTime.getTime()) / (1000 * 60));
+  const duration = Math.round(
+    (data.endTime.getTime() - data.startTime.getTime()) / (1000 * 60),
+  );
 
   const html = `
     <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -174,8 +195,8 @@ export function sendBookingConfirmationEmail(data: {
         <p style="margin: 8px 0; color: #374151;"><strong>Date & Time:</strong> ${startTimeFormatted}</p>
         <p style="margin: 8px 0; color: #374151;"><strong>Duration:</strong> ${duration} minutes</p>
         <p style="margin: 8px 0; color: #374151;"><strong>Host:</strong> ${data.hostName}</p>
-        ${data.location ? `<p style="margin: 8px 0; color: #374151;"><strong>Location:</strong> ${data.location}</p>` : ''}
-        ${data.meetingUrl ? `<p style="margin: 8px 0; color: #374151;"><strong>Meeting URL:</strong> <a href="${data.meetingUrl}" style="color: #3b82f6;">${data.meetingUrl}</a></p>` : ''}
+        ${data.location ? `<p style="margin: 8px 0; color: #374151;"><strong>Location:</strong> ${data.location}</p>` : ""}
+        ${data.meetingUrl ? `<p style="margin: 8px 0; color: #374151;"><strong>Meeting URL:</strong> <a href="${data.meetingUrl}" style="color: #3b82f6;">${data.meetingUrl}</a></p>` : ""}
       </div>
 
       <div style="margin: 32px 0;">
@@ -205,8 +226,8 @@ Event Details:
 - Date & Time: ${startTimeFormatted}
 - Duration: ${duration} minutes
 - Host: ${data.hostName}
-${data.location ? `- Location: ${data.location}` : ''}
-${data.meetingUrl ? `- Meeting URL: ${data.meetingUrl}` : ''}
+${data.location ? `- Location: ${data.location}` : ""}
+${data.meetingUrl ? `- Meeting URL: ${data.meetingUrl}` : ""}
 
 To reschedule: ${data.rescheduleUrl}
 To cancel: ${data.cancelUrl}
@@ -242,20 +263,22 @@ export function sendBookingNotificationEmail(data: {
   rejectUrl?: string;
 }): void {
   const formatDateTime = (date: Date, timezone: string): string => {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short',
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
       timeZone: timezone,
     }).format(date);
   };
 
   const startTimeFormatted = formatDateTime(data.startTime, data.timezone);
-  const duration = Math.round((data.endTime.getTime() - data.startTime.getTime()) / (1000 * 60));
+  const duration = Math.round(
+    (data.endTime.getTime() - data.startTime.getTime()) / (1000 * 60),
+  );
 
   const html = `
     <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -277,12 +300,14 @@ export function sendBookingNotificationEmail(data: {
         <p style="margin: 8px 0; color: #374151;"><strong>Date & Time:</strong> ${startTimeFormatted}</p>
         <p style="margin: 8px 0; color: #374151;"><strong>Duration:</strong> ${duration} minutes</p>
         <p style="margin: 8px 0; color: #374151;"><strong>Attendee:</strong> ${data.attendeeName} (${data.attendeeEmail})</p>
-        ${data.location ? `<p style="margin: 8px 0; color: #374151;"><strong>Location:</strong> ${data.location}</p>` : ''}
-        ${data.meetingUrl ? `<p style="margin: 8px 0; color: #374151;"><strong>Meeting URL:</strong> <a href="${data.meetingUrl}" style="color: #3b82f6;">${data.meetingUrl}</a></p>` : ''}
-        ${data.attendeeNotes ? `<p style="margin: 8px 0; color: #374151;"><strong>Notes:</strong> ${data.attendeeNotes}</p>` : ''}
+        ${data.location ? `<p style="margin: 8px 0; color: #374151;"><strong>Location:</strong> ${data.location}</p>` : ""}
+        ${data.meetingUrl ? `<p style="margin: 8px 0; color: #374151;"><strong>Meeting URL:</strong> <a href="${data.meetingUrl}" style="color: #3b82f6;">${data.meetingUrl}</a></p>` : ""}
+        ${data.attendeeNotes ? `<p style="margin: 8px 0; color: #374151;"><strong>Notes:</strong> ${data.attendeeNotes}</p>` : ""}
       </div>
 
-      ${data.acceptUrl && data.rejectUrl ? `
+      ${
+        data.acceptUrl && data.rejectUrl
+          ? `
       <div style="margin: 32px 0;">
         <a href="${data.acceptUrl}" style="background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-right: 16px;">
           ✅ Accept
@@ -291,7 +316,9 @@ export function sendBookingNotificationEmail(data: {
           ❌ Reject
         </a>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
 
       <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
         This email was sent by CalMill.
@@ -311,11 +338,11 @@ Booking Details:
 - Date & Time: ${startTimeFormatted}
 - Duration: ${duration} minutes
 - Attendee: ${data.attendeeName} (${data.attendeeEmail})
-${data.location ? `- Location: ${data.location}` : ''}
-${data.meetingUrl ? `- Meeting URL: ${data.meetingUrl}` : ''}
-${data.attendeeNotes ? `- Notes: ${data.attendeeNotes}` : ''}
+${data.location ? `- Location: ${data.location}` : ""}
+${data.meetingUrl ? `- Meeting URL: ${data.meetingUrl}` : ""}
+${data.attendeeNotes ? `- Notes: ${data.attendeeNotes}` : ""}
 
-${data.acceptUrl && data.rejectUrl ? `To accept: ${data.acceptUrl}\nTo reject: ${data.rejectUrl}` : ''}
+${data.acceptUrl && data.rejectUrl ? `To accept: ${data.acceptUrl}\nTo reject: ${data.rejectUrl}` : ""}
 
 This email was sent by CalMill.
   `;
@@ -341,14 +368,14 @@ export function sendBookingCancellationEmail(data: {
   isHost: boolean;
 }): void {
   const formatDateTime = (date: Date, timezone: string): string => {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short',
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
       timeZone: timezone,
     }).format(date);
   };
@@ -376,7 +403,7 @@ export function sendBookingCancellationEmail(data: {
         <h2 style="color: #dc2626; margin: 0 0 16px 0; font-size: 18px;">Cancelled Event</h2>
         <p style="margin: 8px 0; color: #374151;"><strong>Event:</strong> ${data.eventTitle}</p>
         <p style="margin: 8px 0; color: #374151;"><strong>Date & Time:</strong> ${startTimeFormatted}</p>
-        ${data.cancellationReason ? `<p style="margin: 8px 0; color: #374151;"><strong>Reason:</strong> ${data.cancellationReason}</p>` : ''}
+        ${data.cancellationReason ? `<p style="margin: 8px 0; color: #374151;"><strong>Reason:</strong> ${data.cancellationReason}</p>` : ""}
       </div>
 
       <p style="color: #374151; font-size: 16px;">
@@ -399,7 +426,7 @@ The booking for ${data.eventTitle} has been cancelled.
 Cancelled Event:
 - Event: ${data.eventTitle}
 - Date & Time: ${startTimeFormatted}
-${data.cancellationReason ? `- Reason: ${data.cancellationReason}` : ''}
+${data.cancellationReason ? `- Reason: ${data.cancellationReason}` : ""}
 
 We apologize for any inconvenience this may cause.
 

@@ -2,21 +2,22 @@
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint on src/ |
-| `npm run typecheck` | Run TypeScript type checking |
-| `npm run test` | Run unit tests with Vitest |
-| `npm run test:e2e` | Run Playwright E2E tests |
-| `npm run db:push` | Push Prisma schema to database |
-| `npm run db:seed` | Seed database with demo data |
+| Command             | Description                    |
+| ------------------- | ------------------------------ |
+| `npm run dev`       | Start development server       |
+| `npm run build`     | Build for production           |
+| `npm run start`     | Start production server        |
+| `npm run lint`      | Run ESLint on src/             |
+| `npm run typecheck` | Run TypeScript type checking   |
+| `npm run test`      | Run unit tests with Vitest     |
+| `npm run test:e2e`  | Run Playwright E2E tests       |
+| `npm run db:push`   | Push Prisma schema to database |
+| `npm run db:seed`   | Seed database with demo data   |
 
 ## Critical Rules (MANDATORY)
 
 ### Technology Versions
+
 - **Prisma 7**: Import from `@/generated/prisma/client`, NOT `@prisma/client`
 - **TailwindCSS 4**: CSS-first config in `src/app/globals.css` `@theme {}` block, NO `tailwind.config.js`
 - **NextAuth v5**: JWT strategy, `bcryptjs` ^3.0.0 (NOT `bcrypt`)
@@ -25,17 +26,20 @@
 - **ESLint 9**: Flat config only in `eslint.config.mjs`, NO `.eslintrc.json`
 
 ### Database & ORM
+
 - Prisma 7 generates client outside `node_modules` via `output: "../src/generated/prisma"`
 - Connection config in `prisma.config.ts`, NOT in `schema.prisma`
 - Use `PrismaNeon` adapter from `@prisma/adapter-neon`
 - All unit tests mock Prisma completely via `vi.mock()` - NO real database
 
 ### Testing
+
 - Vitest config: `pool: "forks"`, `testTimeout: 30000`, `fileParallelism: false`
 - Unit tests NEVER touch real database - mock everything
 - All `useSearchParams()` / `usePathname()` wrapped in `<Suspense>`
 
 ### Quality Gates
+
 Always run before commit: `npm run lint && npm run typecheck && npm run build && npm run test`
 
 ## Schema Summary
