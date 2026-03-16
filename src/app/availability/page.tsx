@@ -756,12 +756,15 @@ function WeeklyScheduleGrid({
   useEffect(() => {
     // Only update if schedule changes from outside
     const timeout = setTimeout(() => {
-      if (JSON.stringify(availabilities) !== JSON.stringify(schedule.availabilities)) {
+      if (
+        JSON.stringify(availabilities) !==
+        JSON.stringify(schedule.availabilities)
+      ) {
         setAvailabilities(schedule.availabilities);
       }
     }, 0);
     return () => clearTimeout(timeout);
-  }, [schedule.availabilities]);
+  }, [schedule.availabilities, availabilities]);
 
   // Save changes with debouncing
   useEffect(() => {

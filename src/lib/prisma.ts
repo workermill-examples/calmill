@@ -1,53 +1,51 @@
 // PrismaClient singleton with PrismaNeon adapter for Prisma 7
-// Import from the generated client location as required by Prisma 7
 
-import { PrismaClient, Prisma } from "@/generated/prisma";
+import { PrismaClient } from "@/generated/prisma";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import { Pool, neonConfig } from "@neondatabase/serverless";
+import { neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 
-// Singleton pattern for PrismaClient
-declare global {
-  var cachedPrisma: PrismaClient | undefined;
-}
+// Node 24 has a built-in WebSocket that is INCOMPATIBLE with Neon.
+// Must use the ws npm package directly — no factory, no typeof checks.
+neonConfig.webSocketConstructor = ws;
 
-let prisma: PrismaClient;
-
-// Configure Neon for WebSocket usage
-neonConfig.webSocketConstructor = (
-  url: string,
-  protocols: string | string[] | undefined,
-) => {
-  // In Node.js environment, use ws
-  if (typeof WebSocket === "undefined") {
-    const WebSocket = require("ws");
-    return new WebSocket(url, protocols);
-  }
-  return new WebSocket(url, protocols);
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
 };
 
-if (process.env.NODE_ENV === "production") {
-  // In production, create a new instance with Neon adapter
-  const connectionString = process.env.DATABASE_URL!;
-  const adapter = new PrismaNeon({ connectionString });
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL || process.env.DIRECT_DATABASE_URL;
 
-  prisma = new PrismaClient({
-    adapter,
-    log: ["error"],
-  });
-} else {
-  // In development, use singleton pattern to avoid multiple instances
-  if (!global.cachedPrisma) {
-    const connectionString = process.env.DATABASE_URL!;
-    const adapter = new PrismaNeon({ connectionString });
-
-    global.cachedPrisma = new PrismaClient({
-      adapter,
-      log: ["query", "error"],
-    });
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL or DIRECT_DATABASE_URL must be set. " +
+      `DATABASE_URL is ${process.env.DATABASE_URL ? "set" : "MISSING"}, ` +
+      `DIRECT_DATABASE_URL is ${process.env.DIRECT_DATABASE_URL ? "set" : "MISSING"}`
+    );
   }
 
-  prisma = global.cachedPrisma;
+  // Pass config object to PrismaNeon — NOT a Pool instance.
+  // PrismaNeon creates its own Pool internally from the config.
+  const adapter = new PrismaNeon({ connectionString });
+
+  return new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+  });
 }
 
-export { prisma };
+// Lazy initialization via Proxy — defers Pool creation to first database call
+function getPrismaClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
+}
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    return (getPrismaClient() as any)[prop];
+  },
+});
+
 export default prisma;

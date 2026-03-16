@@ -202,10 +202,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
       newStartTime.setHours(hours, minutes, 0, 0);
 
       // Convert to UTC for the API
-      const utcStartTime = new TZDate(
-        newStartTime,
-        booking.attendeeTimezone,
-      );
+      const utcStartTime = new TZDate(newStartTime, booking.attendeeTimezone);
 
       const response = await fetch(`/api/bookings/${booking.uid}/reschedule`, {
         method: "PUT",
@@ -286,7 +283,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
               receive a confirmation email with the new details.
             </p>
             <div className="space-y-3">
-              <Button  className="w-full">
+              <Button className="w-full">
                 <Link href={`/booking/${newBookingUid}`}>
                   View Updated Booking
                 </Link>
@@ -313,7 +310,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
               Unable to Reschedule Booking
             </h1>
             <p className="text-gray-600 mb-6">{error}</p>
-            <Button  variant="outline">
+            <Button variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -337,7 +334,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
               This booking could not be found. Please check the link and try
               again.
             </p>
-            <Button  variant="outline">
+            <Button variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -362,7 +359,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
         <div className="space-y-6">
           {/* Navigation */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" >
+            <Button variant="ghost" size="sm">
               <Link
                 href={`/booking/${booking.uid}`}
                 className="flex items-center space-x-2"
@@ -596,7 +593,6 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                               type="button"
                               variant="outline"
                               className="w-full"
-                              
                               disabled={submitting}
                             >
                               <Link href={`/booking/${booking.uid}`}>

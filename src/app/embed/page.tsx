@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import {
@@ -74,16 +74,7 @@ function EmbedCodeGeneratorContent() {
   const [error, setError] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!session) {
-      redirect("/login");
-    }
-
-    fetchData();
-  }, [session, status]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -113,7 +104,16 @@ function EmbedCodeGeneratorContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEventType]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!session) {
+      redirect("/login");
+    }
+
+    fetchData();
+  }, [session, status, fetchData]);
 
   const generateEmbedCode = (type: "html" | "script" | "react") => {
     if (!user || !selectedEventType) return "";
@@ -308,7 +308,7 @@ export function CalMillEmbed() {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Configuration Panel */}
-          <div className="space-y-6">
+          <div className="space-y-6" data-testid="config-panel">
             {/* Event Type Selection */}
             <Card>
               <CardHeader>
@@ -324,12 +324,13 @@ export function CalMillEmbed() {
                     value={selectedEventType}
                     onValueChange={setSelectedEventType}
                     placeholder="Select an event type"
+                    data-testid="event-type-selector"
                     options={[
                       { value: "", label: "Select an event type" },
                       ...eventTypes.map((eventType) => ({
                         value: eventType.slug,
-                        label: `${eventType.title} (${eventType.duration} min)`
-                      }))
+                        label: `${eventType.title} (${eventType.duration} min)`,
+                      })),
                     ]}
                   />
                 </div>
@@ -341,9 +342,10 @@ export function CalMillEmbed() {
                     onValueChange={(value) =>
                       updateConfig({ mode: value as "inline" | "popup" })
                     }
+                    data-testid="embed-mode-selector"
                     options={[
                       { value: "inline", label: "Inline Widget" },
-                      { value: "popup", label: "Popup Button" }
+                      { value: "popup", label: "Popup Button" },
                     ]}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -490,7 +492,7 @@ export function CalMillEmbed() {
           </div>
 
           {/* Preview Panel */}
-          <div className="space-y-6">
+          <div className="space-y-6" data-testid="preview-panel">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">

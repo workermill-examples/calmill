@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -143,7 +143,7 @@ function BookingsPageContent() {
   }, [activeTab]);
 
   // Fetch bookings
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -193,10 +193,17 @@ function BookingsPageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    statusFilter,
+    startDateFilter,
+    endDateFilter,
+    eventTypeFilter,
+    attendeeEmailFilter,
+    currentPage,
+  ]);
 
   // Fetch event types for filter dropdown
-  const fetchEventTypes = async () => {
+  const fetchEventTypes = useCallback(async () => {
     try {
       const response = await fetch("/api/event-types");
       if (response.ok) {
@@ -206,19 +213,12 @@ function BookingsPageContent() {
     } catch (err) {
       console.error("Error fetching event types:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchBookings();
     fetchEventTypes();
-  }, [
-    activeTab,
-    eventTypeFilter,
-    attendeeEmailFilter,
-    startDateFilter,
-    endDateFilter,
-    currentPage,
-  ]);
+  }, [fetchBookings, fetchEventTypes]);
 
   const formatBookingTime = (
     startTime: string,

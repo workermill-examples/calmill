@@ -71,6 +71,7 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
     }, [loadingStatus, onLoadingStatusChange]);
 
     return loadingStatus === "loaded" ? (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         ref={ref}
         className={cn("aspect-square h-full w-full object-cover", className)}

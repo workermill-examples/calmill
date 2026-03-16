@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const demoUser = await prisma.user.upsert({
       where: { email: "demo@workermill.com" },
-      update: {},
+      update: { passwordHash: hashedPassword },
       create: {
         email: "demo@workermill.com",
         username: "demo",

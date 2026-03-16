@@ -194,9 +194,13 @@ class MockDateTimeFormat {
 
   constructor(locale: any, options: any) {
     // Validate timezone if provided
-    if (options && 'timeZone' in options) {
+    if (options && "timeZone" in options) {
       const invalidTimezones = ["Invalid/Timezone", "GMT+5", "America/Invalid"];
-      if (!options.timeZone || options.timeZone === "" || invalidTimezones.includes(options.timeZone)) {
+      if (
+        !options.timeZone ||
+        options.timeZone === "" ||
+        invalidTimezones.includes(options.timeZone)
+      ) {
         throw new RangeError("Invalid time zone specified");
       }
     }

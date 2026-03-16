@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/loading-skeleton";
@@ -50,8 +50,26 @@ export default function CalendarSettingsPage() {
   // Check if Google OAuth is configured
   const [googleConfigured, setGoogleConfigured] = useState(false);
 
+  // Check if Google OAuth is properly configured
+  const checkGoogleConfiguration = useCallback(async () => {
+    try {
+      const response = await fetch("/api/integrations/google/connect", {
+        credentials: "include",
+      });
+
+      if (response.status === 503) {
+        setGoogleConfigured(false);
+      } else {
+        setGoogleConfigured(true);
+      }
+    } catch (error) {
+      console.error("Error checking Google configuration:", error);
+      setGoogleConfigured(false);
+    }
+  }, []);
+
   // Load calendar connection status
-  const loadConnection = async () => {
+  const loadConnection = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -93,25 +111,7 @@ export default function CalendarSettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Check if Google OAuth is properly configured
-  const checkGoogleConfiguration = async () => {
-    try {
-      const response = await fetch("/api/integrations/google/connect", {
-        credentials: "include",
-      });
-
-      if (response.status === 503) {
-        setGoogleConfigured(false);
-      } else {
-        setGoogleConfigured(true);
-      }
-    } catch (error) {
-      console.error("Error checking Google configuration:", error);
-      setGoogleConfigured(false);
-    }
-  };
+  }, [checkGoogleConfiguration]);
 
   // Connect to Google Calendar
   const connectGoogle = async () => {
@@ -235,7 +235,7 @@ export default function CalendarSettingsPage() {
 
   useEffect(() => {
     loadConnection();
-  }, []);
+  }, [loadConnection]);
 
   // Handle OAuth callback
   useEffect(() => {
@@ -263,7 +263,7 @@ export default function CalendarSettingsPage() {
       // Clear URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [addToast]);
+  }, [addToast, loadConnection]);
 
   if (loading) {
     return (
@@ -481,7 +481,7 @@ export default function CalendarSettingsPage() {
                   description="No calendars were found in your Google account or you may not have the necessary permissions."
                   action={{
                     text: "Refresh Calendars",
-                    onClick: refreshCalendars
+                    onClick: refreshCalendars,
                   }}
                 />
               )}

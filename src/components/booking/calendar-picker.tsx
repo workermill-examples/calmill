@@ -197,7 +197,10 @@ export function CalendarPicker({
   }
 
   return (
-    <div className={cn("bg-card border rounded-lg shadow-sm", className)}>
+    <div
+      className={cn("bg-card border rounded-lg shadow-sm", className)}
+      data-testid="calendar-picker"
+    >
       <div className="p-4">
         <Calendar
           mode="single"

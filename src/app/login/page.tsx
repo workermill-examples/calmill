@@ -19,9 +19,10 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isDemo = searchParams.get("demo") === "true";
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: isDemo ? "demo@workermill.com" : "",
+    password: isDemo ? "demo1234" : "",
   });
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";

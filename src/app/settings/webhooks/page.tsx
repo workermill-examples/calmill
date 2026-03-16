@@ -583,7 +583,7 @@ export default function WebhooksPage() {
                   onClick: () => {
                     resetForm();
                     setIsCreateModalOpen(true);
-                  }
+                  },
                 }}
               />
             ) : (
