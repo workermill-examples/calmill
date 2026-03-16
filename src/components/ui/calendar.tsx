@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { addMonths, format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday, startOfWeek, endOfWeek } from "date-fns";
+import { addMonths, format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday, startOfWeek, endOfWeek, isAfter, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -10,6 +10,9 @@ export interface CalendarProps {
   selected?: Date | Date[];
   onSelect?: (date: Date | Date[] | undefined) => void;
   disabled?: (date: Date) => boolean;
+  availableDates?: Date[];
+  minDate?: Date;
+  maxDate?: Date;
   className?: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   showOutsideDays?: boolean;
@@ -24,6 +27,9 @@ const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(
     selected,
     onSelect,
     disabled,
+    availableDates = [],
+    minDate,
+    maxDate,
     weekStartsOn = 0,
     showOutsideDays = true,
     fixedWeeks = false,
@@ -72,8 +78,20 @@ const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(
       return false;
     }, [selected, mode]);
 
+    const isDayDisabled = React.useCallback((date: Date) => {
+      if (disabled?.(date)) return true;
+      if (minDate && isBefore(date, minDate)) return true;
+      if (maxDate && isAfter(date, maxDate)) return true;
+      return false;
+    }, [disabled, minDate, maxDate]);
+
+    const isDayAvailable = React.useCallback((date: Date) => {
+      if (availableDates.length === 0) return true;
+      return availableDates.some(availableDate => isSameDay(date, availableDate));
+    }, [availableDates]);
+
     const handleDateClick = React.useCallback((date: Date) => {
-      if (disabled?.(date)) return;
+      if (isDayDisabled(date) || !isDayAvailable(date)) return;
 
       if (mode === "single") {
         onSelect?.(date);
@@ -100,7 +118,7 @@ const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(
           }
         }
       }
-    }, [mode, selected, onSelect, disabled]);
+    }, [mode, selected, onSelect, isDayDisabled, isDayAvailable]);
 
     const navigateMonth = React.useCallback((direction: "prev" | "next") => {
       setMonth(current =>
@@ -118,45 +136,48 @@ const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(
       <div
         ref={ref}
         className={cn("p-3", className)}
+        role="application"
+        aria-label="Calendar"
         {...props}
       >
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => navigateMonth("prev")}
-            className="h-7 w-7 p-0"
+            aria-label="Previous month"
+            className="h-8 w-8 p-0"
           >
             <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="sr-only">Previous month</span>
           </Button>
 
-          <h2 className="font-semibold">
+          <h2 className="text-sm font-semibold text-foreground">
             {format(month, "MMMM yyyy")}
           </h2>
 
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => navigateMonth("next")}
-            className="h-7 w-7 p-0"
+            aria-label="Next month"
+            className="h-8 w-8 p-0"
           >
             <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            <span className="sr-only">Next month</span>
           </Button>
         </div>
 
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 gap-1 mt-4">
+        <div className="grid grid-cols-7 mb-2" role="row">
           {orderedWeekdays.map(weekday => (
             <div
               key={weekday}
-              className="flex h-8 items-center justify-center text-xs font-medium text-muted-foreground"
+              role="columnheader"
+              className="h-9 w-9 text-xs font-medium text-muted-foreground flex items-center justify-center"
             >
               {weekday}
             </div>
@@ -164,35 +185,64 @@ const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-1 mt-1">
+        <div className="grid grid-cols-7 gap-0" role="grid">
           {weeks.flat().map((date, index) => {
             const isOutsideMonth = !isSameMonth(date, month);
-            const isDisabled = disabled?.(date);
+            const isDisabled = isDayDisabled(date);
+            const isAvailable = isDayAvailable(date);
             const isSelectedDate = isSelected(date);
             const isTodayDate = isToday(date);
 
             if (isOutsideMonth && !showOutsideDays) {
-              return <div key={index} className="h-8" />;
+              return <div key={index} className="h-9 w-9" />;
             }
 
             return (
-              <Button
+              <button
                 key={index}
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-                  isOutsideMonth && "text-muted-foreground opacity-50",
-                  isSelectedDate && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                  isTodayDate && !isSelectedDate && "bg-accent text-accent-foreground",
-                  isDisabled && "text-muted-foreground opacity-50 cursor-not-allowed hover:bg-transparent"
-                )}
+                type="button"
+                role="gridcell"
+                aria-label={`${format(date, 'EEEE, MMMM do, yyyy')}`}
                 aria-selected={isSelectedDate}
-                disabled={isDisabled}
+                aria-disabled={isDisabled || !isAvailable}
+                disabled={isDisabled || !isAvailable}
                 onClick={() => handleDateClick(date)}
+                className={cn(
+                  "h-9 w-9 text-center text-sm relative flex items-center justify-center",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "transition-colors duration-150 rounded-md",
+
+                  // Base styles
+                  !isOutsideMonth ? "text-foreground" : "text-muted-foreground",
+
+                  // Hover states
+                  !isOutsideMonth && isAvailable && !isDisabled && "hover:bg-secondary hover:text-secondary-foreground",
+
+                  // Selected state
+                  isSelectedDate && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground shadow-sm",
+
+                  // Today indicator
+                  isTodayDate && !isSelectedDate && "bg-secondary text-secondary-foreground font-semibold",
+
+                  // Disabled/unavailable states
+                  (isDisabled || !isAvailable || isOutsideMonth) && "cursor-not-allowed opacity-50",
+
+                  // Available day highlighting
+                  isAvailable && !isOutsideMonth && !isSelectedDate && !isTodayDate && "hover:bg-blue-50"
+                )}
               >
                 {format(date, "d")}
-              </Button>
+
+                {/* Today indicator dot */}
+                {isTodayDate && !isSelectedDate && (
+                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+                )}
+
+                {/* Available day indicator */}
+                {isAvailable && !isOutsideMonth && !isSelectedDate && !isTodayDate && (
+                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full" />
+                )}
+              </button>
             );
           })}
         </div>
