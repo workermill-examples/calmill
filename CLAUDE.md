@@ -30,6 +30,12 @@
 - Prisma 7 generates client outside `node_modules` via `output: "../src/generated/prisma"`
 - Connection config in `prisma.config.ts`, NOT in `schema.prisma`
 - Use `PrismaNeon` adapter from `@prisma/adapter-neon`
+- **Neon WebSocket config (CRITICAL):** Node 24 has a built-in `WebSocket` that is INCOMPATIBLE with Neon. You MUST use the `ws` npm package. Set it as the class directly — NOT a factory function, NOT with `typeof WebSocket` checks:
+  ```typescript
+  import ws from "ws";
+  import { neonConfig } from "@neondatabase/serverless";
+  neonConfig.webSocketConstructor = ws;
+  ```
 - All unit tests mock Prisma completely via `vi.mock()` - NO real database
 
 ### Testing
