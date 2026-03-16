@@ -19,7 +19,8 @@ function AppShellContent({ children }: AppShellProps) {
     if (!session) return false;
 
     // Don't show sidebar for public pages
-    if (pathname === "/" || pathname === "/login" || pathname === "/signup") return false;
+    if (pathname === "/" || pathname === "/login" || pathname === "/signup")
+      return false;
 
     // Don't show sidebar for public booking pages
     if (pathname.startsWith("/booking/")) return false;
@@ -27,8 +28,15 @@ function AppShellContent({ children }: AppShellProps) {
     // Don't show sidebar for public user/team profiles
     if (pathname.match(/^\/[^\/]+$/) || pathname.match(/^\/[^\/]+\/[^\/]+$/)) {
       // Check if it's not a known authenticated route
-      const authenticatedRoutes = ["/dashboard", "/event-types", "/bookings", "/availability", "/teams", "/settings"];
-      if (!authenticatedRoutes.some(route => pathname.startsWith(route))) {
+      const authenticatedRoutes = [
+        "/dashboard",
+        "/event-types",
+        "/bookings",
+        "/availability",
+        "/teams",
+        "/settings",
+      ];
+      if (!authenticatedRoutes.some((route) => pathname.startsWith(route))) {
         return false;
       }
     }
@@ -48,31 +56,26 @@ function AppShellContent({ children }: AppShellProps) {
       <div className="flex h-screen bg-background">
         <Sidebar />
         <main className="flex-1 overflow-auto">
-          <div className="h-full">
-            {children}
-          </div>
+          <div className="h-full">{children}</div>
         </main>
       </div>
     );
   }
 
   // No sidebar layout for public pages, auth pages, and embed pages
-  return (
-    <div className="min-h-screen bg-background">
-      {children}
-    </div>
-  );
+  return <div className="min-h-screen bg-background">{children}</div>;
 }
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      }
+    >
       <AppShellContent>{children}</AppShellContent>
     </Suspense>
   );
 }
-

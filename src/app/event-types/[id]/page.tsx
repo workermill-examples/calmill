@@ -20,7 +20,7 @@ import {
   Calendar,
   CreditCard,
   FileText,
-  RotateCcw
+  RotateCcw,
 } from "lucide-react";
 import { z } from "zod";
 
@@ -82,9 +82,20 @@ const customQuestionSchema = z.object({
 
 const eventTypeSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
-  slug: z.string().min(1, "Slug is required").max(100).regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .max(100)
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug can only contain lowercase letters, numbers, and hyphens",
+    ),
   description: z.string().optional(),
-  duration: z.number().int().min(1, "Duration must be at least 1 minute").max(480, "Duration cannot exceed 8 hours"),
+  duration: z
+    .number()
+    .int()
+    .min(1, "Duration must be at least 1 minute")
+    .max(480, "Duration cannot exceed 8 hours"),
   isActive: z.boolean(),
   requiresConfirmation: z.boolean(),
   price: z.number().int().min(0).nullable(),
@@ -96,7 +107,9 @@ const eventTypeSchema = z.object({
   maxBookingsPerDay: z.number().int().min(1).nullable(),
   maxBookingsPerWeek: z.number().int().min(1).nullable(),
   futureLimit: z.number().int().min(1).nullable(),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex color"),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex color"),
   customQuestions: z.array(customQuestionSchema).nullable(),
   recurringEnabled: z.boolean(),
   recurringFrequency: z.enum(["weekly", "biweekly", "monthly"]).nullable(),
@@ -116,46 +129,51 @@ function EventTypeEditorContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("general");
   const [hasChanges, setHasChanges] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
 
   // Debounced auto-save
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  const debouncedSave = useCallback((data: Partial<EventType>) => {
-    if (saveTimeout) {
-      clearTimeout(saveTimeout);
-    }
-
-    const timeout = setTimeout(async () => {
-      if (hasChanges && eventType) {
-        try {
-          setSaving(true);
-          const response = await fetch(`/api/event-types/${eventTypeId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to save changes');
-          }
-
-          setHasChanges(false);
-          setValidationErrors({});
-        } catch (err) {
-          console.error('Auto-save error:', err);
-          // Don't show error notification for auto-save failures
-        } finally {
-          setSaving(false);
-        }
+  const debouncedSave = useCallback(
+    (data: Partial<EventType>) => {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
       }
-    }, 2000); // 2 second debounce
 
-    setSaveTimeout(timeout);
-  }, [eventTypeId, hasChanges, eventType, saveTimeout]);
+      const timeout = setTimeout(async () => {
+        if (hasChanges && eventType) {
+          try {
+            setSaving(true);
+            const response = await fetch(`/api/event-types/${eventTypeId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || "Failed to save changes");
+            }
+
+            setHasChanges(false);
+            setValidationErrors({});
+          } catch (err) {
+            console.error("Auto-save error:", err);
+            // Don't show error notification for auto-save failures
+          } finally {
+            setSaving(false);
+          }
+        }
+      }, 2000); // 2 second debounce
+
+      setSaveTimeout(timeout);
+    },
+    [eventTypeId, hasChanges, eventType, saveTimeout],
+  );
 
   // Fetch data
   useEffect(() => {
@@ -167,17 +185,17 @@ function EventTypeEditorContent() {
         // Fetch event type and schedules in parallel
         const [eventTypeResponse, schedulesResponse] = await Promise.all([
           fetch(`/api/event-types/${eventTypeId}`),
-          fetch('/api/schedules')
+          fetch("/api/schedules"),
         ]);
 
         if (!eventTypeResponse.ok) {
           const errorData = await eventTypeResponse.json();
-          throw new Error(errorData.message || 'Failed to fetch event type');
+          throw new Error(errorData.message || "Failed to fetch event type");
         }
 
         if (!schedulesResponse.ok) {
           const errorData = await schedulesResponse.json();
-          throw new Error(errorData.message || 'Failed to fetch schedules');
+          throw new Error(errorData.message || "Failed to fetch schedules");
         }
 
         const eventTypeData = await eventTypeResponse.json();
@@ -186,8 +204,8 @@ function EventTypeEditorContent() {
         setEventType(eventTypeData.eventType);
         setSchedules(schedulesData.schedules);
       } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load data');
+        console.error("Error fetching data:", err);
+        setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
         setLoading(false);
       }
@@ -199,14 +217,17 @@ function EventTypeEditorContent() {
   }, [eventTypeId]);
 
   // Update event type with auto-save
-  const updateEventType = useCallback((updates: Partial<EventType>) => {
-    if (!eventType) return;
+  const updateEventType = useCallback(
+    (updates: Partial<EventType>) => {
+      if (!eventType) return;
 
-    const updatedEventType = { ...eventType, ...updates };
-    setEventType(updatedEventType);
-    setHasChanges(true);
-    debouncedSave(updatedEventType);
-  }, [eventType, debouncedSave]);
+      const updatedEventType = { ...eventType, ...updates };
+      setEventType(updatedEventType);
+      setHasChanges(true);
+      debouncedSave(updatedEventType);
+    },
+    [eventType, debouncedSave],
+  );
 
   // Manual save
   const handleSave = async () => {
@@ -221,7 +242,7 @@ function EventTypeEditorContent() {
       if (!validationResult.success) {
         const errors: Record<string, string> = {};
         validationResult.error.issues.forEach((issue) => {
-          const path = issue.path.join('.');
+          const path = issue.path.join(".");
           errors[path] = issue.message;
         });
         setValidationErrors(errors);
@@ -229,16 +250,16 @@ function EventTypeEditorContent() {
       }
 
       const response = await fetch(`/api/event-types/${eventTypeId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(eventType),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save changes');
+        throw new Error(errorData.message || "Failed to save changes");
       }
 
       const data = await response.json();
@@ -249,14 +270,14 @@ function EventTypeEditorContent() {
       const button = document.activeElement as HTMLButtonElement;
       if (button) {
         const originalText = button.textContent;
-        button.textContent = 'Saved!';
+        button.textContent = "Saved!";
         setTimeout(() => {
           button.textContent = originalText;
         }, 2000);
       }
     } catch (err) {
-      console.error('Save error:', err);
-      alert(err instanceof Error ? err.message : 'Failed to save changes');
+      console.error("Save error:", err);
+      alert(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
       setSaving(false);
     }
@@ -264,24 +285,28 @@ function EventTypeEditorContent() {
 
   // Delete event type
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this event type? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this event type? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
     try {
       const response = await fetch(`/api/event-types/${eventTypeId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete event type');
+        throw new Error(errorData.message || "Failed to delete event type");
       }
 
-      router.push('/event-types');
+      router.push("/event-types");
     } catch (err) {
-      console.error('Delete error:', err);
-      alert(err instanceof Error ? err.message : 'Failed to delete event type');
+      console.error("Delete error:", err);
+      alert(err instanceof Error ? err.message : "Failed to delete event type");
     }
   };
 
@@ -297,15 +322,18 @@ function EventTypeEditorContent() {
 
     const currentQuestions = eventType?.customQuestions || [];
     updateEventType({
-      customQuestions: [...currentQuestions, newQuestion]
+      customQuestions: [...currentQuestions, newQuestion],
     });
   };
 
-  const updateCustomQuestion = (questionId: string, updates: Partial<CustomQuestion>) => {
+  const updateCustomQuestion = (
+    questionId: string,
+    updates: Partial<CustomQuestion>,
+  ) => {
     if (!eventType?.customQuestions) return;
 
-    const updatedQuestions = eventType.customQuestions.map(q =>
-      q.id === questionId ? { ...q, ...updates } : q
+    const updatedQuestions = eventType.customQuestions.map((q) =>
+      q.id === questionId ? { ...q, ...updates } : q,
     );
     updateEventType({ customQuestions: updatedQuestions });
   };
@@ -313,7 +341,9 @@ function EventTypeEditorContent() {
   const removeCustomQuestion = (questionId: string) => {
     if (!eventType?.customQuestions) return;
 
-    const updatedQuestions = eventType.customQuestions.filter(q => q.id !== questionId);
+    const updatedQuestions = eventType.customQuestions.filter(
+      (q) => q.id !== questionId,
+    );
     updateEventType({ customQuestions: updatedQuestions });
   };
 
@@ -345,7 +375,7 @@ function EventTypeEditorContent() {
       <ErrorState
         title="Event type not found"
         description="The event type you're looking for doesn't exist or you don't have permission to access it."
-        onRetry={() => router.push('/event-types')}
+        onRetry={() => router.push("/event-types")}
         retryText="Back to Event Types"
       />
     );
@@ -359,24 +389,26 @@ function EventTypeEditorContent() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/event-types')}
+            onClick={() => router.push("/event-types")}
             className="p-2"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Edit Event Type</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Edit Event Type
+            </h1>
             <p className="text-muted-foreground">{eventType.title}</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
           {hasChanges && (
-            <span className="text-sm text-muted-foreground">Unsaved changes</span>
+            <span className="text-sm text-muted-foreground">
+              Unsaved changes
+            </span>
           )}
-          {saving && (
-            <span className="text-sm text-blue-600">Saving...</span>
-          )}
+          {saving && <span className="text-sm text-blue-600">Saving...</span>}
           <Button
             variant="outline"
             size="sm"
@@ -387,11 +419,7 @@ function EventTypeEditorContent() {
             <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={handleDelete}
-          >
+          <Button variant="danger" size="sm" onClick={handleDelete}>
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
           </Button>
@@ -480,15 +508,23 @@ function EventTypeEditorContent() {
 function GeneralTab({
   eventType,
   onUpdate,
-  validationErrors
+  validationErrors,
 }: {
   eventType: EventType;
   onUpdate: (updates: Partial<EventType>) => void;
   validationErrors: Record<string, string>;
 }) {
   const colors = [
-    "#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#6B7280",
-    "#EC4899", "#06B6D4", "#84CC16", "#F97316"
+    "#3B82F6",
+    "#8B5CF6",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#6B7280",
+    "#EC4899",
+    "#06B6D4",
+    "#84CC16",
+    "#F97316",
   ];
 
   return (
@@ -520,7 +556,13 @@ function GeneralTab({
             </label>
             <Input
               value={eventType.slug}
-              onChange={(e) => onUpdate({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+              onChange={(e) =>
+                onUpdate({
+                  slug: e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9-]/g, "-"),
+                })
+              }
               placeholder="30-minute-meeting"
               className={validationErrors.slug ? "border-red-500" : ""}
             />
@@ -554,25 +596,29 @@ function GeneralTab({
               min="1"
               max="480"
               value={eventType.duration}
-              onChange={(e) => onUpdate({ duration: parseInt(e.target.value) || 1 })}
+              onChange={(e) =>
+                onUpdate({ duration: parseInt(e.target.value) || 1 })
+              }
               className={validationErrors.duration ? "border-red-500" : ""}
             />
             {validationErrors.duration && (
-              <p className="text-sm text-red-600">{validationErrors.duration}</p>
+              <p className="text-sm text-red-600">
+                {validationErrors.duration}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Color
-            </label>
+            <label className="text-sm font-medium text-foreground">Color</label>
             <div className="flex space-x-2">
               {colors.map((color) => (
                 <button
                   key={color}
                   type="button"
                   className={`w-8 h-8 rounded-full border-2 ${
-                    eventType.color === color ? 'border-foreground' : 'border-transparent'
+                    eventType.color === color
+                      ? "border-foreground"
+                      : "border-transparent"
                   }`}
                   style={{ backgroundColor: color }}
                   onClick={() => onUpdate({ color })}
@@ -594,7 +640,11 @@ function GeneralTab({
                 type="number"
                 min="0"
                 value={eventType.price || ""}
-                onChange={(e) => onUpdate({ price: e.target.value ? parseInt(e.target.value) : null })}
+                onChange={(e) =>
+                  onUpdate({
+                    price: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
                 placeholder="0"
               />
             </div>
@@ -648,7 +698,9 @@ function GeneralTab({
               </div>
               <Switch
                 checked={eventType.requiresConfirmation}
-                onCheckedChange={(checked) => onUpdate({ requiresConfirmation: checked })}
+                onCheckedChange={(checked) =>
+                  onUpdate({ requiresConfirmation: checked })
+                }
               />
             </div>
           </div>
@@ -662,7 +714,7 @@ function AvailabilityTab({
   eventType,
   schedules,
   onUpdate,
-  validationErrors
+  validationErrors,
 }: {
   eventType: EventType;
   schedules: Schedule[];
@@ -683,19 +735,22 @@ function AvailabilityTab({
             value={eventType.scheduleId || ""}
             onValueChange={(value) => onUpdate({ scheduleId: value || null })}
             placeholder="Use default schedule"
-            options={schedules.map(schedule => ({
+            options={schedules.map((schedule) => ({
               value: schedule.id,
-              label: `${schedule.name} (${schedule.timezone})`
+              label: `${schedule.name} (${schedule.timezone})`,
             }))}
           />
           <p className="text-sm text-muted-foreground">
-            Select which schedule to use for this event type. If no schedule is selected, your default schedule will be used.
+            Select which schedule to use for this event type. If no schedule is
+            selected, your default schedule will be used.
           </p>
         </div>
 
         {eventType.schedule && (
           <div className="p-4 bg-muted rounded-lg">
-            <h4 className="font-medium text-foreground">{eventType.schedule.name}</h4>
+            <h4 className="font-medium text-foreground">
+              {eventType.schedule.name}
+            </h4>
             <p className="text-sm text-muted-foreground">
               Timezone: {eventType.schedule.timezone}
             </p>
@@ -709,7 +764,7 @@ function AvailabilityTab({
 function LimitsTab({
   eventType,
   onUpdate,
-  validationErrors
+  validationErrors,
 }: {
   eventType: EventType;
   onUpdate: (updates: Partial<EventType>) => void;
@@ -730,7 +785,9 @@ function LimitsTab({
             type="number"
             min="0"
             value={eventType.minimumNotice}
-            onChange={(e) => onUpdate({ minimumNotice: parseInt(e.target.value) || 0 })}
+            onChange={(e) =>
+              onUpdate({ minimumNotice: parseInt(e.target.value) || 0 })
+            }
             placeholder="0"
           />
           <p className="text-sm text-muted-foreground">
@@ -748,7 +805,9 @@ function LimitsTab({
               type="number"
               min="0"
               value={eventType.beforeBuffer}
-              onChange={(e) => onUpdate({ beforeBuffer: parseInt(e.target.value) || 0 })}
+              onChange={(e) =>
+                onUpdate({ beforeBuffer: parseInt(e.target.value) || 0 })
+              }
               placeholder="0"
             />
           </div>
@@ -761,7 +820,9 @@ function LimitsTab({
               type="number"
               min="0"
               value={eventType.afterBuffer}
-              onChange={(e) => onUpdate({ afterBuffer: parseInt(e.target.value) || 0 })}
+              onChange={(e) =>
+                onUpdate({ afterBuffer: parseInt(e.target.value) || 0 })
+              }
               placeholder="0"
             />
           </div>
@@ -776,11 +837,16 @@ function LimitsTab({
             type="number"
             min="1"
             value={eventType.slotInterval || ""}
-            onChange={(e) => onUpdate({ slotInterval: e.target.value ? parseInt(e.target.value) : null })}
+            onChange={(e) =>
+              onUpdate({
+                slotInterval: e.target.value ? parseInt(e.target.value) : null,
+              })
+            }
             placeholder={`${eventType.duration} (same as duration)`}
           />
           <p className="text-sm text-muted-foreground">
-            How often should available slots appear? Leave empty to use the event duration.
+            How often should available slots appear? Leave empty to use the
+            event duration.
           </p>
         </div>
 
@@ -794,7 +860,13 @@ function LimitsTab({
               type="number"
               min="1"
               value={eventType.maxBookingsPerDay || ""}
-              onChange={(e) => onUpdate({ maxBookingsPerDay: e.target.value ? parseInt(e.target.value) : null })}
+              onChange={(e) =>
+                onUpdate({
+                  maxBookingsPerDay: e.target.value
+                    ? parseInt(e.target.value)
+                    : null,
+                })
+              }
               placeholder="Unlimited"
             />
           </div>
@@ -807,7 +879,13 @@ function LimitsTab({
               type="number"
               min="1"
               value={eventType.maxBookingsPerWeek || ""}
-              onChange={(e) => onUpdate({ maxBookingsPerWeek: e.target.value ? parseInt(e.target.value) : null })}
+              onChange={(e) =>
+                onUpdate({
+                  maxBookingsPerWeek: e.target.value
+                    ? parseInt(e.target.value)
+                    : null,
+                })
+              }
               placeholder="Unlimited"
             />
           </div>
@@ -822,7 +900,11 @@ function LimitsTab({
             type="number"
             min="1"
             value={eventType.futureLimit || ""}
-            onChange={(e) => onUpdate({ futureLimit: e.target.value ? parseInt(e.target.value) : null })}
+            onChange={(e) =>
+              onUpdate({
+                futureLimit: e.target.value ? parseInt(e.target.value) : null,
+              })
+            }
             placeholder="Unlimited"
           />
           <p className="text-sm text-muted-foreground">
@@ -840,12 +922,15 @@ function BookingFormTab({
   onAddQuestion,
   onUpdateQuestion,
   onRemoveQuestion,
-  validationErrors
+  validationErrors,
 }: {
   eventType: EventType;
   onUpdate: (updates: Partial<EventType>) => void;
   onAddQuestion: () => void;
-  onUpdateQuestion: (questionId: string, updates: Partial<CustomQuestion>) => void;
+  onUpdateQuestion: (
+    questionId: string,
+    updates: Partial<CustomQuestion>,
+  ) => void;
   onRemoveQuestion: (questionId: string) => void;
   validationErrors: Record<string, string>;
 }) {
@@ -868,7 +953,8 @@ function BookingFormTab({
         <div className="p-4 bg-muted rounded-lg">
           <h4 className="font-medium text-foreground mb-2">Standard Fields</h4>
           <p className="text-sm text-muted-foreground">
-            Name and email are always collected. Add custom questions below to gather additional information.
+            Name and email are always collected. Add custom questions below to
+            gather additional information.
           </p>
         </div>
 
@@ -891,15 +977,23 @@ function BookingFormTab({
                     <div className="flex items-center justify-between">
                       <Select
                         value={question.type}
-                        onValueChange={(value) => onUpdateQuestion(question.id, { type: value as CustomQuestion['type'] })}
+                        onValueChange={(value) =>
+                          onUpdateQuestion(question.id, {
+                            type: value as CustomQuestion["type"],
+                          })
+                        }
                         options={questionTypes}
                       />
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={question.required}
-                          onCheckedChange={(checked) => onUpdateQuestion(question.id, { required: checked })}
+                          onCheckedChange={(checked) =>
+                            onUpdateQuestion(question.id, { required: checked })
+                          }
                         />
-                        <span className="text-sm text-muted-foreground">Required</span>
+                        <span className="text-sm text-muted-foreground">
+                          Required
+                        </span>
                         <Button
                           variant="outline"
                           size="sm"
@@ -918,7 +1012,11 @@ function BookingFormTab({
                       </label>
                       <Input
                         value={question.label}
-                        onChange={(e) => onUpdateQuestion(question.id, { label: e.target.value })}
+                        onChange={(e) =>
+                          onUpdateQuestion(question.id, {
+                            label: e.target.value,
+                          })
+                        }
                         placeholder="What is your question?"
                       />
                     </div>
@@ -930,23 +1028,33 @@ function BookingFormTab({
                       </label>
                       <Input
                         value={question.placeholder || ""}
-                        onChange={(e) => onUpdateQuestion(question.id, { placeholder: e.target.value })}
+                        onChange={(e) =>
+                          onUpdateQuestion(question.id, {
+                            placeholder: e.target.value,
+                          })
+                        }
                         placeholder="Placeholder text..."
                       />
                     </div>
 
                     {/* Options for select, radio, checkbox */}
-                    {(question.type === "select" || question.type === "radio" || question.type === "checkbox") && (
+                    {(question.type === "select" ||
+                      question.type === "radio" ||
+                      question.type === "checkbox") && (
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-foreground">
                           Options (one per line)
                         </label>
                         <textarea
                           className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          value={question.options?.join('\n') || ""}
-                          onChange={(e) => onUpdateQuestion(question.id, {
-                            options: e.target.value.split('\n').filter(opt => opt.trim())
-                          })}
+                          value={question.options?.join("\n") || ""}
+                          onChange={(e) =>
+                            onUpdateQuestion(question.id, {
+                              options: e.target.value
+                                .split("\n")
+                                .filter((opt) => opt.trim()),
+                            })
+                          }
                           placeholder="Option 1\nOption 2\nOption 3"
                         />
                       </div>
@@ -957,7 +1065,8 @@ function BookingFormTab({
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              No custom questions added yet. Click &quot;Add Question&quot; to get started.
+              No custom questions added yet. Click &quot;Add Question&quot; to
+              get started.
             </div>
           )}
         </div>
@@ -969,7 +1078,7 @@ function BookingFormTab({
 function RecurringTab({
   eventType,
   onUpdate,
-  validationErrors
+  validationErrors,
 }: {
   eventType: EventType;
   onUpdate: (updates: Partial<EventType>) => void;
@@ -999,10 +1108,12 @@ function RecurringTab({
           </div>
           <Switch
             checked={eventType.recurringEnabled}
-            onCheckedChange={(checked) => onUpdate({
-              recurringEnabled: checked,
-              recurringFrequency: checked ? "weekly" : null
-            })}
+            onCheckedChange={(checked) =>
+              onUpdate({
+                recurringEnabled: checked,
+                recurringFrequency: checked ? "weekly" : null,
+              })
+            }
           />
         </div>
 
@@ -1014,9 +1125,14 @@ function RecurringTab({
             </label>
             <Select
               value={eventType.recurringFrequency || "weekly"}
-              onValueChange={(value) => onUpdate({
-                recurringFrequency: value as "weekly" | "biweekly" | "monthly"
-              })}
+              onValueChange={(value) =>
+                onUpdate({
+                  recurringFrequency: value as
+                    | "weekly"
+                    | "biweekly"
+                    | "monthly",
+                })
+              }
               options={frequencyOptions}
             />
             <p className="text-sm text-muted-foreground">
@@ -1027,12 +1143,21 @@ function RecurringTab({
 
         {/* Info */}
         <div className="p-4 bg-muted rounded-lg">
-          <h4 className="font-medium text-foreground mb-2">How Recurring Bookings Work</h4>
+          <h4 className="font-medium text-foreground mb-2">
+            How Recurring Bookings Work
+          </h4>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• Attendees can choose to book multiple sessions at once</li>
-            <li>• Each session will be scheduled based on the selected frequency</li>
-            <li>• All sessions share the same booking details and attendee information</li>
-            <li>• Individual sessions can be cancelled without affecting others</li>
+            <li>
+              • Each session will be scheduled based on the selected frequency
+            </li>
+            <li>
+              • All sessions share the same booking details and attendee
+              information
+            </li>
+            <li>
+              • Individual sessions can be cancelled without affecting others
+            </li>
           </ul>
         </div>
       </CardContent>

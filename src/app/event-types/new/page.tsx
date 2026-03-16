@@ -91,11 +91,11 @@ function CreateEventTypeContent() {
     if (formData.title) {
       const slug = formData.title
         .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
         .trim();
-      setFormData(prev => ({ ...prev, slug }));
+      setFormData((prev) => ({ ...prev, slug }));
     }
   }, [formData.title]);
 
@@ -104,22 +104,24 @@ function CreateEventTypeContent() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/schedules');
+      const response = await fetch("/api/schedules");
       if (!response.ok) {
-        throw new Error('Failed to fetch schedules');
+        throw new Error("Failed to fetch schedules");
       }
 
       const data: SchedulesResponse = await response.json();
       setSchedules(data.schedules);
 
       // Set default schedule if available
-      const defaultSchedule = data.schedules.find(s => s.isDefault);
+      const defaultSchedule = data.schedules.find((s) => s.isDefault);
       if (defaultSchedule) {
-        setFormData(prev => ({ ...prev, scheduleId: defaultSchedule.id }));
+        setFormData((prev) => ({ ...prev, scheduleId: defaultSchedule.id }));
       }
     } catch (err) {
-      console.error('Error fetching schedules:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch schedules');
+      console.error("Error fetching schedules:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch schedules",
+      );
     } finally {
       setLoading(false);
     }
@@ -135,7 +137,8 @@ function CreateEventTypeContent() {
     if (!formData.slug.trim()) {
       newErrors.slug = "URL slug is required";
     } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
-      newErrors.slug = "URL slug can only contain lowercase letters, numbers, and hyphens";
+      newErrors.slug =
+        "URL slug can only contain lowercase letters, numbers, and hyphens";
     }
 
     if (formData.duration < 1 || formData.duration > 480) {
@@ -154,15 +157,22 @@ function CreateEventTypeContent() {
       newErrors.afterBuffer = "After buffer cannot be negative";
     }
 
-    if (formData.slotInterval !== null && (formData.slotInterval < 1 || formData.slotInterval > formData.duration)) {
-      newErrors.slotInterval = "Slot interval must be between 1 minute and the event duration";
+    if (
+      formData.slotInterval !== null &&
+      (formData.slotInterval < 1 || formData.slotInterval > formData.duration)
+    ) {
+      newErrors.slotInterval =
+        "Slot interval must be between 1 minute and the event duration";
     }
 
     if (formData.maxBookingsPerDay !== null && formData.maxBookingsPerDay < 1) {
       newErrors.maxBookingsPerDay = "Max bookings per day must be at least 1";
     }
 
-    if (formData.maxBookingsPerWeek !== null && formData.maxBookingsPerWeek < 1) {
+    if (
+      formData.maxBookingsPerWeek !== null &&
+      formData.maxBookingsPerWeek < 1
+    ) {
       newErrors.maxBookingsPerWeek = "Max bookings per week must be at least 1";
     }
 
@@ -189,10 +199,10 @@ function CreateEventTypeContent() {
       setSubmitting(true);
       setError(null);
 
-      const response = await fetch('/api/event-types', {
-        method: 'POST',
+      const response = await fetch("/api/event-types", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
@@ -207,25 +217,27 @@ function CreateEventTypeContent() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create event type');
+        throw new Error(errorData.message || "Failed to create event type");
       }
 
       const data = await response.json();
       window.location.href = `/event-types/${data.eventType.id}`;
     } catch (err) {
-      console.error('Error creating event type:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create event type');
+      console.error("Error creating event type:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to create event type",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleInputChange = (field: keyof CreateEventTypeData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
     // Clear error for this field
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -250,12 +262,14 @@ function CreateEventTypeContent() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => window.location.href = '/event-types'}
+          onClick={() => (window.location.href = "/event-types")}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Create Event Type</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Create Event Type
+          </h1>
           <p className="text-muted-foreground">
             Set up a new schedulable meeting type
           </p>
@@ -273,13 +287,16 @@ function CreateEventTypeContent() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="title"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Event Title
                   </label>
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
                     placeholder="30 Minute Meeting"
                     className={cn(errors.title && "border-red-500")}
                   />
@@ -289,17 +306,25 @@ function CreateEventTypeContent() {
                 </div>
 
                 <div>
-                  <label htmlFor="slug" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="slug"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     URL Slug
                   </label>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-muted-foreground">
-                      {typeof window !== 'undefined' ? window.location.origin : ''}/demo/
+                      {typeof window !== "undefined"
+                        ? window.location.origin
+                        : ""}
+                      /demo/
                     </span>
                     <Input
                       id="slug"
                       value={formData.slug}
-                      onChange={(e) => handleInputChange('slug', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("slug", e.target.value)
+                      }
                       placeholder="30-minute-meeting"
                       className={cn("flex-1", errors.slug && "border-red-500")}
                     />
@@ -310,13 +335,18 @@ function CreateEventTypeContent() {
                 </div>
 
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Description (Optional)
                   </label>
                   <textarea
                     id="description"
                     value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     placeholder="A quick 30-minute meeting to discuss your project"
                     rows={3}
                     className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
@@ -325,7 +355,10 @@ function CreateEventTypeContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="duration" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="duration"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Duration (minutes)
                     </label>
                     <Input
@@ -334,16 +367,26 @@ function CreateEventTypeContent() {
                       min="1"
                       max="480"
                       value={formData.duration}
-                      onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "duration",
+                          parseInt(e.target.value) || 1,
+                        )
+                      }
                       className={cn(errors.duration && "border-red-500")}
                     />
                     {errors.duration && (
-                      <p className="text-red-600 text-sm mt-1">{errors.duration}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.duration}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="color" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="color"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Color
                     </label>
                     <div className="flex space-x-2">
@@ -351,12 +394,12 @@ function CreateEventTypeContent() {
                         <button
                           key={color}
                           type="button"
-                          onClick={() => handleInputChange('color', color)}
+                          onClick={() => handleInputChange("color", color)}
                           className={cn(
                             "w-8 h-8 rounded-full border-2 transition-transform hover:scale-110",
                             formData.color === color
                               ? "border-foreground ring-2 ring-primary/20"
-                              : "border-gray-300"
+                              : "border-gray-300",
                           )}
                           style={{ backgroundColor: color }}
                           aria-label={`Select color ${color}`}
@@ -367,16 +410,21 @@ function CreateEventTypeContent() {
                 </div>
 
                 <div>
-                  <label htmlFor="schedule" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="schedule"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Availability Schedule
                   </label>
                   <Select
                     value={formData.scheduleId || ""}
-                    onValueChange={(value) => handleInputChange('scheduleId', value || null)}
+                    onValueChange={(value) =>
+                      handleInputChange("scheduleId", value || null)
+                    }
                     placeholder="Select a schedule"
                     options={schedules.map((schedule) => ({
                       value: schedule.id,
-                      label: `${schedule.name}${schedule.isDefault ? ' (Default)' : ''}`
+                      label: `${schedule.name}${schedule.isDefault ? " (Default)" : ""}`,
                     }))}
                   />
                 </div>
@@ -391,7 +439,10 @@ function CreateEventTypeContent() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="minimumNotice" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="minimumNotice"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Minimum Notice (minutes)
                     </label>
                     <Input
@@ -399,16 +450,26 @@ function CreateEventTypeContent() {
                       type="number"
                       min="0"
                       value={formData.minimumNotice}
-                      onChange={(e) => handleInputChange('minimumNotice', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "minimumNotice",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
                       className={cn(errors.minimumNotice && "border-red-500")}
                     />
                     {errors.minimumNotice && (
-                      <p className="text-red-600 text-sm mt-1">{errors.minimumNotice}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.minimumNotice}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="slotInterval" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="slotInterval"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Slot Interval (minutes, optional)
                     </label>
                     <Input
@@ -416,19 +477,29 @@ function CreateEventTypeContent() {
                       type="number"
                       min="1"
                       value={formData.slotInterval || ""}
-                      onChange={(e) => handleInputChange('slotInterval', parseInt(e.target.value) || null)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "slotInterval",
+                          parseInt(e.target.value) || null,
+                        )
+                      }
                       placeholder="Use duration"
                       className={cn(errors.slotInterval && "border-red-500")}
                     />
                     {errors.slotInterval && (
-                      <p className="text-red-600 text-sm mt-1">{errors.slotInterval}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.slotInterval}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="beforeBuffer" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="beforeBuffer"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Buffer Before (minutes)
                     </label>
                     <Input
@@ -436,16 +507,26 @@ function CreateEventTypeContent() {
                       type="number"
                       min="0"
                       value={formData.beforeBuffer}
-                      onChange={(e) => handleInputChange('beforeBuffer', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "beforeBuffer",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
                       className={cn(errors.beforeBuffer && "border-red-500")}
                     />
                     {errors.beforeBuffer && (
-                      <p className="text-red-600 text-sm mt-1">{errors.beforeBuffer}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.beforeBuffer}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="afterBuffer" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="afterBuffer"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Buffer After (minutes)
                     </label>
                     <Input
@@ -453,18 +534,28 @@ function CreateEventTypeContent() {
                       type="number"
                       min="0"
                       value={formData.afterBuffer}
-                      onChange={(e) => handleInputChange('afterBuffer', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "afterBuffer",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
                       className={cn(errors.afterBuffer && "border-red-500")}
                     />
                     {errors.afterBuffer && (
-                      <p className="text-red-600 text-sm mt-1">{errors.afterBuffer}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.afterBuffer}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label htmlFor="maxBookingsPerDay" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="maxBookingsPerDay"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Max/Day (optional)
                     </label>
                     <Input
@@ -472,17 +563,29 @@ function CreateEventTypeContent() {
                       type="number"
                       min="1"
                       value={formData.maxBookingsPerDay || ""}
-                      onChange={(e) => handleInputChange('maxBookingsPerDay', parseInt(e.target.value) || null)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "maxBookingsPerDay",
+                          parseInt(e.target.value) || null,
+                        )
+                      }
                       placeholder="No limit"
-                      className={cn(errors.maxBookingsPerDay && "border-red-500")}
+                      className={cn(
+                        errors.maxBookingsPerDay && "border-red-500",
+                      )}
                     />
                     {errors.maxBookingsPerDay && (
-                      <p className="text-red-600 text-sm mt-1">{errors.maxBookingsPerDay}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.maxBookingsPerDay}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="maxBookingsPerWeek" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="maxBookingsPerWeek"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Max/Week (optional)
                     </label>
                     <Input
@@ -490,17 +593,29 @@ function CreateEventTypeContent() {
                       type="number"
                       min="1"
                       value={formData.maxBookingsPerWeek || ""}
-                      onChange={(e) => handleInputChange('maxBookingsPerWeek', parseInt(e.target.value) || null)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "maxBookingsPerWeek",
+                          parseInt(e.target.value) || null,
+                        )
+                      }
                       placeholder="No limit"
-                      className={cn(errors.maxBookingsPerWeek && "border-red-500")}
+                      className={cn(
+                        errors.maxBookingsPerWeek && "border-red-500",
+                      )}
                     />
                     {errors.maxBookingsPerWeek && (
-                      <p className="text-red-600 text-sm mt-1">{errors.maxBookingsPerWeek}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.maxBookingsPerWeek}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="futureLimit" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="futureLimit"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Future Limit (days, optional)
                     </label>
                     <Input
@@ -508,35 +623,54 @@ function CreateEventTypeContent() {
                       type="number"
                       min="1"
                       value={formData.futureLimit || ""}
-                      onChange={(e) => handleInputChange('futureLimit', parseInt(e.target.value) || null)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "futureLimit",
+                          parseInt(e.target.value) || null,
+                        )
+                      }
                       placeholder="No limit"
                       className={cn(errors.futureLimit && "border-red-500")}
                     />
                     {errors.futureLimit && (
-                      <p className="text-red-600 text-sm mt-1">{errors.futureLimit}</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.futureLimit}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between py-2 border rounded-lg px-3">
                   <div>
-                    <h4 className="text-sm font-medium text-foreground">Requires Confirmation</h4>
-                    <p className="text-xs text-muted-foreground">Manually approve each booking</p>
+                    <h4 className="text-sm font-medium text-foreground">
+                      Requires Confirmation
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Manually approve each booking
+                    </p>
                   </div>
                   <Toggle
                     pressed={formData.requiresConfirmation}
-                    onPressedChange={(pressed) => handleInputChange('requiresConfirmation', pressed)}
+                    onPressedChange={(pressed) =>
+                      handleInputChange("requiresConfirmation", pressed)
+                    }
                   />
                 </div>
 
                 <div className="flex items-center justify-between py-2 border rounded-lg px-3">
                   <div>
-                    <h4 className="text-sm font-medium text-foreground">Active</h4>
-                    <p className="text-xs text-muted-foreground">Accept new bookings</p>
+                    <h4 className="text-sm font-medium text-foreground">
+                      Active
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Accept new bookings
+                    </p>
                   </div>
                   <Toggle
                     pressed={formData.isActive}
-                    onPressedChange={(pressed) => handleInputChange('isActive', pressed)}
+                    onPressedChange={(pressed) =>
+                      handleInputChange("isActive", pressed)
+                    }
                   />
                 </div>
               </CardContent>
@@ -574,7 +708,10 @@ function CreateEventTypeContent() {
 
                   {formData.slug && (
                     <div className="p-2 bg-muted rounded text-xs font-mono text-muted-foreground">
-                      {typeof window !== 'undefined' ? window.location.origin : ''}/demo/{formData.slug}
+                      {typeof window !== "undefined"
+                        ? window.location.origin
+                        : ""}
+                      /demo/{formData.slug}
                     </div>
                   )}
 
@@ -602,7 +739,7 @@ function CreateEventTypeContent() {
         <div className="flex items-center justify-between pt-6 border-t">
           <Button
             variant="outline"
-            onClick={() => window.location.href = '/event-types'}
+            onClick={() => (window.location.href = "/event-types")}
           >
             Cancel
           </Button>

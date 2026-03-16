@@ -17,7 +17,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   LogOut,
-  User
+  User,
 } from "lucide-react";
 
 const navigation = [
@@ -62,10 +62,18 @@ export function Sidebar({ className }: SidebarProps) {
   const { data: session } = useSession();
 
   return (
-    <div className={cn("flex h-full w-64 flex-col bg-white border-r border-border", className)}>
+    <div
+      className={cn(
+        "flex h-full w-64 flex-col bg-white border-r border-border",
+        className,
+      )}
+    >
       {/* Logo/Brand */}
       <div className="flex h-16 items-center px-4 border-b border-border">
-        <Link href={"/dashboard" as Route} className="flex items-center space-x-2">
+        <Link
+          href={"/dashboard" as Route}
+          className="flex items-center space-x-2"
+        >
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <BarChart3 className="h-5 w-5 text-primary-foreground" />
           </div>
@@ -85,7 +93,7 @@ export function Sidebar({ className }: SidebarProps) {
                 "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
               )}
             >
               <item.icon
@@ -93,7 +101,7 @@ export function Sidebar({ className }: SidebarProps) {
                   "mr-3 h-5 w-5 transition-colors",
                   isActive
                     ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground"
+                    : "text-muted-foreground group-hover:text-foreground",
                 )}
                 aria-hidden="true"
               />

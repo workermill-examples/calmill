@@ -20,9 +20,9 @@ vi.mock("@/components/ui/calendar", () => ({
             data-date={date.toISOString()}
             disabled={isDisabled}
             onClick={() => !isDisabled && onSelect?.(date)}
-            aria-label={format(date, 'EEEE, MMMM do, yyyy')}
+            aria-label={format(date, "EEEE, MMMM do, yyyy")}
           >
-            {format(date, 'd')}
+            {format(date, "d")}
           </button>
         );
       })}
@@ -54,19 +54,22 @@ describe("CalendarPicker", () => {
       render(<CalendarPicker {...defaultProps} loading={true} />);
 
       // Should show skeleton loading elements
-      const shimmerElements = document.querySelectorAll('.animate-shimmer, .bg-muted');
+      const shimmerElements = document.querySelectorAll(
+        ".animate-shimmer, .bg-muted",
+      );
       expect(shimmerElements.length).toBeGreaterThan(10); // Multiple skeleton elements
       expect(screen.queryByTestId("mock-calendar")).not.toBeInTheDocument();
     });
 
     it("renders with selected date", () => {
       const selectedDate = new Date("2024-01-15T10:00:00Z");
-      render(
-        <CalendarPicker {...defaultProps} selectedDate={selectedDate} />
-      );
+      render(<CalendarPicker {...defaultProps} selectedDate={selectedDate} />);
 
       const calendar = screen.getByTestId("mock-calendar");
-      expect(calendar).toHaveAttribute("data-selected", selectedDate.toISOString());
+      expect(calendar).toHaveAttribute(
+        "data-selected",
+        selectedDate.toISOString(),
+      );
     });
 
     it("renders with available dates", () => {
@@ -77,7 +80,7 @@ describe("CalendarPicker", () => {
       ];
 
       render(
-        <CalendarPicker {...defaultProps} availableDates={availableDates} />
+        <CalendarPicker {...defaultProps} availableDates={availableDates} />,
       );
 
       expect(screen.getByTestId("mock-calendar")).toBeInTheDocument();
@@ -106,11 +109,11 @@ describe("CalendarPicker", () => {
         <CalendarPicker
           {...defaultProps}
           minDate={new Date()} // Only allow today and future
-        />
+        />,
       );
 
       // Try to click a past date (should be disabled)
-      const dayButton = screen.getByTestId("calendar-day-0");
+      const dayButton = screen.getByTestId("calendar-day-0") as HTMLButtonElement;
       if (!dayButton.disabled) {
         // If button is not disabled, simulate the disabled check
         // This test verifies the disabled logic works
@@ -134,12 +137,7 @@ describe("CalendarPicker", () => {
   describe("Date Constraints", () => {
     it("respects minDate constraint", () => {
       const minDate = addDays(new Date(), 2);
-      render(
-        <CalendarPicker
-          {...defaultProps}
-          minDate={minDate}
-        />
-      );
+      render(<CalendarPicker {...defaultProps} minDate={minDate} />);
 
       // Check that days before minDate are disabled
       const todayButton = screen.getByTestId("calendar-day-0");
@@ -151,12 +149,7 @@ describe("CalendarPicker", () => {
 
     it("respects maxDate constraint", () => {
       const maxDate = addDays(new Date(), 2);
-      render(
-        <CalendarPicker
-          {...defaultProps}
-          maxDate={maxDate}
-        />
-      );
+      render(<CalendarPicker {...defaultProps} maxDate={maxDate} />);
 
       // Days beyond maxDate should be disabled
       const futureDayButton = screen.getByTestId("calendar-day-5");
@@ -180,10 +173,7 @@ describe("CalendarPicker", () => {
       ];
 
       render(
-        <CalendarPicker
-          {...defaultProps}
-          availableDates={availableDates}
-        />
+        <CalendarPicker {...defaultProps} availableDates={availableDates} />,
       );
 
       // Tomorrow should be disabled (not in available dates)
@@ -217,7 +207,7 @@ describe("CalendarPicker", () => {
           selectedDate={selectedDate}
           eventTitle="30 Minute Meeting"
           eventDuration={30}
-        />
+        />,
       );
 
       // Check that dates have proper aria-labels
@@ -236,7 +226,7 @@ describe("CalendarPicker", () => {
           {...defaultProps}
           selectedDate={selectedDate}
           eventTitle="Team Sync"
-        />
+        />,
       );
 
       // Should have sr-only live region
@@ -253,7 +243,7 @@ describe("CalendarPicker", () => {
           {...defaultProps}
           eventTitle="Technical Interview"
           eventDuration={45}
-        />
+        />,
       );
 
       expect(screen.getByText("Technical Interview")).toBeInTheDocument();
@@ -269,12 +259,7 @@ describe("CalendarPicker", () => {
 
     it("shows selected indicator in legend when date is selected", () => {
       const selectedDate = new Date();
-      render(
-        <CalendarPicker
-          {...defaultProps}
-          selectedDate={selectedDate}
-        />
-      );
+      render(<CalendarPicker {...defaultProps} selectedDate={selectedDate} />);
 
       expect(screen.getByText("Selected")).toBeInTheDocument();
     });
@@ -303,10 +288,7 @@ describe("CalendarPicker", () => {
   describe("Custom CSS Classes", () => {
     it("applies custom className", () => {
       render(
-        <CalendarPicker
-          {...defaultProps}
-          className="custom-calendar-class"
-        />
+        <CalendarPicker {...defaultProps} className="custom-calendar-class" />,
       );
 
       const container = screen.getByTestId("mock-calendar").parentElement;
@@ -320,10 +302,7 @@ describe("CalendarPicker", () => {
       const testDate = new Date("2024-01-15T15:00:00Z");
 
       render(
-        <CalendarPicker
-          {...defaultProps}
-          timezone="America/Los_Angeles"
-        />
+        <CalendarPicker {...defaultProps} timezone="America/Los_Angeles" />,
       );
 
       const dayButton = screen.getByTestId("calendar-day-1");

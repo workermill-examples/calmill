@@ -69,7 +69,7 @@ function SlotListSkeleton() {
 function SlotListError({
   error,
   onRetry,
-  selectedDate
+  selectedDate,
 }: {
   error: string;
   onRetry?: () => void;
@@ -85,12 +85,16 @@ function SlotListError({
 
       <EmptyState
         title="Failed to load time slots"
-        description={error || "Something went wrong while loading available times."}
+        description={
+          error || "Something went wrong while loading available times."
+        }
         action={
-          onRetry ? {
-            text: "Try again",
-            onClick: onRetry
-          } : undefined
+          onRetry
+            ? {
+                text: "Try again",
+                onClick: onRetry,
+              }
+            : undefined
         }
       />
     </div>
@@ -132,15 +136,16 @@ export function SlotList({
     if (!slots.length) return {};
 
     const groups: Record<string, TimeSlot[]> = {
-      morning: [],   // 6 AM - 12 PM
+      morning: [], // 6 AM - 12 PM
       afternoon: [], // 12 PM - 5 PM
-      evening: [],   // 5 PM - 10 PM
+      evening: [], // 5 PM - 10 PM
     };
 
-    slots.forEach(slot => {
+    slots.forEach((slot) => {
       try {
-        const date = parseISO(slot.time);
-        const hour = date.getHours();
+        // Use localTime to determine the time period
+        const [hourStr] = slot.localTime.split(":");
+        const hour = parseInt(hourStr, 10);
 
         if (hour >= 6 && hour < 12) {
           groups.morning.push(slot);
@@ -156,35 +161,41 @@ export function SlotList({
     });
 
     // Remove empty groups
-    return Object.entries(groups).reduce((acc, [key, value]) => {
-      if (value.length > 0) {
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as Record<string, TimeSlot[]>);
+    return Object.entries(groups).reduce(
+      (acc, [key, value]) => {
+        if (value.length > 0) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, TimeSlot[]>,
+    );
   }, [slots]);
 
   const groupLabels = {
     morning: "Morning",
     afternoon: "Afternoon",
-    evening: "Evening"
+    evening: "Evening",
   };
 
   // Handle slot selection with keyboard support
-  const handleSlotClick = React.useCallback((slot: TimeSlot) => {
-    onSlotSelect(slot);
-  }, [onSlotSelect]);
+  const handleSlotClick = React.useCallback(
+    (slot: TimeSlot) => {
+      onSlotSelect(slot);
+    },
+    [onSlotSelect],
+  );
 
   // Handle keyboard navigation
-  const handleKeyDown = React.useCallback((
-    event: React.KeyboardEvent<HTMLButtonElement>,
-    slot: TimeSlot
-  ) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleSlotClick(slot);
-    }
-  }, [handleSlotClick]);
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>, slot: TimeSlot) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleSlotClick(slot);
+      }
+    },
+    [handleSlotClick],
+  );
 
   if (loading) {
     return (
@@ -197,7 +208,11 @@ export function SlotList({
   if (error) {
     return (
       <div className={cn("space-y-4", className)}>
-        <SlotListError error={error} onRetry={onRetry} selectedDate={selectedDate} />
+        <SlotListError
+          error={error}
+          onRetry={onRetry}
+          selectedDate={selectedDate}
+        />
       </div>
     );
   }
@@ -219,7 +234,8 @@ export function SlotList({
             {formatDateContext(selectedDate)}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {timezone} • {slots.length} available time{slots.length !== 1 ? 's' : ''}
+            {timezone} • {slots.length} available time
+            {slots.length !== 1 ? "s" : ""}
           </p>
         </div>
       )}
@@ -232,13 +248,13 @@ export function SlotList({
           </h4>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-            {periodSlots.map((slot) => {
+            {periodSlots.map((slot, index) => {
               const isSelected = selectedSlot?.time === slot.time;
               const displayTime = formatDisplayTime(slot.time);
 
               return (
                 <Button
-                  key={slot.time}
+                  key={`${slot.time}-${index}`}
                   variant={isSelected ? "primary" : "outline"}
                   size="sm"
                   onClick={() => handleSlotClick(slot)}
@@ -248,7 +264,7 @@ export function SlotList({
                     isSelected
                       ? "shadow-md"
                       : "hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700",
-                    "focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    "focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
                   )}
                   aria-label={
                     eventTitle
@@ -268,7 +284,8 @@ export function SlotList({
       {/* Selection context for screen readers */}
       {selectedSlot && (
         <div className="sr-only" aria-live="polite">
-          Selected time: {formatDisplayTime(selectedSlot.time)} for {selectedSlot.duration} minutes
+          Selected time: {formatDisplayTime(selectedSlot.time)} for{" "}
+          {selectedSlot.duration} minutes
           {eventTitle && `, ${eventTitle}`}
         </div>
       )}
@@ -278,7 +295,8 @@ export function SlotList({
         <p>Times shown in {timezone}</p>
         {selectedSlot && (
           <p>
-            Duration: {selectedSlot.duration} minute{selectedSlot.duration !== 1 ? 's' : ''}
+            Duration: {selectedSlot.duration} minute
+            {selectedSlot.duration !== 1 ? "s" : ""}
             {eventTitle && ` • ${eventTitle}`}
           </p>
         )}

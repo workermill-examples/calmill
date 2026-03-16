@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
-import { toZonedTime } from "@date-fns/tz";
+import { TZDate } from "@date-fns/tz";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,7 @@ import {
   User,
   ArrowLeft,
   X,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 
 interface RouteParams {
@@ -157,10 +157,13 @@ export default function BookingCancelPage({ params }: RouteParams) {
       setTimeout(() => {
         router.push(`/booking/${booking.uid}`);
       }, 3000);
-
     } catch (err) {
       console.error("Error cancelling booking:", err);
-      setError(err instanceof Error ? err.message : "Failed to cancel booking. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to cancel booking. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -192,10 +195,11 @@ export default function BookingCancelPage({ params }: RouteParams) {
               Booking Cancelled
             </h1>
             <p className="text-gray-600 mb-6">
-              Your booking has been successfully cancelled. A confirmation email has been sent to you and the host.
+              Your booking has been successfully cancelled. A confirmation email
+              has been sent to you and the host.
             </p>
             <div className="space-y-3">
-              <Button asChild className="w-full">
+              <Button  className="w-full">
                 <Link href={`/booking/${booking?.uid}`}>
                   View Booking Details
                 </Link>
@@ -222,7 +226,7 @@ export default function BookingCancelPage({ params }: RouteParams) {
               Unable to Cancel Booking
             </h1>
             <p className="text-gray-600 mb-6">{error}</p>
-            <Button asChild variant="outline">
+            <Button  variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -243,9 +247,10 @@ export default function BookingCancelPage({ params }: RouteParams) {
               Booking Not Found
             </h1>
             <p className="text-gray-600 mb-6">
-              This booking could not be found. Please check the link and try again.
+              This booking could not be found. Please check the link and try
+              again.
             </p>
-            <Button asChild variant="outline">
+            <Button  variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -254,8 +259,14 @@ export default function BookingCancelPage({ params }: RouteParams) {
     );
   }
 
-  const startTime = toZonedTime(parseISO(booking.startTime), booking.attendeeTimezone);
-  const endTime = toZonedTime(parseISO(booking.endTime), booking.attendeeTimezone);
+  const startTime = new TZDate(
+    parseISO(booking.startTime),
+    booking.attendeeTimezone,
+  );
+  const endTime = new TZDate(
+    parseISO(booking.endTime),
+    booking.attendeeTimezone,
+  );
   const isAlreadyCancelled = booking.status === "CANCELLED";
   const canCancel = !isAlreadyCancelled && !error;
 
@@ -265,8 +276,11 @@ export default function BookingCancelPage({ params }: RouteParams) {
         <div className="space-y-6">
           {/* Navigation */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/booking/${booking.uid}`} className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm" >
+              <Link
+                href={`/booking/${booking.uid}`}
+                className="flex items-center space-x-2"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Booking</span>
               </Link>
@@ -275,10 +289,12 @@ export default function BookingCancelPage({ params }: RouteParams) {
 
           {/* Header */}
           <div className="text-center">
-            <div className={cn(
-              "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4",
-              isAlreadyCancelled ? "bg-gray-100" : "bg-red-100"
-            )}>
+            <div
+              className={cn(
+                "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4",
+                isAlreadyCancelled ? "bg-gray-100" : "bg-red-100",
+              )}
+            >
               {isAlreadyCancelled ? (
                 <X className="w-8 h-8 text-gray-600" />
               ) : (
@@ -287,13 +303,14 @@ export default function BookingCancelPage({ params }: RouteParams) {
             </div>
 
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {isAlreadyCancelled ? "Booking Already Cancelled" : "Cancel Booking"}
+              {isAlreadyCancelled
+                ? "Booking Already Cancelled"
+                : "Cancel Booking"}
             </h1>
             <p className="text-gray-600">
               {isAlreadyCancelled
                 ? "This booking has already been cancelled."
-                : "Are you sure you want to cancel this booking?"
-              }
+                : "Are you sure you want to cancel this booking?"}
             </p>
           </div>
 
@@ -331,7 +348,9 @@ export default function BookingCancelPage({ params }: RouteParams) {
                       {format(startTime, "EEEE, MMMM d, yyyy")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {format(startTime, "h:mm a")} - {format(endTime, "h:mm a")} ({booking.eventType.duration} min)
+                      {format(startTime, "h:mm a")} -{" "}
+                      {format(endTime, "h:mm a")} ({booking.eventType.duration}{" "}
+                      min)
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {booking.attendeeTimezone}
@@ -384,13 +403,17 @@ export default function BookingCancelPage({ params }: RouteParams) {
               <CardHeader>
                 <CardTitle>Reason for Cancellation</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Please let the host know why you&apos;re cancelling this booking.
+                  Please let the host know why you&apos;re cancelling this
+                  booking.
                 </p>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCancelBooking} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="cancellation-reason" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="cancellation-reason"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Cancellation Reason *
                     </label>
                     <textarea
@@ -404,7 +427,8 @@ export default function BookingCancelPage({ params }: RouteParams) {
                       className="resize-none w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50"
                     />
                     <p className="text-xs text-muted-foreground">
-                      This reason will be shared with the host and included in the cancellation confirmation.
+                      This reason will be shared with the host and included in
+                      the cancellation confirmation.
                     </p>
                   </div>
 
@@ -422,12 +446,10 @@ export default function BookingCancelPage({ params }: RouteParams) {
                       type="button"
                       variant="outline"
                       className="flex-1"
-                      asChild
+                      
                       disabled={submitting}
                     >
-                      <Link href={`/booking/${booking.uid}`}>
-                        Keep Booking
-                      </Link>
+                      <Link href={`/booking/${booking.uid}`}>Keep Booking</Link>
                     </Button>
                   </div>
                 </form>
@@ -445,8 +467,14 @@ export default function BookingCancelPage({ params }: RouteParams) {
                     <p className="font-medium mb-1">Important:</p>
                     <ul className="space-y-1 text-xs">
                       <li>• This action cannot be undone</li>
-                      <li>• Both you and the host will receive a cancellation confirmation email</li>
-                      <li>• If you need to reschedule instead, use the &quot;Reschedule&quot; option</li>
+                      <li>
+                        • Both you and the host will receive a cancellation
+                        confirmation email
+                      </li>
+                      <li>
+                        • If you need to reschedule instead, use the
+                        &quot;Reschedule&quot; option
+                      </li>
                     </ul>
                   </div>
                 </div>

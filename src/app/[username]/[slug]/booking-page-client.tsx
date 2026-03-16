@@ -8,14 +8,30 @@ import { TZDate } from "@date-fns/tz";
 import { CalendarPicker } from "@/components/booking/calendar-picker";
 import { SlotList, TimeSlot } from "@/components/booking/slot-list";
 import { TimezoneSelect } from "@/components/booking/timezone-select";
-import { BookingForm, BookingFormData } from "@/components/booking/booking-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BookingForm,
+  BookingFormData,
+} from "@/components/booking/booking-form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Clock, MapPin, DollarSign, Info, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  MapPin,
+  DollarSign,
+  Info,
+  Check,
+} from "lucide-react";
 
 interface User {
   id: string;
@@ -89,7 +105,10 @@ function detectTimezone(): string {
 }
 
 // Format price
-function formatPrice(price: number | undefined, currency: string | undefined): string {
+function formatPrice(
+  price: number | undefined,
+  currency: string | undefined,
+): string {
   if (!price || price === 0) return "Free";
 
   const formatter = new Intl.NumberFormat("en-US", {
@@ -106,7 +125,9 @@ function formatDuration(minutes: number): string {
   } else {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
+    return remainingMinutes > 0
+      ? `${hours}h ${remainingMinutes}min`
+      : `${hours}h`;
   }
 }
 
@@ -119,7 +140,8 @@ export function PublicBookingPage({
   // Initialize state
   const [state, setState] = useState<BookingState>(() => {
     const detectedTimezone = detectTimezone();
-    const timezone = initialTimezone || eventType.user.timezone || detectedTimezone;
+    const timezone =
+      initialTimezone || eventType.user.timezone || detectedTimezone;
 
     let selectedDate: Date | undefined;
     if (initialDate) {
@@ -158,7 +180,7 @@ export function PublicBookingPage({
       try {
         const dateStr = format(state.selectedDate!, "yyyy-MM-dd");
         const response = await fetch(
-          `/api/slots?eventTypeId=${eventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=${state.timezone}`
+          `/api/slots?eventTypeId=${eventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=${state.timezone}`,
         );
 
         if (!response.ok) {
@@ -187,19 +209,20 @@ export function PublicBookingPage({
         const endDate = addDays(today, eventType.futureLimit || 60);
 
         const response = await fetch(
-          `/api/slots?eventTypeId=${eventType.id}&startDate=${format(today, "yyyy-MM-dd")}&endDate=${format(endDate, "yyyy-MM-dd")}&timezone=${state.timezone}`
+          `/api/slots?eventTypeId=${eventType.id}&startDate=${format(today, "yyyy-MM-dd")}&endDate=${format(endDate, "yyyy-MM-dd")}&timezone=${state.timezone}`,
         );
 
         if (response.ok) {
           const data = await response.json();
-          const dates = data.slots?.map((slot: TimeSlot) => {
-            return startOfDay(parseISO(slot.time));
-          }) || [];
+          const dates =
+            data.slots?.map((slot: TimeSlot) => {
+              return startOfDay(parseISO(slot.time));
+            }) || [];
 
           // Deduplicate dates
           const uniqueDates = Array.from(
-            new Set(dates.map((d: Date) => d.getTime()))
-          ).map(time => new Date(time as number));
+            new Set(dates.map((d: Date) => d.getTime())),
+          ).map((time) => new Date(time as number));
 
           setAvailableDates(uniqueDates);
         }
@@ -213,7 +236,7 @@ export function PublicBookingPage({
 
   // Handle date selection
   const handleDateSelect = (date: Date) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       selectedDate: date,
       selectedSlot: undefined,
@@ -222,7 +245,7 @@ export function PublicBookingPage({
 
   // Handle timezone change
   const handleTimezoneChange = (timezone: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       timezone,
       selectedSlot: undefined,
@@ -231,7 +254,7 @@ export function PublicBookingPage({
 
   // Handle slot selection
   const handleSlotSelect = (slot: TimeSlot) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       selectedSlot: slot,
     }));
@@ -241,7 +264,7 @@ export function PublicBookingPage({
   const handleContinueToForm = () => {
     if (!state.selectedDate || !state.selectedSlot) return;
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       step: "details",
     }));
@@ -249,7 +272,7 @@ export function PublicBookingPage({
 
   // Handle back to datetime selection
   const handleBackToDateTime = () => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       step: "datetime",
       bookingData: undefined,
@@ -287,7 +310,7 @@ export function PublicBookingPage({
 
       const data = await response.json();
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         step: "confirmation",
         bookingData,
@@ -295,7 +318,9 @@ export function PublicBookingPage({
       }));
     } catch (error) {
       console.error("Error creating booking:", error);
-      setBookingError(error instanceof Error ? error.message : "Failed to create booking");
+      setBookingError(
+        error instanceof Error ? error.message : "Failed to create booking",
+      );
     } finally {
       setBookingLoading(false);
     }
@@ -324,7 +349,8 @@ export function PublicBookingPage({
 
             <div className="space-y-2">
               <h1 className="text-3xl font-bold text-foreground">
-                Booking {eventType.requiresConfirmation ? "Request Sent" : "Confirmed"}
+                Booking{" "}
+                {eventType.requiresConfirmation ? "Request Sent" : "Confirmed"}
               </h1>
               {eventType.requiresConfirmation ? (
                 <p className="text-lg text-muted-foreground">
@@ -342,7 +368,8 @@ export function PublicBookingPage({
               <CardHeader>
                 <CardTitle>{eventType.title}</CardTitle>
                 <CardDescription>
-                  {formatDuration(eventType.duration)} meeting with {eventType.user.name}
+                  {formatDuration(eventType.duration)} meeting with{" "}
+                  {eventType.user.name}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -350,7 +377,8 @@ export function PublicBookingPage({
                   <div className="flex items-center justify-center space-x-2">
                     <Clock className="w-4 h-4 text-muted-foreground" />
                     <span>
-                      {format(state.selectedDate!, "EEEE, MMMM d, yyyy")} at {state.selectedSlot!.localTime}
+                      {format(state.selectedDate!, "EEEE, MMMM d, yyyy")} at{" "}
+                      {state.selectedSlot!.localTime}
                     </span>
                   </div>
                   <div className="flex items-center justify-center space-x-2">
@@ -360,24 +388,28 @@ export function PublicBookingPage({
                 </div>
 
                 <div className="text-sm text-muted-foreground border-t pt-4">
-                  <p><strong>Invitee:</strong> {state.bookingData.name} ({state.bookingData.email})</p>
+                  <p>
+                    <strong>Invitee:</strong> {state.bookingData.name} (
+                    {state.bookingData.email})
+                  </p>
                   {state.bookingData.notes && (
-                    <p className="mt-2"><strong>Notes:</strong> {state.bookingData.notes}</p>
+                    <p className="mt-2">
+                      <strong>Notes:</strong> {state.bookingData.notes}
+                    </p>
                   )}
                 </div>
               </CardContent>
             </Card>
 
             <div className="flex justify-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => window.print()}
-              >
+              <Button variant="outline" onClick={() => window.print()}>
                 Print Details
               </Button>
               <Button
                 variant="outline"
-                onClick={() => window.location.href = `/${eventType.user.username}`}
+                onClick={() =>
+                  (window.location.href = `/${eventType.user.username}`)
+                }
               >
                 Book Another Meeting
               </Button>
@@ -429,7 +461,9 @@ export function PublicBookingPage({
                   <h1 className="text-2xl font-bold text-foreground">
                     {eventType.title}
                   </h1>
-                  <p className="text-muted-foreground">with {eventType.user.name}</p>
+                  <p className="text-muted-foreground">
+                    with {eventType.user.name}
+                  </p>
                 </div>
               </div>
 
@@ -448,7 +482,9 @@ export function PublicBookingPage({
                 {eventType.price && eventType.price > 0 && (
                   <>
                     <DollarSign className="w-4 h-4 text-muted-foreground ml-2" />
-                    <span>{formatPrice(eventType.price, eventType.currency)}</span>
+                    <span>
+                      {formatPrice(eventType.price, eventType.currency)}
+                    </span>
                   </>
                 )}
               </div>
@@ -470,10 +506,15 @@ export function PublicBookingPage({
             {(eventType.minimumNotice || eventType.futureLimit) && (
               <div className="space-y-2 text-sm text-muted-foreground">
                 {eventType.minimumNotice && (
-                  <p>• Minimum {eventType.minimumNotice} minutes notice required</p>
+                  <p>
+                    • Minimum {eventType.minimumNotice} minutes notice required
+                  </p>
                 )}
                 {eventType.futureLimit && (
-                  <p>• Can be booked up to {eventType.futureLimit} days in advance</p>
+                  <p>
+                    • Can be booked up to {eventType.futureLimit} days in
+                    advance
+                  </p>
                 )}
               </div>
             )}
@@ -566,7 +607,10 @@ export function PublicBookingPage({
                       ? {
                           title: eventType.title,
                           duration: eventType.duration,
-                          date: format(state.selectedDate, "EEEE, MMMM d, yyyy"),
+                          date: format(
+                            state.selectedDate,
+                            "EEEE, MMMM d, yyyy",
+                          ),
                           time: state.selectedSlot.localTime,
                           timezone: state.timezone,
                         }

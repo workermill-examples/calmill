@@ -8,14 +8,30 @@ import { TZDate } from "@date-fns/tz";
 import { CalendarPicker } from "@/components/booking/calendar-picker";
 import { SlotList, TimeSlot } from "@/components/booking/slot-list";
 import { TimezoneSelect } from "@/components/booking/timezone-select";
-import { BookingForm, BookingFormData } from "@/components/booking/booking-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BookingForm,
+  BookingFormData,
+} from "@/components/booking/booking-form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Clock, MapPin, DollarSign, Info, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  MapPin,
+  DollarSign,
+  Info,
+  Check,
+} from "lucide-react";
 
 interface User {
   id: string;
@@ -89,7 +105,10 @@ function detectTimezone(): string {
 }
 
 // Format price
-function formatPrice(price: number | undefined, currency: string | undefined): string {
+function formatPrice(
+  price: number | undefined,
+  currency: string | undefined,
+): string {
   if (!price || price === 0) return "Free";
 
   const formatter = new Intl.NumberFormat("en-US", {
@@ -106,17 +125,26 @@ function formatDuration(minutes: number): string {
   } else {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
+    return remainingMinutes > 0
+      ? `${hours}h ${remainingMinutes}min`
+      : `${hours}h`;
   }
 }
 
 // Post message to parent window for resize and events
 function postMessageToParent(type: string, data: any) {
-  if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
-    window.parent.postMessage({
-      type: `calmill:${type}`,
-      data
-    }, '*');
+  if (
+    typeof window !== "undefined" &&
+    window.parent &&
+    window.parent !== window
+  ) {
+    window.parent.postMessage(
+      {
+        type: `calmill:${type}`,
+        data,
+      },
+      "*",
+    );
   }
 }
 
@@ -129,7 +157,8 @@ export function EmbedBookingPage({
   // Initialize state
   const [state, setState] = useState<BookingState>(() => {
     const detectedTimezone = detectTimezone();
-    const timezone = initialTimezone || eventType.user.timezone || detectedTimezone;
+    const timezone =
+      initialTimezone || eventType.user.timezone || detectedTimezone;
 
     let selectedDate: Date | undefined;
     if (initialDate) {
@@ -161,7 +190,7 @@ export function EmbedBookingPage({
   useEffect(() => {
     const updateHeight = () => {
       const height = document.body.scrollHeight;
-      postMessageToParent('resize', { height });
+      postMessageToParent("resize", { height });
     };
 
     // Initial height
@@ -173,15 +202,15 @@ export function EmbedBookingPage({
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['style', 'class']
+      attributeFilter: ["style", "class"],
     });
 
     // Update on window resize
-    window.addEventListener('resize', updateHeight);
+    window.addEventListener("resize", updateHeight);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener("resize", updateHeight);
     };
   }, []);
 
@@ -189,7 +218,7 @@ export function EmbedBookingPage({
   useEffect(() => {
     const timer = setTimeout(() => {
       const height = document.body.scrollHeight;
-      postMessageToParent('resize', { height });
+      postMessageToParent("resize", { height });
     }, 100);
 
     return () => clearTimeout(timer);
@@ -206,7 +235,7 @@ export function EmbedBookingPage({
       try {
         const dateStr = format(state.selectedDate!, "yyyy-MM-dd");
         const response = await fetch(
-          `/api/slots?eventTypeId=${eventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=${state.timezone}`
+          `/api/slots?eventTypeId=${eventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=${state.timezone}`,
         );
 
         if (!response.ok) {
@@ -235,19 +264,20 @@ export function EmbedBookingPage({
         const endDate = addDays(today, eventType.futureLimit || 60);
 
         const response = await fetch(
-          `/api/slots?eventTypeId=${eventType.id}&startDate=${format(today, "yyyy-MM-dd")}&endDate=${format(endDate, "yyyy-MM-dd")}&timezone=${state.timezone}`
+          `/api/slots?eventTypeId=${eventType.id}&startDate=${format(today, "yyyy-MM-dd")}&endDate=${format(endDate, "yyyy-MM-dd")}&timezone=${state.timezone}`,
         );
 
         if (response.ok) {
           const data = await response.json();
-          const dates = data.slots?.map((slot: TimeSlot) => {
-            return startOfDay(parseISO(slot.time));
-          }) || [];
+          const dates =
+            data.slots?.map((slot: TimeSlot) => {
+              return startOfDay(parseISO(slot.time));
+            }) || [];
 
           // Deduplicate dates
           const uniqueDates = Array.from(
-            new Set(dates.map((d: Date) => d.getTime()))
-          ).map(time => new Date(time as number));
+            new Set(dates.map((d: Date) => d.getTime())),
+          ).map((time) => new Date(time as number));
 
           setAvailableDates(uniqueDates);
         }
@@ -261,7 +291,7 @@ export function EmbedBookingPage({
 
   // Handle date selection
   const handleDateSelect = (date: Date) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       selectedDate: date,
       selectedSlot: undefined,
@@ -270,7 +300,7 @@ export function EmbedBookingPage({
 
   // Handle timezone change
   const handleTimezoneChange = (timezone: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       timezone,
       selectedSlot: undefined,
@@ -279,7 +309,7 @@ export function EmbedBookingPage({
 
   // Handle slot selection
   const handleSlotSelect = (slot: TimeSlot) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       selectedSlot: slot,
     }));
@@ -289,7 +319,7 @@ export function EmbedBookingPage({
   const handleContinueToForm = () => {
     if (!state.selectedDate || !state.selectedSlot) return;
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       step: "details",
     }));
@@ -297,7 +327,7 @@ export function EmbedBookingPage({
 
   // Handle back to datetime selection
   const handleBackToDateTime = () => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       step: "datetime",
       bookingData: undefined,
@@ -335,7 +365,7 @@ export function EmbedBookingPage({
 
       const data = await response.json();
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         step: "confirmation",
         bookingData,
@@ -343,19 +373,20 @@ export function EmbedBookingPage({
       }));
 
       // Post booking event to parent
-      postMessageToParent('booking', {
+      postMessageToParent("booking", {
         uid: data.booking.uid,
         eventType: eventType.title,
         attendeeName: bookingData.name,
         attendeeEmail: bookingData.email,
         startTime: state.selectedSlot.time,
         timezone: state.timezone,
-        requiresConfirmation: eventType.requiresConfirmation
+        requiresConfirmation: eventType.requiresConfirmation,
       });
-
     } catch (error) {
       console.error("Error creating booking:", error);
-      setBookingError(error instanceof Error ? error.message : "Failed to create booking");
+      setBookingError(
+        error instanceof Error ? error.message : "Failed to create booking",
+      );
     } finally {
       setBookingLoading(false);
     }
@@ -384,7 +415,8 @@ export function EmbedBookingPage({
 
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-foreground">
-                Booking {eventType.requiresConfirmation ? "Request Sent" : "Confirmed"}
+                Booking{" "}
+                {eventType.requiresConfirmation ? "Request Sent" : "Confirmed"}
               </h2>
               {eventType.requiresConfirmation ? (
                 <p className="text-sm text-muted-foreground">
@@ -404,7 +436,8 @@ export function EmbedBookingPage({
                   <div className="text-center space-y-1">
                     <h3 className="font-medium">{eventType.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {formatDuration(eventType.duration)} with {eventType.user.name}
+                      {formatDuration(eventType.duration)} with{" "}
+                      {eventType.user.name}
                     </p>
                   </div>
 
@@ -412,7 +445,8 @@ export function EmbedBookingPage({
                     <div className="flex items-center justify-center space-x-2 text-sm">
                       <Clock className="w-3 h-3 text-muted-foreground" />
                       <span>
-                        {format(state.selectedDate!, "MMM d, yyyy")} at {state.selectedSlot!.localTime}
+                        {format(state.selectedDate!, "MMM d, yyyy")} at{" "}
+                        {state.selectedSlot!.localTime}
                       </span>
                     </div>
                     <div className="flex items-center justify-center space-x-2 text-sm">
@@ -422,7 +456,9 @@ export function EmbedBookingPage({
                   </div>
 
                   <div className="text-xs text-muted-foreground border-t pt-2">
-                    <p><strong>Invitee:</strong> {state.bookingData.name}</p>
+                    <p>
+                      <strong>Invitee:</strong> {state.bookingData.name}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -474,7 +510,9 @@ export function EmbedBookingPage({
                   <h1 className="text-lg font-bold text-foreground">
                     {eventType.title}
                   </h1>
-                  <p className="text-sm text-muted-foreground">with {eventType.user.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    with {eventType.user.name}
+                  </p>
                 </div>
               </div>
 
@@ -493,7 +531,9 @@ export function EmbedBookingPage({
                 {eventType.price && eventType.price > 0 && (
                   <>
                     <DollarSign className="w-4 h-4 text-muted-foreground ml-2" />
-                    <span>{formatPrice(eventType.price, eventType.currency)}</span>
+                    <span>
+                      {formatPrice(eventType.price, eventType.currency)}
+                    </span>
                   </>
                 )}
               </div>
@@ -599,7 +639,10 @@ export function EmbedBookingPage({
                       ? {
                           title: eventType.title,
                           duration: eventType.duration,
-                          date: format(state.selectedDate, "EEEE, MMMM d, yyyy"),
+                          date: format(
+                            state.selectedDate,
+                            "EEEE, MMMM d, yyyy",
+                          ),
                           time: state.selectedSlot.localTime,
                           timezone: state.timezone,
                         }

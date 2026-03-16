@@ -2,7 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BookingForm } from "@/components/booking/booking-form";
-import type { BookingFormProps, CustomQuestion, BookingFormData } from "@/components/booking/booking-form";
+import type {
+  BookingFormProps,
+  CustomQuestion,
+  BookingFormData,
+} from "@/components/booking/booking-form";
 
 // Mock UI components
 vi.mock("@/components/ui/button", () => ({
@@ -24,14 +28,22 @@ vi.mock("@/components/ui/input", () => ({
 
 vi.mock("@/components/ui/card", () => ({
   Card: vi.fn(({ children, ...props }) => <div {...props}>{children}</div>),
-  CardContent: vi.fn(({ children, ...props }) => <div {...props}>{children}</div>),
-  CardDescription: vi.fn(({ children, ...props }) => <p {...props}>{children}</p>),
-  CardHeader: vi.fn(({ children, ...props }) => <div {...props}>{children}</div>),
+  CardContent: vi.fn(({ children, ...props }) => (
+    <div {...props}>{children}</div>
+  )),
+  CardDescription: vi.fn(({ children, ...props }) => (
+    <p {...props}>{children}</p>
+  )),
+  CardHeader: vi.fn(({ children, ...props }) => (
+    <div {...props}>{children}</div>
+  )),
   CardTitle: vi.fn(({ children, ...props }) => <h2 {...props}>{children}</h2>),
 }));
 
 vi.mock("@/components/ui/loading-skeleton", () => ({
-  Skeleton: vi.fn(({ className }) => <div className={className}>Loading...</div>),
+  Skeleton: vi.fn(({ className }) => (
+    <div className={className}>Loading...</div>
+  )),
 }));
 
 // Mock lucide-react icons
@@ -111,7 +123,9 @@ describe("BookingForm", () => {
 
       expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /confirm booking/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /confirm booking/i }),
+      ).toBeInTheDocument();
     });
 
     it("shows loading skeleton when submitting without form data", () => {
@@ -122,7 +136,7 @@ describe("BookingForm", () => {
 
     it("renders event details when provided", () => {
       render(
-        <BookingForm {...defaultProps} eventDetails={sampleEventDetails} />
+        <BookingForm {...defaultProps} eventDetails={sampleEventDetails} />,
       );
 
       expect(screen.getByText("30 Minute Meeting")).toBeInTheDocument();
@@ -136,7 +150,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       expect(screen.getByText("Additional Information")).toBeInTheDocument();
@@ -150,11 +164,15 @@ describe("BookingForm", () => {
       const user = userEvent.setup();
       render(<BookingForm {...defaultProps} />);
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText("Please fix the following errors:")).toBeInTheDocument();
+        expect(
+          screen.getByText("Please fix the following errors:"),
+        ).toBeInTheDocument();
         expect(screen.getByText("Name is required")).toBeInTheDocument();
         expect(screen.getByText("Email is required")).toBeInTheDocument();
         expect(screen.getByText("Timezone is required")).toBeInTheDocument();
@@ -173,7 +191,9 @@ describe("BookingForm", () => {
       await user.type(nameInput, "John Doe");
       await user.type(emailInput, "invalid-email");
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -187,7 +207,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       const nameInput = screen.getByLabelText(/name/i);
@@ -196,13 +216,19 @@ describe("BookingForm", () => {
       await user.type(nameInput, "John Doe");
       await user.type(emailInput, "john@example.com");
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(screen.getByText("Company is required")).toBeInTheDocument();
-        expect(screen.getByText("Meeting Purpose is required")).toBeInTheDocument();
-        expect(screen.getByText("Preferred Contact Method is required")).toBeInTheDocument();
+        expect(
+          screen.getByText("Meeting Purpose is required"),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText("Preferred Contact Method is required"),
+        ).toBeInTheDocument();
       });
     });
 
@@ -212,7 +238,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       const nameInput = screen.getByLabelText(/name/i);
@@ -223,11 +249,15 @@ describe("BookingForm", () => {
       await user.type(emailInput, "john@example.com");
       await user.type(phoneInput, "invalid-phone");
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText("Phone Number must be a valid phone number")).toBeInTheDocument();
+        expect(
+          screen.getByText("Phone Number must be a valid phone number"),
+        ).toBeInTheDocument();
       });
     });
 
@@ -235,7 +265,9 @@ describe("BookingForm", () => {
       const user = userEvent.setup();
       render(<BookingForm {...defaultProps} />);
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -265,7 +297,9 @@ describe("BookingForm", () => {
       await user.type(emailInput, "john@example.com");
       await user.type(notesInput, "Looking forward to our meeting");
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -285,7 +319,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       // Fill basic fields
@@ -294,8 +328,14 @@ describe("BookingForm", () => {
 
       // Fill custom questions
       await user.type(screen.getByLabelText(/company/i), "Acme Corp");
-      await user.selectOptions(screen.getByLabelText(/meeting purpose/i), "Sales Demo");
-      await user.type(screen.getByLabelText(/additional information/i), "Need pricing details");
+      await user.selectOptions(
+        screen.getByLabelText(/meeting purpose/i),
+        "Sales Demo",
+      );
+      await user.type(
+        screen.getByLabelText(/additional information/i),
+        "Need pricing details",
+      );
 
       // Select radio option
       await user.click(screen.getByLabelText("Email"));
@@ -304,7 +344,9 @@ describe("BookingForm", () => {
       await user.click(screen.getByLabelText("Product Demo"));
       await user.click(screen.getByLabelText("Pricing"));
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -335,7 +377,9 @@ describe("BookingForm", () => {
 
     it("handles async submission errors gracefully", async () => {
       const user = userEvent.setup();
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       mockOnSubmit.mockRejectedValueOnce(new Error("Submission failed"));
 
@@ -344,11 +388,16 @@ describe("BookingForm", () => {
       await user.type(screen.getByLabelText(/name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith("Form submission error:", expect.any(Error));
+        expect(consoleSpy).toHaveBeenCalledWith(
+          "Form submission error:",
+          expect.any(Error),
+        );
       });
 
       consoleSpy.mockRestore();
@@ -361,7 +410,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
     });
 
@@ -413,7 +462,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       const checkbox1 = screen.getByLabelText("Product Demo");
@@ -433,7 +482,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       const emailRadio = screen.getByLabelText("Email");
@@ -453,7 +502,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       const select = screen.getByLabelText(/meeting purpose/i);
@@ -469,7 +518,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       // Basic required fields
@@ -478,7 +527,8 @@ describe("BookingForm", () => {
 
       // Required custom question
       const companyLabel = screen.getByText(/company/i);
-      const requiredAsterisk = companyLabel.parentElement?.querySelector(".text-red-500");
+      const requiredAsterisk =
+        companyLabel.parentElement?.querySelector(".text-red-500");
       expect(requiredAsterisk).toBeInTheDocument();
     });
 
@@ -487,7 +537,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={sampleCustomQuestions}
-        />
+        />,
       );
 
       // Additional notes should not have asterisk
@@ -511,7 +561,9 @@ describe("BookingForm", () => {
       const user = userEvent.setup();
       render(<BookingForm {...defaultProps} />);
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -526,7 +578,9 @@ describe("BookingForm", () => {
       const form = screen.getByRole("form");
       expect(form).toBeInTheDocument();
 
-      const submitButton = screen.getByRole("button", { name: /confirm booking/i });
+      const submitButton = screen.getByRole("button", {
+        name: /confirm booking/i,
+      });
       expect(submitButton).toHaveAttribute("type", "submit");
     });
   });
@@ -535,7 +589,9 @@ describe("BookingForm", () => {
     it("handles empty custom questions array", () => {
       render(<BookingForm {...defaultProps} customQuestions={[]} />);
 
-      expect(screen.queryByText("Additional Information")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Additional Information"),
+      ).not.toBeInTheDocument();
       expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
     });
 
@@ -551,7 +607,7 @@ describe("BookingForm", () => {
         <BookingForm
           {...defaultProps}
           customQuestions={[questionWithoutOptions]}
-        />
+        />,
       );
 
       // Should still render but might not have options

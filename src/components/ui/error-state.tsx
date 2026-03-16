@@ -42,7 +42,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
     <div
       className={cn(
         "flex flex-col items-center justify-center space-y-4 text-center p-8",
-        className
+        className,
       )}
     >
       {icon || <DefaultErrorIcon />}
@@ -69,7 +69,10 @@ interface NetworkErrorProps {
   className?: string;
 }
 
-export const NetworkError: React.FC<NetworkErrorProps> = ({ onRetry, className }) => (
+export const NetworkError: React.FC<NetworkErrorProps> = ({
+  onRetry,
+  className,
+}) => (
   <ErrorState
     title="Connection failed"
     description="Unable to connect to the server. Please check your internet connection and try again."
@@ -138,7 +141,10 @@ interface UnauthorizedErrorProps {
   className?: string;
 }
 
-export const UnauthorizedError: React.FC<UnauthorizedErrorProps> = ({ onLogin, className }) => (
+export const UnauthorizedError: React.FC<UnauthorizedErrorProps> = ({
+  onLogin,
+  className,
+}) => (
   <ErrorState
     title="Access denied"
     description="You don't have permission to view this page. Please sign in to continue."
@@ -169,7 +175,10 @@ interface ServerErrorProps {
   className?: string;
 }
 
-export const ServerError: React.FC<ServerErrorProps> = ({ onRetry, className }) => (
+export const ServerError: React.FC<ServerErrorProps> = ({
+  onRetry,
+  className,
+}) => (
   <ErrorState
     title="Server error"
     description="Our servers are experiencing issues. Please wait a moment and try again."
@@ -207,7 +216,10 @@ interface ErrorBoundaryProps {
   children: React.ReactNode;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -230,7 +242,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       const FallbackComponent = this.props.fallback;
 
       if (FallbackComponent) {
-        return <FallbackComponent error={this.state.error} onRetry={this.handleRetry} />;
+        return (
+          <FallbackComponent
+            error={this.state.error}
+            onRetry={this.handleRetry}
+          />
+        );
       }
 
       return (

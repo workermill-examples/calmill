@@ -36,24 +36,27 @@ describe("TimezoneSelect", () => {
     vi.clearAllMocks();
 
     // Mock Intl.DateTimeFormat for each test
-    global.Intl.DateTimeFormat = vi.fn().mockImplementation((locale, options) => ({
-      resolvedOptions: () => ({ timeZone: "America/New_York" }),
-      format: vi.fn(() => "12/25/2023"),
-      formatToParts: vi.fn(() => [
-        { type: "month", value: "12" },
-        { type: "literal", value: "/" },
-        { type: "day", value: "25" },
-        { type: "literal", value: "/" },
-        { type: "year", value: "2023" },
-        { type: "timeZoneName", value: "EST" }
-      ]),
-    }));
+    global.Intl.DateTimeFormat = Object.assign(
+      vi.fn().mockImplementation((locale, options) => ({
+        resolvedOptions: () => ({ timeZone: "America/New_York" }),
+        format: vi.fn(() => "12/25/2023"),
+        formatToParts: vi.fn(() => [
+          { type: "month", value: "12" },
+          { type: "literal", value: "/" },
+          { type: "day", value: "25" },
+          { type: "literal", value: "/" },
+          { type: "year", value: "2023" },
+          { type: "timeZoneName", value: "EST" },
+        ]),
+      })),
+      { supportedLocalesOf: vi.fn(() => []) }
+    );
   });
 
   afterEach(() => {
     // Clean up any document event listeners
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(button => {
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach((button) => {
       fireEvent.click(document.body); // Close any open dropdowns
     });
   });
@@ -79,7 +82,7 @@ describe("TimezoneSelect", () => {
           {...defaultProps}
           value=""
           placeholder="Choose timezone"
-        />
+        />,
       );
 
       expect(screen.getByText("Choose timezone")).toBeInTheDocument();
@@ -102,7 +105,9 @@ describe("TimezoneSelect", () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText("Search timezones...")).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText("Search timezones..."),
+        ).toBeInTheDocument();
       });
     });
 
@@ -112,7 +117,7 @@ describe("TimezoneSelect", () => {
         <div>
           <TimezoneSelect {...defaultProps} />
           <div data-testid="outside">Outside</div>
-        </div>
+        </div>,
       );
 
       // Open dropdown
@@ -120,7 +125,9 @@ describe("TimezoneSelect", () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText("Search timezones...")).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText("Search timezones..."),
+        ).toBeInTheDocument();
       });
 
       // Click outside
@@ -128,7 +135,9 @@ describe("TimezoneSelect", () => {
       await user.click(outside);
 
       await waitFor(() => {
-        expect(screen.queryByPlaceholderText("Search timezones...")).not.toBeInTheDocument();
+        expect(
+          screen.queryByPlaceholderText("Search timezones..."),
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -141,14 +150,18 @@ describe("TimezoneSelect", () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText("Search timezones...")).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText("Search timezones..."),
+        ).toBeInTheDocument();
       });
 
       // Press Escape
       await user.keyboard("{Escape}");
 
       await waitFor(() => {
-        expect(screen.queryByPlaceholderText("Search timezones...")).not.toBeInTheDocument();
+        expect(
+          screen.queryByPlaceholderText("Search timezones..."),
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -163,7 +176,9 @@ describe("TimezoneSelect", () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText("Search timezones...")).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText("Search timezones..."),
+        ).toBeInTheDocument();
       });
 
       // Search for "london"
@@ -186,7 +201,9 @@ describe("TimezoneSelect", () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText("Search timezones...")).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText("Search timezones..."),
+        ).toBeInTheDocument();
       });
 
       // Search for something that doesn't exist
@@ -194,7 +211,9 @@ describe("TimezoneSelect", () => {
       await user.type(searchInput, "nonexistent");
 
       await waitFor(() => {
-        expect(screen.getByText(/No timezones found matching "nonexistent"/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/No timezones found matching "nonexistent"/),
+        ).toBeInTheDocument();
       });
     });
 
@@ -206,7 +225,9 @@ describe("TimezoneSelect", () => {
       const trigger = screen.getByRole("button");
       await user.click(trigger);
 
-      const searchInput = await screen.findByPlaceholderText("Search timezones...");
+      const searchInput = await screen.findByPlaceholderText(
+        "Search timezones...",
+      );
       await user.type(searchInput, "test");
 
       // Close dropdown
@@ -215,7 +236,9 @@ describe("TimezoneSelect", () => {
       // Reopen dropdown
       await user.click(trigger);
 
-      const newSearchInput = await screen.findByPlaceholderText("Search timezones...");
+      const newSearchInput = await screen.findByPlaceholderText(
+        "Search timezones...",
+      );
       expect(newSearchInput).toHaveValue("");
     });
   });
@@ -275,9 +298,12 @@ describe("TimezoneSelect", () => {
       const user = userEvent.setup();
 
       // Set a different timezone as detected
-      global.Intl.DateTimeFormat = vi.fn().mockImplementation(() => ({
-        resolvedOptions: () => ({ timeZone: "America/Los_Angeles" }),
-      }));
+      global.Intl.DateTimeFormat = Object.assign(
+        vi.fn().mockImplementation(() => ({
+          resolvedOptions: () => ({ timeZone: "America/Los_Angeles" }),
+        })),
+        { supportedLocalesOf: vi.fn(() => []) }
+      );
 
       render(<TimezoneSelect {...defaultProps} value="Europe/London" />);
 
@@ -378,9 +404,12 @@ describe("TimezoneSelect", () => {
 
     it("handles Intl.DateTimeFormat errors gracefully", () => {
       // Mock Intl.DateTimeFormat to throw an error
-      global.Intl.DateTimeFormat = vi.fn().mockImplementation(() => {
-        throw new Error("Timezone not supported");
-      });
+      global.Intl.DateTimeFormat = Object.assign(
+        vi.fn().mockImplementation(() => {
+          throw new Error("Timezone not supported");
+        }),
+        { supportedLocalesOf: vi.fn(() => []) }
+      );
 
       const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -396,10 +425,7 @@ describe("TimezoneSelect", () => {
   describe("Custom Props", () => {
     it("applies custom className", () => {
       render(
-        <TimezoneSelect
-          {...defaultProps}
-          className="custom-timezone-class"
-        />
+        <TimezoneSelect {...defaultProps} className="custom-timezone-class" />,
       );
 
       const container = screen.getByRole("button").parentElement;
@@ -412,7 +438,7 @@ describe("TimezoneSelect", () => {
           {...defaultProps}
           value=""
           placeholder="Pick your timezone"
-        />
+        />,
       );
 
       expect(screen.getByText("Pick your timezone")).toBeInTheDocument();
@@ -442,7 +468,9 @@ describe("TimezoneSelect", () => {
       const trigger = screen.getByRole("button");
       await user.click(trigger);
 
-      const searchInput = await screen.findByPlaceholderText("Search timezones...");
+      const searchInput = await screen.findByPlaceholderText(
+        "Search timezones...",
+      );
 
       // Type and then clear
       await user.type(searchInput, "test");
@@ -469,7 +497,9 @@ describe("TimezoneSelect", () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText("Search timezones...")).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText("Search timezones..."),
+        ).toBeInTheDocument();
       });
     });
   });

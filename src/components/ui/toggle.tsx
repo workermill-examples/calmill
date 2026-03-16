@@ -5,8 +5,10 @@ import { cn } from "@/lib/utils";
 
 const toggleVariants = {
   variant: {
-    default: "bg-transparent hover:bg-muted hover:text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
-    outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
+    default:
+      "bg-transparent hover:bg-muted hover:text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
+    outline:
+      "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
   },
   size: {
     sm: "h-8 px-2 text-xs",
@@ -15,8 +17,7 @@ const toggleVariants = {
   },
 };
 
-export interface ToggleProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof toggleVariants.variant;
   size?: keyof typeof toggleVariants.size;
   pressed?: boolean;
@@ -24,15 +25,18 @@ export interface ToggleProps
 }
 
 const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
-  ({
-    className,
-    variant = "default",
-    size = "md",
-    pressed,
-    onPressedChange,
-    onClick,
-    ...props
-  }, ref) => {
+  (
+    {
+      className,
+      variant = "default",
+      size = "md",
+      pressed,
+      onPressedChange,
+      onClick,
+      ...props
+    },
+    ref,
+  ) => {
     const [isPressed, setIsPressed] = React.useState(pressed ?? false);
 
     React.useEffect(() => {
@@ -62,13 +66,13 @@ const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
           "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
           toggleVariants.variant[variant],
           toggleVariants.size[size],
-          className
+          className,
         )}
         onClick={handleClick}
         {...props}
       />
     );
-  }
+  },
 );
 
 Toggle.displayName = "Toggle";
@@ -82,15 +86,10 @@ interface SwitchProps extends Omit<ToggleProps, "children"> {
 }
 
 const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
-  ({
-    className,
-    checked,
-    onCheckedChange,
-    disabled,
-    id,
-    name,
-    ...props
-  }, ref) => {
+  (
+    { className, checked, onCheckedChange, disabled, id, name, ...props },
+    ref,
+  ) => {
     const [isChecked, setIsChecked] = React.useState(checked ?? false);
 
     React.useEffect(() => {
@@ -120,10 +119,8 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         disabled={disabled}
         className={cn(
           "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
-          isChecked
-            ? "bg-primary"
-            : "bg-input",
-          className
+          isChecked ? "bg-primary" : "bg-input",
+          className,
         )}
         onClick={handleClick}
         {...props}
@@ -131,7 +128,7 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         <div
           className={cn(
             "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform",
-            isChecked ? "translate-x-4" : "translate-x-0"
+            isChecked ? "translate-x-4" : "translate-x-0",
           )}
         />
 
@@ -147,7 +144,7 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         />
       </button>
     );
-  }
+  },
 );
 
 Switch.displayName = "Switch";

@@ -2,9 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday, parseISO, formatISO, isBefore, startOfDay } from "date-fns";
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  parseISO,
+  formatISO,
+  isBefore,
+  startOfDay,
+} from "date-fns";
 import { TZDate, tz } from "@date-fns/tz";
-import { ChevronLeft, ChevronRight, Clock, MapPin, Users, Calendar, ArrowLeft, Check, Loader2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Users,
+  Calendar,
+  ArrowLeft,
+  Check,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +36,12 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Link from "next/link";
 
 interface TeamEventType {
@@ -147,12 +176,12 @@ function CalendarPicker({
                 !isCurrentMonth
                   ? "text-muted-foreground/50 cursor-not-allowed"
                   : isPast
-                  ? "text-muted-foreground cursor-not-allowed"
-                  : isSelected
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : isAvailable
-                  ? "hover:bg-primary/10 border-transparent text-foreground cursor-pointer"
-                  : "text-muted-foreground/50 cursor-not-allowed"
+                    ? "text-muted-foreground cursor-not-allowed"
+                    : isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : isAvailable
+                        ? "hover:bg-primary/10 border-transparent text-foreground cursor-pointer"
+                        : "text-muted-foreground/50 cursor-not-allowed"
               } ${isTodayDate && !isSelected ? "border-primary" : "border-border"}`}
               onClick={() => isAvailable && !isPast && onDateSelect(day)}
               disabled={!isAvailable || isPast || !isCurrentMonth}
@@ -195,9 +224,7 @@ function TimeSlotList({
       <div className="text-center py-8">
         <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">No times available</h3>
-        <p className="text-muted-foreground">
-          Please select a different date.
-        </p>
+        <p className="text-muted-foreground">Please select a different date.</p>
       </div>
     );
   }
@@ -259,7 +286,9 @@ function BookingForm({
   };
 
   const localTime = new TZDate(parseISO(selectedSlot.time), timezone);
-  const endTime = new Date(localTime.getTime() + eventType.duration * 60 * 1000);
+  const endTime = new Date(
+    localTime.getTime() + eventType.duration * 60 * 1000,
+  );
 
   return (
     <div className="space-y-6">
@@ -278,7 +307,8 @@ function BookingForm({
             <div className="flex items-center space-x-1">
               <Calendar className="h-4 w-4" />
               <span>
-                {format(localTime, "MMMM d, yyyy 'at' h:mm a")} - {format(endTime, "h:mm a")}
+                {format(localTime, "MMMM d, yyyy 'at' h:mm a")} -{" "}
+                {format(endTime, "h:mm a")}
               </span>
             </div>
           </div>
@@ -296,7 +326,10 @@ function BookingForm({
               type="text"
               value={formData.attendeeName}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, attendeeName: e.target.value }))
+                setFormData((prev) => ({
+                  ...prev,
+                  attendeeName: e.target.value,
+                }))
               }
               placeholder="John Doe"
               required
@@ -311,7 +344,10 @@ function BookingForm({
               type="email"
               value={formData.attendeeEmail}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, attendeeEmail: e.target.value }))
+                setFormData((prev) => ({
+                  ...prev,
+                  attendeeEmail: e.target.value,
+                }))
               }
               placeholder="john@example.com"
               required
@@ -327,7 +363,10 @@ function BookingForm({
             id="notes"
             value={formData.attendeeNotes}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, attendeeNotes: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                attendeeNotes: e.target.value,
+              }))
             }
             placeholder="Please share anything that will help prepare for our meeting..."
             className="w-full px-3 py-2 border rounded-md resize-none h-24"
@@ -336,75 +375,94 @@ function BookingForm({
         </div>
 
         {/* Custom Questions */}
-        {eventType.customQuestions && Array.isArray(eventType.customQuestions) && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Additional Information</h3>
-            {eventType.customQuestions.map((question: any, index: number) => (
-              <div key={index}>
-                <label className="block text-sm font-medium mb-1">
-                  {question.label}
-                  {question.required && " *"}
-                </label>
-                {question.type === "text" && (
-                  <Input
-                    type="text"
-                    value={formData.responses[question.name] || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        responses: { ...prev.responses, [question.name]: e.target.value },
-                      }))
-                    }
-                    placeholder={question.placeholder}
-                    required={question.required}
-                  />
-                )}
-                {question.type === "textarea" && (
-                  <textarea
-                    value={formData.responses[question.name] || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        responses: { ...prev.responses, [question.name]: e.target.value },
-                      }))
-                    }
-                    placeholder={question.placeholder}
-                    className="w-full px-3 py-2 border rounded-md resize-none h-20"
-                    required={question.required}
-                  />
-                )}
-                {question.type === "select" && (
-                  <select
-                    value={formData.responses[question.name] || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        responses: { ...prev.responses, [question.name]: e.target.value },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
-                    required={question.required}
-                  >
-                    <option value="">Select an option...</option>
-                    {question.options?.map((option: string, optIndex: number) => (
-                      <option key={optIndex} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        {eventType.customQuestions &&
+          Array.isArray(eventType.customQuestions) && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Additional Information</h3>
+              {eventType.customQuestions.map((question: any, index: number) => (
+                <div key={index}>
+                  <label className="block text-sm font-medium mb-1">
+                    {question.label}
+                    {question.required && " *"}
+                  </label>
+                  {question.type === "text" && (
+                    <Input
+                      type="text"
+                      value={formData.responses[question.name] || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          responses: {
+                            ...prev.responses,
+                            [question.name]: e.target.value,
+                          },
+                        }))
+                      }
+                      placeholder={question.placeholder}
+                      required={question.required}
+                    />
+                  )}
+                  {question.type === "textarea" && (
+                    <textarea
+                      value={formData.responses[question.name] || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          responses: {
+                            ...prev.responses,
+                            [question.name]: e.target.value,
+                          },
+                        }))
+                      }
+                      placeholder={question.placeholder}
+                      className="w-full px-3 py-2 border rounded-md resize-none h-20"
+                      required={question.required}
+                    />
+                  )}
+                  {question.type === "select" && (
+                    <select
+                      value={formData.responses[question.name] || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          responses: {
+                            ...prev.responses,
+                            [question.name]: e.target.value,
+                          },
+                        }))
+                      }
+                      className="w-full px-3 py-2 border rounded-md"
+                      required={question.required}
+                    >
+                      <option value="">Select an option...</option>
+                      {question.options?.map(
+                        (option: string, optIndex: number) => (
+                          <option key={optIndex} value={option}>
+                            {option}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
         <div className="flex justify-end space-x-3 pt-6">
-          <Button type="button" variant="outline" onClick={onBack} disabled={loading}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            disabled={loading}
+          >
             Back
           </Button>
           <Button
             type="submit"
-            disabled={loading || !formData.attendeeName || !formData.attendeeEmail}
+            disabled={
+              loading || !formData.attendeeName || !formData.attendeeEmail
+            }
           >
             {loading ? (
               <>
@@ -421,13 +479,22 @@ function BookingForm({
   );
 }
 
-function BookingSuccess({ booking, eventType, team }: {
+function BookingSuccess({
+  booking,
+  eventType,
+  team,
+}: {
   booking: any;
   eventType: TeamEventType;
   team: PublicTeam;
 }) {
-  const localTime = new TZDate(parseISO(booking.startTime), booking.attendeeTimezone);
-  const endTime = new Date(localTime.getTime() + eventType.duration * 60 * 1000);
+  const localTime = new TZDate(
+    parseISO(booking.startTime),
+    booking.attendeeTimezone,
+  );
+  const endTime = new Date(
+    localTime.getTime() + eventType.duration * 60 * 1000,
+  );
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   return (
@@ -440,7 +507,9 @@ function BookingSuccess({ booking, eventType, team }: {
 
       <div>
         <h2 className="text-2xl font-bold mb-2">
-          {eventType.requiresConfirmation ? "Booking Requested!" : "Booking Confirmed!"}
+          {eventType.requiresConfirmation
+            ? "Booking Requested!"
+            : "Booking Confirmed!"}
         </h2>
         <p className="text-muted-foreground mb-6">
           {eventType.requiresConfirmation
@@ -460,7 +529,10 @@ function BookingSuccess({ booking, eventType, team }: {
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4" />
-                <span>{format(localTime, "MMMM d, yyyy 'at' h:mm a")} - {format(endTime, "h:mm a")}</span>
+                <span>
+                  {format(localTime, "MMMM d, yyyy 'at' h:mm a")} -{" "}
+                  {format(endTime, "h:mm a")}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4" />
@@ -480,13 +552,13 @@ function BookingSuccess({ booking, eventType, team }: {
       <div className="flex justify-center space-x-4">
         <a
           href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-            eventType.title
-          )}&dates=${formatISO(new Date(booking.startTime)).replace(/[-:]/g, "").split(".")[0]}Z/${formatISO(
-            new Date(booking.endTime)
-          )
-            .replace(/[-:]/g, "")
-            .split(".")[0]}Z&details=${encodeURIComponent(
-            `Booked via CalMill\n\nBooking ID: ${booking.uid}\n\nCancel: ${baseUrl}/booking/${booking.uid}/cancel\nReschedule: ${baseUrl}/booking/${booking.uid}/reschedule`
+            eventType.title,
+          )}&dates=${formatISO(new Date(booking.startTime)).replace(/[-:]/g, "").split(".")[0]}Z/${
+            formatISO(new Date(booking.endTime))
+              .replace(/[-:]/g, "")
+              .split(".")[0]
+          }Z&details=${encodeURIComponent(
+            `Booked via CalMill\n\nBooking ID: ${booking.uid}\n\nCancel: ${baseUrl}/booking/${booking.uid}/cancel\nReschedule: ${baseUrl}/booking/${booking.uid}/reschedule`,
           )}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -504,9 +576,7 @@ function BookingSuccess({ booking, eventType, team }: {
 
       <div className="pt-6">
         <Link href={`/team/${team.slug}`}>
-          <Button variant="outline">
-            Back to {team.name}
-          </Button>
+          <Button variant="outline">Back to {team.name}</Button>
         </Link>
       </div>
     </div>
@@ -519,7 +589,10 @@ export default function TeamEventBookingPage({
   params: Promise<{ slug: string; eventSlug: string }>;
 }) {
   const router = useRouter();
-  const [resolvedParams, setResolvedParams] = useState<{ slug: string; eventSlug: string } | null>(null);
+  const [resolvedParams, setResolvedParams] = useState<{
+    slug: string;
+    eventSlug: string;
+  } | null>(null);
 
   // State for team and event type
   const [team, setTeam] = useState<PublicTeam | null>(null);
@@ -550,7 +623,7 @@ export default function TeamEventBookingPage({
   // Detect timezone
   useEffect(() => {
     const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (TIMEZONE_OPTIONS.find(tz => tz.value === detectedTimezone)) {
+    if (TIMEZONE_OPTIONS.find((tz) => tz.value === detectedTimezone)) {
       setTimezone(detectedTimezone);
     }
   }, []);
@@ -565,7 +638,9 @@ export default function TeamEventBookingPage({
         setError(null);
 
         // Fetch team data
-        const teamResponse = await fetch(`/api/teams/${resolvedParams.slug}/public`);
+        const teamResponse = await fetch(
+          `/api/teams/${resolvedParams.slug}/public`,
+        );
         const teamResult = await teamResponse.json();
 
         if (!teamResponse.ok) {
@@ -573,7 +648,7 @@ export default function TeamEventBookingPage({
         }
 
         const foundEventType = teamResult.team.eventTypes.find(
-          (et: any) => et.slug === resolvedParams.eventSlug
+          (et: any) => et.slug === resolvedParams.eventSlug,
         );
 
         if (!foundEventType) {
@@ -583,7 +658,9 @@ export default function TeamEventBookingPage({
         setTeam(teamResult.team);
         setEventType(foundEventType);
       } catch (error) {
-        setError(error instanceof Error ? error.message : "Failed to load event");
+        setError(
+          error instanceof Error ? error.message : "Failed to load event",
+        );
       } finally {
         setLoading(false);
       }
@@ -602,7 +679,7 @@ export default function TeamEventBookingPage({
         const endDate = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000); // 60 days from now
 
         const response = await fetch(
-          `/api/slots?eventTypeId=${eventType.id}&startDate=${format(now, "yyyy-MM-dd")}&endDate=${format(endDate, "yyyy-MM-dd")}&timezone=${timezone}`
+          `/api/slots?eventTypeId=${eventType.id}&startDate=${format(now, "yyyy-MM-dd")}&endDate=${format(endDate, "yyyy-MM-dd")}&timezone=${timezone}`,
         );
 
         const result = await response.json();
@@ -636,7 +713,7 @@ export default function TeamEventBookingPage({
         const dateStr = format(selectedDate, "yyyy-MM-dd");
 
         const response = await fetch(
-          `/api/slots?eventTypeId=${eventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=${timezone}`
+          `/api/slots?eventTypeId=${eventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=${timezone}`,
         );
 
         const result = await response.json();
@@ -689,7 +766,9 @@ export default function TeamEventBookingPage({
       setStep("success");
     } catch (error) {
       console.error("Error creating booking:", error);
-      alert(error instanceof Error ? error.message : "Failed to create booking");
+      alert(
+        error instanceof Error ? error.message : "Failed to create booking",
+      );
     } finally {
       setBookingLoading(false);
     }
@@ -727,7 +806,8 @@ export default function TeamEventBookingPage({
           <div className="text-center py-16">
             <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
             <p className="text-muted-foreground mb-8">
-              {error || "The event you're looking for doesn't exist or is not available for booking."}
+              {error ||
+                "The event you're looking for doesn't exist or is not available for booking."}
             </p>
             <Link href={`/team/${resolvedParams.slug}`}>
               <Button>Back to Team</Button>
@@ -743,14 +823,22 @@ export default function TeamEventBookingPage({
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {step === "success" && booking ? (
-            <BookingSuccess booking={booking} eventType={eventType} team={team} />
+            <BookingSuccess
+              booking={booking}
+              eventType={eventType}
+              team={team}
+            />
           ) : (
             <>
               {/* Header */}
               <div className="flex items-center space-x-4 mb-8">
                 <Avatar size="md">
-                  {team.logoUrl && <AvatarImage src={team.logoUrl} alt={team.name} />}
-                  <AvatarFallback>{team.name.charAt(0).toUpperCase()}</AvatarFallback>
+                  {team.logoUrl && (
+                    <AvatarImage src={team.logoUrl} alt={team.name} />
+                  )}
+                  <AvatarFallback>
+                    {team.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <h1 className="text-2xl font-bold">{eventType.title}</h1>
@@ -763,7 +851,11 @@ export default function TeamEventBookingPage({
                     {eventType.schedulingType && (
                       <div className="flex items-center space-x-1">
                         <Users className="h-4 w-4" />
-                        <span>{eventType.schedulingType === 'ROUND_ROBIN' ? 'Round Robin' : 'Collective'}</span>
+                        <span>
+                          {eventType.schedulingType === "ROUND_ROBIN"
+                            ? "Round Robin"
+                            : "Collective"}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -771,7 +863,9 @@ export default function TeamEventBookingPage({
               </div>
 
               {eventType.description && (
-                <p className="text-muted-foreground mb-8">{eventType.description}</p>
+                <p className="text-muted-foreground mb-8">
+                  {eventType.description}
+                </p>
               )}
 
               {step === "datetime" ? (
@@ -820,9 +914,12 @@ export default function TeamEventBookingPage({
                     ) : (
                       <div className="text-center py-16">
                         <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">Select a Date</h3>
+                        <h3 className="text-lg font-semibold mb-2">
+                          Select a Date
+                        </h3>
                         <p className="text-muted-foreground">
-                          Choose a date from the calendar to see available times.
+                          Choose a date from the calendar to see available
+                          times.
                         </p>
                       </div>
                     )}

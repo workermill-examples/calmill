@@ -118,7 +118,7 @@ function BookingsPageContent() {
     });
 
     // Reset to page 1 when changing filters
-    if (Object.keys(updates).some(key => key !== "page")) {
+    if (Object.keys(updates).some((key) => key !== "page")) {
       params.set("page", "1");
     }
 
@@ -152,7 +152,9 @@ function BookingsPageContent() {
 
       // Add status filter
       if (Array.isArray(statusFilter.status)) {
-        statusFilter.status.forEach(status => params.append("status", status));
+        statusFilter.status.forEach((status) =>
+          params.append("status", status),
+        );
       } else if (statusFilter.status) {
         params.set("status", statusFilter.status);
       }
@@ -209,9 +211,20 @@ function BookingsPageContent() {
   useEffect(() => {
     fetchBookings();
     fetchEventTypes();
-  }, [activeTab, eventTypeFilter, attendeeEmailFilter, startDateFilter, endDateFilter, currentPage]);
+  }, [
+    activeTab,
+    eventTypeFilter,
+    attendeeEmailFilter,
+    startDateFilter,
+    endDateFilter,
+    currentPage,
+  ]);
 
-  const formatBookingTime = (startTime: string, endTime: string, timezone: string) => {
+  const formatBookingTime = (
+    startTime: string,
+    endTime: string,
+    timezone: string,
+  ) => {
     try {
       const start = new Date(startTime);
       const end = new Date(endTime);
@@ -226,16 +239,23 @@ function BookingsPageContent() {
   const getBookingCounts = () => {
     // In a real app, these would come from a separate API endpoint or be included in the response
     return {
-      upcoming: bookings.filter(b => b.status === "ACCEPTED" && new Date(b.startTime) > new Date()).length,
-      past: bookings.filter(b => b.status === "ACCEPTED" && new Date(b.startTime) <= new Date()).length,
-      cancelled: bookings.filter(b => ["CANCELLED", "REJECTED", "RESCHEDULED"].includes(b.status)).length,
-      pending: bookings.filter(b => b.status === "PENDING").length,
+      upcoming: bookings.filter(
+        (b) => b.status === "ACCEPTED" && new Date(b.startTime) > new Date(),
+      ).length,
+      past: bookings.filter(
+        (b) => b.status === "ACCEPTED" && new Date(b.startTime) <= new Date(),
+      ).length,
+      cancelled: bookings.filter((b) =>
+        ["CANCELLED", "REJECTED", "RESCHEDULED"].includes(b.status),
+      ).length,
+      pending: bookings.filter((b) => b.status === "PENDING").length,
     };
   };
 
   const counts = getBookingCounts();
 
-  const hasActiveFilters = eventTypeFilter || attendeeEmailFilter || startDateFilter || endDateFilter;
+  const hasActiveFilters =
+    eventTypeFilter || attendeeEmailFilter || startDateFilter || endDateFilter;
 
   if (loading) {
     return (
@@ -243,7 +263,9 @@ function BookingsPageContent() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
-            <p className="text-muted-foreground">Manage your upcoming and past appointments</p>
+            <p className="text-muted-foreground">
+              Manage your upcoming and past appointments
+            </p>
           </div>
         </div>
         <TableSkeleton />
@@ -257,7 +279,9 @@ function BookingsPageContent() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
-          <p className="text-muted-foreground">Manage your upcoming and past appointments</p>
+          <p className="text-muted-foreground">
+            Manage your upcoming and past appointments
+          </p>
         </div>
       </div>
 
@@ -265,7 +289,9 @@ function BookingsPageContent() {
         <div className="rounded-md bg-red-50 border border-red-200 p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error loading bookings</h3>
+              <h3 className="text-sm font-medium text-red-800">
+                Error loading bookings
+              </h3>
               <p className="mt-1 text-sm text-red-700">{error}</p>
               <div className="mt-4">
                 <Button onClick={fetchBookings} variant="outline" size="sm">
@@ -323,13 +349,17 @@ function BookingsPageContent() {
             <Input
               placeholder="Search by attendee email..."
               value={attendeeEmailFilter}
-              onChange={(e) => updateParams({ attendee: e.target.value || null })}
+              onChange={(e) =>
+                updateParams({ attendee: e.target.value || null })
+              }
               className="max-w-sm"
             />
           </div>
           <Select
             value={eventTypeFilter}
-            onValueChange={(value) => updateParams({ eventType: value || null })}
+            onValueChange={(value) =>
+              updateParams({ eventType: value || null })
+            }
             options={[
               { value: "", label: "All event types" },
               ...eventTypes.map((et) => ({
@@ -345,26 +375,32 @@ function BookingsPageContent() {
               type="date"
               placeholder="Start date"
               value={startDateFilter}
-              onChange={(e) => updateParams({ startDate: e.target.value || null })}
+              onChange={(e) =>
+                updateParams({ startDate: e.target.value || null })
+              }
               className="w-40"
             />
             <Input
               type="date"
               placeholder="End date"
               value={endDateFilter}
-              onChange={(e) => updateParams({ endDate: e.target.value || null })}
+              onChange={(e) =>
+                updateParams({ endDate: e.target.value || null })
+              }
               className="w-40"
             />
           </div>
           {hasActiveFilters && (
             <Button
               variant="outline"
-              onClick={() => updateParams({
-                eventType: null,
-                attendee: null,
-                startDate: null,
-                endDate: null,
-              })}
+              onClick={() =>
+                updateParams({
+                  eventType: null,
+                  attendee: null,
+                  startDate: null,
+                  endDate: null,
+                })
+              }
             >
               Clear filters
             </Button>
@@ -377,12 +413,14 @@ function BookingsPageContent() {
             hasActiveFilters ? (
               <SearchEmpty
                 query={attendeeEmailFilter || eventTypeFilter || "your filters"}
-                onClearSearch={() => updateParams({
-                  eventType: null,
-                  attendee: null,
-                  startDate: null,
-                  endDate: null,
-                })}
+                onClearSearch={() =>
+                  updateParams({
+                    eventType: null,
+                    attendee: null,
+                    startDate: null,
+                    endDate: null,
+                  })
+                }
               />
             ) : (
               <NoBookings
@@ -396,7 +434,7 @@ function BookingsPageContent() {
                 const { date, time } = formatBookingTime(
                   booking.startTime,
                   booking.endTime,
-                  booking.attendeeTimezone
+                  booking.attendeeTimezone,
                 );
 
                 return (
@@ -455,7 +493,8 @@ function BookingsPageContent() {
 
                               {booking.attendeeNotes && (
                                 <div className="text-xs bg-muted p-2 rounded mt-2">
-                                  <strong>Notes:</strong> {booking.attendeeNotes}
+                                  <strong>Notes:</strong>{" "}
+                                  {booking.attendeeNotes}
                                 </div>
                               )}
                             </div>
@@ -479,9 +518,12 @@ function BookingsPageContent() {
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between pt-6">
                   <div className="text-sm text-muted-foreground">
-                    Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
-                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-                    {pagination.total} bookings
+                    Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                    {Math.min(
+                      pagination.page * pagination.limit,
+                      pagination.total,
+                    )}{" "}
+                    of {pagination.total} bookings
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -489,33 +531,49 @@ function BookingsPageContent() {
                       variant="outline"
                       size="sm"
                       disabled={!pagination.hasPrev}
-                      onClick={() => updateParams({ page: (currentPage - 1).toString() })}
+                      onClick={() =>
+                        updateParams({ page: (currentPage - 1).toString() })
+                      }
                     >
                       Previous
                     </Button>
 
                     <div className="flex items-center gap-1">
-                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                        .filter(page => {
+                      {Array.from(
+                        { length: pagination.totalPages },
+                        (_, i) => i + 1,
+                      )
+                        .filter((page) => {
                           // Show current page, first/last, and pages around current
-                          return page === 1 ||
-                                 page === pagination.totalPages ||
-                                 Math.abs(page - pagination.page) <= 1;
+                          return (
+                            page === 1 ||
+                            page === pagination.totalPages ||
+                            Math.abs(page - pagination.page) <= 1
+                          );
                         })
                         .map((page, index, pages) => {
                           // Add ellipsis if there's a gap
-                          const shouldShowEllipsis = index > 0 && page - pages[index - 1] > 1;
+                          const shouldShowEllipsis =
+                            index > 0 && page - pages[index - 1] > 1;
 
                           return (
                             <div key={page} className="flex items-center gap-1">
                               {shouldShowEllipsis && (
-                                <span className="text-muted-foreground px-2">...</span>
+                                <span className="text-muted-foreground px-2">
+                                  ...
+                                </span>
                               )}
                               <Button
-                                variant={page === pagination.page ? "primary" : "outline"}
+                                variant={
+                                  page === pagination.page
+                                    ? "primary"
+                                    : "outline"
+                                }
                                 size="sm"
                                 className="min-w-10"
-                                onClick={() => updateParams({ page: page.toString() })}
+                                onClick={() =>
+                                  updateParams({ page: page.toString() })
+                                }
                               >
                                 {page}
                               </Button>
@@ -528,7 +586,9 @@ function BookingsPageContent() {
                       variant="outline"
                       size="sm"
                       disabled={!pagination.hasNext}
-                      onClick={() => updateParams({ page: (currentPage + 1).toString() })}
+                      onClick={() =>
+                        updateParams({ page: (currentPage + 1).toString() })
+                      }
                     >
                       Next
                     </Button>
@@ -546,17 +606,21 @@ function BookingsPageContent() {
 // Main component with Suspense wrapper
 export default function BookingsPage() {
   return (
-    <Suspense fallback={
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
-            <p className="text-muted-foreground">Manage your upcoming and past appointments</p>
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
+              <p className="text-muted-foreground">
+                Manage your upcoming and past appointments
+              </p>
+            </div>
           </div>
+          <TableSkeleton />
         </div>
-        <TableSkeleton />
-      </div>
-    }>
+      }
+    >
       <BookingsPageContent />
     </Suspense>
   );

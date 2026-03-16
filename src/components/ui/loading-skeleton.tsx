@@ -8,7 +8,9 @@ interface LoadingSkeletonProps {
 }
 
 // Generic skeleton components for common UI patterns
-export const TableSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) => (
+export const TableSkeleton: React.FC<LoadingSkeletonProps> = ({
+  className,
+}) => (
   <div className={cn("space-y-3", className)}>
     {Array.from({ length: 5 }).map((_, i) => (
       <div key={i} className="flex items-center space-x-4">
@@ -70,7 +72,9 @@ export const FormSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) => (
   </div>
 );
 
-export const DashboardSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) => (
+export const DashboardSkeleton: React.FC<LoadingSkeletonProps> = ({
+  className,
+}) => (
   <div className={cn("space-y-6", className)}>
     {/* Stats cards */}
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -122,7 +126,9 @@ export const DashboardSkeleton: React.FC<LoadingSkeletonProps> = ({ className })
   </div>
 );
 
-export const CalendarSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) => (
+export const CalendarSkeleton: React.FC<LoadingSkeletonProps> = ({
+  className,
+}) => (
   <div className={cn("space-y-4", className)}>
     {/* Header */}
     <div className="flex items-center justify-between">
@@ -147,7 +153,9 @@ export const CalendarSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) 
   </div>
 );
 
-export const BookingSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) => (
+export const BookingSkeleton: React.FC<LoadingSkeletonProps> = ({
+  className,
+}) => (
   <div className={cn("space-y-6", className)}>
     {/* Booking header */}
     <div className="space-y-2">
@@ -174,7 +182,9 @@ export const BookingSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) =
   </div>
 );
 
-export const EventTypeSkeleton: React.FC<LoadingSkeletonProps> = ({ className }) => (
+export const EventTypeSkeleton: React.FC<LoadingSkeletonProps> = ({
+  className,
+}) => (
   <div className={cn("space-y-4", className)}>
     {Array.from({ length: 4 }).map((_, i) => (
       <Card key={i}>
@@ -200,6 +210,7 @@ export const EventTypeSkeleton: React.FC<LoadingSkeletonProps> = ({ className })
 );
 
 // Simple skeleton component for backwards compatibility
-export const LoadingSkeleton: React.FC<React.ComponentProps<typeof Skeleton>> = Skeleton;
+export const LoadingSkeleton: React.FC<React.ComponentProps<typeof Skeleton>> =
+  Skeleton;
 
 export { Skeleton };

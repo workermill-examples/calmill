@@ -5,7 +5,13 @@ import { useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/loading-skeleton";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Calendar, Clock, MapPin } from "lucide-react";
@@ -50,7 +56,10 @@ export interface BookingFormProps {
 }
 
 // Form validation
-function validateFormData(data: BookingFormData, customQuestions: CustomQuestion[]): string[] {
+function validateFormData(
+  data: BookingFormData,
+  customQuestions: CustomQuestion[],
+): string[] {
   const errors: string[] = [];
 
   if (!data.name?.trim()) errors.push("Name is required");
@@ -61,19 +70,22 @@ function validateFormData(data: BookingFormData, customQuestions: CustomQuestion
   if (!data.timezone?.trim()) errors.push("Timezone is required");
 
   // Validate custom questions
-  customQuestions.forEach(question => {
+  customQuestions.forEach((question) => {
     if (question.required) {
       const response = data.customResponses?.[question.id];
-      if (!response || (Array.isArray(response) && response.length === 0) ||
-          (typeof response === 'string' && !response.trim())) {
+      if (
+        !response ||
+        (Array.isArray(response) && response.length === 0) ||
+        (typeof response === "string" && !response.trim())
+      ) {
         errors.push(`${question.label} is required`);
       }
     }
 
     // Validate phone numbers
-    if (question.type === 'phone' && data.customResponses?.[question.id]) {
+    if (question.type === "phone" && data.customResponses?.[question.id]) {
       const phone = data.customResponses[question.id] as string;
-      if (phone && !/^[\+]?[1-9]?[0-9]{7,15}$/.test(phone.replace(/\s/g, ''))) {
+      if (phone && !/^[\+]?[1-9]?[0-9]{7,15}$/.test(phone.replace(/\s/g, ""))) {
         errors.push(`${question.label} must be a valid phone number`);
       }
     }
@@ -102,42 +114,51 @@ export function BookingForm({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Handle form submission
-  const handleFormSubmit = React.useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    const errors = validateFormData(formData, customQuestions);
-    setValidationErrors(errors);
+      const errors = validateFormData(formData, customQuestions);
+      setValidationErrors(errors);
 
-    if (errors.length > 0) return;
+      if (errors.length > 0) return;
 
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error("Form submission error:", error);
-    }
-  }, [onSubmit, formData, customQuestions]);
+      try {
+        await onSubmit(formData);
+      } catch (error) {
+        console.error("Form submission error:", error);
+      }
+    },
+    [onSubmit, formData, customQuestions],
+  );
 
   // Handle form field changes
-  const handleFieldChange = React.useCallback((field: keyof BookingFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (validationErrors.length > 0) {
-      setValidationErrors([]);
-    }
-  }, [validationErrors.length]);
+  const handleFieldChange = React.useCallback(
+    (field: keyof BookingFormData, value: any) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (validationErrors.length > 0) {
+        setValidationErrors([]);
+      }
+    },
+    [validationErrors.length],
+  );
 
   // Handle custom question responses
-  const handleCustomResponse = React.useCallback((questionId: string, value: string | string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      customResponses: {
-        ...prev.customResponses,
-        [questionId]: value
+  const handleCustomResponse = React.useCallback(
+    (questionId: string, value: string | string[]) => {
+      setFormData((prev) => ({
+        ...prev,
+        customResponses: {
+          ...prev.customResponses,
+          [questionId]: value,
+        },
+      }));
+      if (validationErrors.length > 0) {
+        setValidationErrors([]);
       }
-    }));
-    if (validationErrors.length > 0) {
-      setValidationErrors([]);
-    }
-  }, [validationErrors.length]);
+    },
+    [validationErrors.length],
+  );
 
   // Loading state
   if (submitting && !formData.name) {
@@ -173,7 +194,9 @@ export function BookingForm({
               </div>
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <Clock className="w-4 h-4" />
-                <span>{eventDetails.time} ({eventDetails.duration}m)</span>
+                <span>
+                  {eventDetails.time} ({eventDetails.duration}m)
+                </span>
               </div>
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <MapPin className="w-4 h-4" />
@@ -211,7 +234,12 @@ export function BookingForm({
         {/* Basic information */}
         <div className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name *</label>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Name *
+            </label>
             <Input
               id="name"
               value={formData.name}
@@ -222,7 +250,12 @@ export function BookingForm({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email *</label>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Email *
+            </label>
             <Input
               id="email"
               value={formData.email}
@@ -234,7 +267,12 @@ export function BookingForm({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">Additional notes</label>
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Additional notes
+            </label>
             <textarea
               id="notes"
               value={formData.notes || ""}
@@ -258,17 +296,27 @@ export function BookingForm({
                   <div key={question.id} className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       {question.label}
-                      {question.required && <span className="text-red-500 ml-1">*</span>}
+                      {question.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
                     </label>
 
                     {question.type === "text" && (
                       <>
                         {(() => {
-                          const response = (formData.customResponses?.[question.id] as string) || "";
+                          const response =
+                            (formData.customResponses?.[
+                              question.id
+                            ] as string) || "";
                           return (
                             <Input
                               value={response}
-                              onChange={(e) => handleCustomResponse(question.id, e.target.value)}
+                              onChange={(e) =>
+                                handleCustomResponse(
+                                  question.id,
+                                  e.target.value,
+                                )
+                              }
                               placeholder={`Enter ${question.label.toLowerCase()}`}
                               className="transition-colors"
                               required={question.required}
@@ -281,11 +329,19 @@ export function BookingForm({
                     {question.type === "textarea" && (
                       <>
                         {(() => {
-                          const response = (formData.customResponses?.[question.id] as string) || "";
+                          const response =
+                            (formData.customResponses?.[
+                              question.id
+                            ] as string) || "";
                           return (
                             <textarea
                               value={response}
-                              onChange={(e) => handleCustomResponse(question.id, e.target.value)}
+                              onChange={(e) =>
+                                handleCustomResponse(
+                                  question.id,
+                                  e.target.value,
+                                )
+                              }
                               placeholder={`Enter ${question.label.toLowerCase()}`}
                               rows={3}
                               className="resize-none transition-colors w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -299,11 +355,19 @@ export function BookingForm({
                     {question.type === "select" && question.options && (
                       <>
                         {(() => {
-                          const response = (formData.customResponses?.[question.id] as string) || "";
+                          const response =
+                            (formData.customResponses?.[
+                              question.id
+                            ] as string) || "";
                           return (
                             <select
                               value={response}
-                              onChange={(e) => handleCustomResponse(question.id, e.target.value)}
+                              onChange={(e) =>
+                                handleCustomResponse(
+                                  question.id,
+                                  e.target.value,
+                                )
+                              }
                               className="transition-colors w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               required={question.required}
                             >
@@ -322,17 +386,28 @@ export function BookingForm({
                     {question.type === "radio" && question.options && (
                       <>
                         {(() => {
-                          const selectedValue = (formData.customResponses?.[question.id] as string) || "";
+                          const selectedValue =
+                            (formData.customResponses?.[
+                              question.id
+                            ] as string) || "";
                           return (
                             <div className="space-y-2">
                               {question.options.map((option) => (
-                                <label key={option} className="flex items-center space-x-2">
+                                <label
+                                  key={option}
+                                  className="flex items-center space-x-2"
+                                >
                                   <input
                                     type="radio"
                                     name={question.id}
                                     value={option}
                                     checked={selectedValue === option}
-                                    onChange={(e) => handleCustomResponse(question.id, e.target.value)}
+                                    onChange={(e) =>
+                                      handleCustomResponse(
+                                        question.id,
+                                        e.target.value,
+                                      )
+                                    }
                                     required={question.required}
                                     className="text-blue-600"
                                   />
@@ -348,11 +423,17 @@ export function BookingForm({
                     {question.type === "checkbox" && question.options && (
                       <>
                         {(() => {
-                          const selectedValues = (formData.customResponses?.[question.id] as string[]) || [];
+                          const selectedValues =
+                            (formData.customResponses?.[
+                              question.id
+                            ] as string[]) || [];
                           return (
                             <div className="space-y-2">
                               {question.options.map((option) => (
-                                <label key={option} className="flex items-center space-x-2">
+                                <label
+                                  key={option}
+                                  className="flex items-center space-x-2"
+                                >
                                   <input
                                     type="checkbox"
                                     value={option}
@@ -361,8 +442,13 @@ export function BookingForm({
                                       const isChecked = e.target.checked;
                                       const newSelection = isChecked
                                         ? [...selectedValues, option]
-                                        : selectedValues.filter(v => v !== option);
-                                      handleCustomResponse(question.id, newSelection);
+                                        : selectedValues.filter(
+                                            (v) => v !== option,
+                                          );
+                                      handleCustomResponse(
+                                        question.id,
+                                        newSelection,
+                                      );
                                     }}
                                     className="text-blue-600"
                                   />
@@ -378,12 +464,20 @@ export function BookingForm({
                     {question.type === "phone" && (
                       <>
                         {(() => {
-                          const response = (formData.customResponses?.[question.id] as string) || "";
+                          const response =
+                            (formData.customResponses?.[
+                              question.id
+                            ] as string) || "";
                           return (
                             <Input
                               type="tel"
                               value={response}
-                              onChange={(e) => handleCustomResponse(question.id, e.target.value)}
+                              onChange={(e) =>
+                                handleCustomResponse(
+                                  question.id,
+                                  e.target.value,
+                                )
+                              }
                               placeholder="+1 (555) 123-4567"
                               className="transition-colors"
                               required={question.required}

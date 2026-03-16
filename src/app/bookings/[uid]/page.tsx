@@ -7,7 +7,13 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { cn } from "@/lib/utils";
@@ -131,7 +137,9 @@ export default function BookingDetailPage({ params }: RouteParams) {
         setBooking(data.booking);
       } catch (err) {
         console.error("Error fetching booking:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch booking");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch booking",
+        );
       } finally {
         setLoading(false);
       }
@@ -170,7 +178,9 @@ export default function BookingDetailPage({ params }: RouteParams) {
       setCancellationReason("");
 
       // Show success message (in a real app, you might use a toast notification)
-      alert(`Booking ${action}${action === "cancel" ? "led" : "ed"} successfully!`);
+      alert(
+        `Booking ${action}${action === "cancel" ? "led" : "ed"} successfully!`,
+      );
     } catch (err) {
       console.error(`Error ${action}ing booking:`, err);
       alert(err instanceof Error ? err.message : `Failed to ${action} booking`);
@@ -179,7 +189,11 @@ export default function BookingDetailPage({ params }: RouteParams) {
     }
   };
 
-  const formatDateTime = (startTime: string, endTime: string, timezone: string) => {
+  const formatDateTime = (
+    startTime: string,
+    endTime: string,
+    timezone: string,
+  ) => {
     try {
       const start = new Date(startTime);
       const end = new Date(endTime);
@@ -209,7 +223,9 @@ export default function BookingDetailPage({ params }: RouteParams) {
         `Host: ${booking.user.name || booking.user.email}`,
         booking.location && `Location: ${booking.location}`,
         booking.attendeeNotes && `Notes: ${booking.attendeeNotes}`,
-      ].filter(Boolean).join("\n")
+      ]
+        .filter(Boolean)
+        .join("\n"),
     );
 
     const location = encodeURIComponent(booking.location || "");
@@ -218,12 +234,17 @@ export default function BookingDetailPage({ params }: RouteParams) {
     const googleUrl = new URL("https://calendar.google.com/calendar/render");
     googleUrl.searchParams.set("action", "TEMPLATE");
     googleUrl.searchParams.set("text", title);
-    googleUrl.searchParams.set("dates", `${startTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${endTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`);
+    googleUrl.searchParams.set(
+      "dates",
+      `${startTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${endTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`,
+    );
     googleUrl.searchParams.set("details", description);
     googleUrl.searchParams.set("location", location);
 
     // Outlook URL
-    const outlookUrl = new URL("https://outlook.live.com/calendar/0/deeplink/compose");
+    const outlookUrl = new URL(
+      "https://outlook.live.com/calendar/0/deeplink/compose",
+    );
     outlookUrl.searchParams.set("subject", title);
     outlookUrl.searchParams.set("startdt", startTime.toISOString());
     outlookUrl.searchParams.set("enddt", endTime.toISOString());
@@ -243,8 +264,10 @@ export default function BookingDetailPage({ params }: RouteParams) {
       `DESCRIPTION:${booking.title}`,
       booking.location && `LOCATION:${booking.location}`,
       "END:VEVENT",
-      "END:VCALENDAR"
-    ].filter(Boolean).join("\n");
+      "END:VCALENDAR",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const icsBlob = new Blob([icsContent], { type: "text/calendar" });
     const icsUrl = URL.createObjectURL(icsBlob);
@@ -264,7 +287,9 @@ export default function BookingDetailPage({ params }: RouteParams) {
             ← Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Booking Details</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Booking Details
+            </h1>
           </div>
         </div>
         <CardSkeleton />
@@ -280,7 +305,9 @@ export default function BookingDetailPage({ params }: RouteParams) {
             ← Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Booking Details</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Booking Details
+            </h1>
           </div>
         </div>
         <Card>
@@ -290,7 +317,8 @@ export default function BookingDetailPage({ params }: RouteParams) {
                 {error ? "Error loading booking" : "Booking not found"}
               </h3>
               <p className="text-gray-500 mb-4">
-                {error || "The booking you're looking for doesn't exist or you don't have access to it."}
+                {error ||
+                  "The booking you're looking for doesn't exist or you don't have access to it."}
               </p>
               <div className="flex justify-center gap-2">
                 <Button variant="outline" onClick={() => router.back()}>
@@ -310,7 +338,7 @@ export default function BookingDetailPage({ params }: RouteParams) {
   const { date, time, timezone } = formatDateTime(
     booking.startTime,
     booking.endTime,
-    booking.attendeeTimezone
+    booking.attendeeTimezone,
   );
 
   const statusInfo = statusConfig[booking.status];
@@ -356,7 +384,9 @@ export default function BookingDetailPage({ params }: RouteParams) {
               {booking.cancellationReason && (
                 <div className="bg-muted p-3 rounded-md mb-4">
                   <p className="text-sm font-medium">Cancellation Reason:</p>
-                  <p className="text-sm text-muted-foreground">{booking.cancellationReason}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {booking.cancellationReason}
+                  </p>
                 </div>
               )}
 
@@ -383,7 +413,10 @@ export default function BookingDetailPage({ params }: RouteParams) {
                   </Button>
                 )}
                 {statusInfo.canCancel && (
-                  <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                  <Dialog
+                    open={showCancelDialog}
+                    onOpenChange={setShowCancelDialog}
+                  >
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
                         Cancel
@@ -395,7 +428,8 @@ export default function BookingDetailPage({ params }: RouteParams) {
                       </DialogHeader>
                       <div className="space-y-4">
                         <p className="text-sm text-muted-foreground">
-                          Are you sure you want to cancel this booking? This action cannot be undone.
+                          Are you sure you want to cancel this booking? This
+                          action cannot be undone.
                         </p>
                         <div>
                           <label className="text-sm font-medium mb-2 block">
@@ -403,7 +437,9 @@ export default function BookingDetailPage({ params }: RouteParams) {
                           </label>
                           <Input
                             value={cancellationReason}
-                            onChange={(e) => setCancellationReason(e.target.value)}
+                            onChange={(e) =>
+                              setCancellationReason(e.target.value)
+                            }
                             placeholder="Explain why you're cancelling..."
                           />
                         </div>
@@ -441,41 +477,63 @@ export default function BookingDetailPage({ params }: RouteParams) {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Date</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Date
+                  </p>
                   <p className="text-sm">{date}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Time</p>
-                  <p className="text-sm">{time} ({timezone})</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Time
+                  </p>
+                  <p className="text-sm">
+                    {time} ({timezone})
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Duration</p>
-                  <p className="text-sm">{booking.eventType.duration} minutes</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Duration
+                  </p>
+                  <p className="text-sm">
+                    {booking.eventType.duration} minutes
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Event Type</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Event Type
+                  </p>
                   <p className="text-sm">{booking.eventType.title}</p>
                 </div>
               </div>
 
               {booking.eventType.description && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Description</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Description
+                  </p>
                   <p className="text-sm">{booking.eventType.description}</p>
                 </div>
               )}
 
               {booking.location && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Location</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Location
+                  </p>
                   <p className="text-sm">{booking.location}</p>
                 </div>
               )}
 
               {booking.meetingUrl && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Meeting URL</p>
-                  <Link href={booking.meetingUrl as any} target="_blank" rel="noopener noreferrer">
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Meeting URL
+                  </p>
+                  <Link
+                    href={booking.meetingUrl as any}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Button variant="outline" size="sm">
                       Join Meeting
                     </Button>
@@ -493,41 +551,59 @@ export default function BookingDetailPage({ params }: RouteParams) {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Name</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Name
+                  </p>
                   <p className="text-sm">{booking.attendeeName}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Email</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Email
+                  </p>
                   <p className="text-sm">{booking.attendeeEmail}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Timezone</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Timezone
+                  </p>
                   <p className="text-sm">{booking.attendeeTimezone}</p>
                 </div>
               </div>
 
               {booking.attendeeNotes && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Notes
+                  </p>
                   <div className="bg-muted p-3 rounded-md">
                     <p className="text-sm">{booking.attendeeNotes}</p>
                   </div>
                 </div>
               )}
 
-              {booking.responses && Object.keys(booking.responses).length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Custom Questions</p>
-                  <div className="space-y-2">
-                    {Object.entries(booking.responses).map(([question, answer]) => (
-                      <div key={question} className="bg-muted p-3 rounded-md">
-                        <p className="text-sm font-medium">{question}</p>
-                        <p className="text-sm text-muted-foreground">{String(answer)}</p>
-                      </div>
-                    ))}
+              {booking.responses &&
+                Object.keys(booking.responses).length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">
+                      Custom Questions
+                    </p>
+                    <div className="space-y-2">
+                      {Object.entries(booking.responses).map(
+                        ([question, answer]) => (
+                          <div
+                            key={question}
+                            className="bg-muted p-3 rounded-md"
+                          >
+                            <p className="text-sm font-medium">{question}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {String(answer)}
+                            </p>
+                          </div>
+                        ),
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </CardContent>
           </Card>
         </div>
@@ -548,20 +624,45 @@ export default function BookingDetailPage({ params }: RouteParams) {
 
               {booking.status === "ACCEPTED" && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Add to Calendar</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Add to Calendar
+                  </p>
                   <div className="space-y-2">
-                    <Link href={calendarUrls.google as any} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Link
+                      href={calendarUrls.google as any}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
                         📅 Google Calendar
                       </Button>
                     </Link>
-                    <Link href={calendarUrls.outlook as any} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Link
+                      href={calendarUrls.outlook as any}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
                         📅 Outlook
                       </Button>
                     </Link>
-                    <Link href={calendarUrls.ics as any} download={`${booking.title}.ics`}>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Link
+                      href={calendarUrls.ics as any}
+                      download={`${booking.title}.ics`}
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
                         📥 Download .ics
                       </Button>
                     </Link>
@@ -584,21 +685,29 @@ export default function BookingDetailPage({ params }: RouteParams) {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Name</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  Name
+                </p>
                 <p className="text-sm">{booking.user.name || "N/A"}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Email</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  Email
+                </p>
                 <p className="text-sm">{booking.user.email}</p>
               </div>
               {booking.user.username && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Username</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Username
+                  </p>
                   <p className="text-sm">@{booking.user.username}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Timezone</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  Timezone
+                </p>
                 <p className="text-sm">{booking.user.timezone}</p>
               </div>
             </CardContent>
@@ -615,7 +724,10 @@ export default function BookingDetailPage({ params }: RouteParams) {
                 <div>
                   <p className="text-sm font-medium">Booking Created</p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(booking.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                    {format(
+                      new Date(booking.createdAt),
+                      "MMM d, yyyy 'at' h:mm a",
+                    )}
                   </p>
                 </div>
               </div>
@@ -626,24 +738,31 @@ export default function BookingDetailPage({ params }: RouteParams) {
                   <div>
                     <p className="text-sm font-medium">Last Updated</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(booking.updatedAt), "MMM d, yyyy 'at' h:mm a")}
+                      {format(
+                        new Date(booking.updatedAt),
+                        "MMM d, yyyy 'at' h:mm a",
+                      )}
                     </p>
                   </div>
                 </div>
               )}
 
               <div className="flex items-start gap-3">
-                <div className={cn(
-                  "w-2 h-2 rounded-full mt-1.5",
-                  booking.status === "ACCEPTED" && "bg-green-500",
-                  booking.status === "PENDING" && "bg-yellow-500",
-                  booking.status === "CANCELLED" && "bg-red-500",
-                  booking.status === "REJECTED" && "bg-red-500",
-                  booking.status === "RESCHEDULED" && "bg-gray-500"
-                )} />
+                <div
+                  className={cn(
+                    "w-2 h-2 rounded-full mt-1.5",
+                    booking.status === "ACCEPTED" && "bg-green-500",
+                    booking.status === "PENDING" && "bg-yellow-500",
+                    booking.status === "CANCELLED" && "bg-red-500",
+                    booking.status === "REJECTED" && "bg-red-500",
+                    booking.status === "RESCHEDULED" && "bg-gray-500",
+                  )}
+                />
                 <div>
                   <p className="text-sm font-medium">Current Status</p>
-                  <p className="text-xs text-muted-foreground">{statusInfo.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {statusInfo.label}
+                  </p>
                 </div>
               </div>
             </CardContent>

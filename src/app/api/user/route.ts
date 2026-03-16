@@ -181,7 +181,9 @@ export async function PUT(request: NextRequest) {
 // Account deletion schema
 const deleteAccountSchema = z.object({
   password: z.string().min(1, "Password is required for account deletion"),
-  confirmation: z.literal("DELETE", { message: "You must type DELETE to confirm" }),
+  confirmation: z.literal("DELETE", {
+    message: "You must type DELETE to confirm",
+  }),
 });
 
 export async function DELETE(request: NextRequest) {

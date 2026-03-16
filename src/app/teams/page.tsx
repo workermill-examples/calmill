@@ -5,10 +5,21 @@ import { useSession } from "next-auth/react";
 import { Plus, Users, Settings, Calendar, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dropdown, DropdownContent, DropdownItem, DropdownTrigger } from "@/components/ui/dropdown";
+import {
+  Dropdown,
+  DropdownContent,
+  DropdownItem,
+  DropdownTrigger,
+} from "@/components/ui/dropdown";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,7 +97,9 @@ function CreateTeamModal({ onTeamCreated }: { onTeamCreated: () => void }) {
       setIsOpen(false);
       onTeamCreated();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to create team");
+      setError(
+        error instanceof Error ? error.message : "Failed to create team",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -94,10 +107,13 @@ function CreateTeamModal({ onTeamCreated }: { onTeamCreated: () => void }) {
 
   // Auto-generate slug from name
   const handleNameChange = (name: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       name,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      slug: name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, ""),
     }));
   };
 
@@ -115,7 +131,10 @@ function CreateTeamModal({ onTeamCreated }: { onTeamCreated: () => void }) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="team-name" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-name"
+              className="block text-sm font-medium mb-1"
+            >
               Team Name
             </label>
             <Input
@@ -129,14 +148,19 @@ function CreateTeamModal({ onTeamCreated }: { onTeamCreated: () => void }) {
           </div>
 
           <div>
-            <label htmlFor="team-slug" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-slug"
+              className="block text-sm font-medium mb-1"
+            >
               URL Slug
             </label>
             <Input
               id="team-slug"
               type="text"
               value={formData.slug}
-              onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, slug: e.target.value }))
+              }
               placeholder="engineering-team"
               required
             />
@@ -146,26 +170,36 @@ function CreateTeamModal({ onTeamCreated }: { onTeamCreated: () => void }) {
           </div>
 
           <div>
-            <label htmlFor="team-logo" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-logo"
+              className="block text-sm font-medium mb-1"
+            >
               Logo URL (optional)
             </label>
             <Input
               id="team-logo"
               type="url"
               value={formData.logoUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, logoUrl: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, logoUrl: e.target.value }))
+              }
               placeholder="https://example.com/logo.png"
             />
           </div>
 
           <div>
-            <label htmlFor="team-bio" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-bio"
+              className="block text-sm font-medium mb-1"
+            >
               Description (optional)
             </label>
             <textarea
               id="team-bio"
               value={formData.bio}
-              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, bio: e.target.value }))
+              }
               placeholder="Brief description of your team..."
               className="w-full px-3 py-2 border rounded-md resize-none h-20"
               maxLength={1000}
@@ -187,7 +221,10 @@ function CreateTeamModal({ onTeamCreated }: { onTeamCreated: () => void }) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !formData.name || !formData.slug}>
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.name || !formData.slug}
+            >
               {isLoading ? "Creating..." : "Create Team"}
             </Button>
           </div>
@@ -215,7 +252,12 @@ function TeamCard({ team }: { team: Team }) {
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <h3 className="font-semibold text-lg">{team.name}</h3>
-              <Badge variant={roleColor[team.userRole as keyof typeof roleColor] || "secondary"}>
+              <Badge
+                variant={
+                  roleColor[team.userRole as keyof typeof roleColor] ||
+                  "secondary"
+                }
+              >
                 {team.userRole}
               </Badge>
             </div>
@@ -225,11 +267,16 @@ function TeamCard({ team }: { team: Team }) {
             <div className="flex items-center space-x-4 text-sm text-muted-foreground">
               <div className="flex items-center space-x-1">
                 <Users className="h-4 w-4" />
-                <span>{team.memberCount} member{team.memberCount !== 1 ? 's' : ''}</span>
+                <span>
+                  {team.memberCount} member{team.memberCount !== 1 ? "s" : ""}
+                </span>
               </div>
               <div className="flex items-center space-x-1">
                 <Calendar className="h-4 w-4" />
-                <span>{team.eventTypeCount} event type{team.eventTypeCount !== 1 ? 's' : ''}</span>
+                <span>
+                  {team.eventTypeCount} event type
+                  {team.eventTypeCount !== 1 ? "s" : ""}
+                </span>
               </div>
             </div>
           </div>

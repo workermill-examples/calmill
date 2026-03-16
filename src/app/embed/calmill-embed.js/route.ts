@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 
 // Vanilla JS embed script - should be under 3KB when minified
 const embedScript = `
@@ -229,11 +229,11 @@ const embedScript = `
 export async function GET() {
   return new NextResponse(embedScript.trim(), {
     headers: {
-      'Content-Type': 'application/javascript',
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600', // Cache for 1 hour
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Content-Type": "application/javascript",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600", // Cache for 1 hour
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 }

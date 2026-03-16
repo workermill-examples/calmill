@@ -72,7 +72,9 @@ export default function ProfileSettingsPage() {
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error("Error fetching profile:", error);
-      setError(error instanceof Error ? error.message : "Failed to load profile");
+      setError(
+        error instanceof Error ? error.message : "Failed to load profile",
+      );
     } finally {
       setLoading(false);
     }
@@ -119,7 +121,8 @@ export default function ProfileSettingsPage() {
       });
     } catch (error) {
       console.error("Error saving profile:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to save profile";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save profile";
       setError(errorMessage);
       addToast({
         title: "Error",
@@ -133,7 +136,7 @@ export default function ProfileSettingsPage() {
 
   // Handle form field changes
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -194,7 +197,9 @@ export default function ProfileSettingsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Profile</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            Profile
+          </h2>
           <p className="text-muted-foreground">
             Update your profile information and avatar.
           </p>
@@ -262,7 +267,10 @@ export default function ProfileSettingsPage() {
 
           {/* Name */}
           <div>
-            <label htmlFor="name" className="text-sm font-medium text-foreground mb-2 block">
+            <label
+              htmlFor="name"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
               Full Name
             </label>
             <Input
@@ -276,7 +284,10 @@ export default function ProfileSettingsPage() {
 
           {/* Username */}
           <div>
-            <label htmlFor="username" className="text-sm font-medium text-foreground mb-2 block">
+            <label
+              htmlFor="username"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
               Username
             </label>
             <div className="relative">
@@ -299,7 +310,10 @@ export default function ProfileSettingsPage() {
 
           {/* Email (readonly) */}
           <div>
-            <label htmlFor="email" className="text-sm font-medium text-foreground mb-2 block">
+            <label
+              htmlFor="email"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
               Email Address
             </label>
             <Input
@@ -316,7 +330,10 @@ export default function ProfileSettingsPage() {
 
           {/* Bio */}
           <div>
-            <label htmlFor="bio" className="text-sm font-medium text-foreground mb-2 block">
+            <label
+              htmlFor="bio"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
               Bio
             </label>
             <textarea

@@ -21,16 +21,18 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       className={cn(
         "relative flex shrink-0 overflow-hidden rounded-full",
         avatarSizes[size],
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 Avatar.displayName = "Avatar";
 
 interface AvatarImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  onLoadingStatusChange?: (status: "idle" | "loading" | "loaded" | "error") => void;
+  onLoadingStatusChange?: (
+    status: "idle" | "loading" | "loaded" | "error",
+  ) => void;
 }
 
 const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
@@ -76,7 +78,7 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
         {...props}
       />
     ) : null;
-  }
+  },
 );
 AvatarImage.displayName = "AvatarImage";
 
@@ -100,14 +102,14 @@ const AvatarFallback = React.forwardRef<HTMLDivElement, AvatarFallbackProps>(
         ref={ref}
         className={cn(
           "flex h-full w-full items-center justify-center rounded-full bg-muted font-medium",
-          className
+          className,
         )}
         {...props}
       >
         {children}
       </div>
     ) : null;
-  }
+  },
 );
 AvatarFallback.displayName = "AvatarFallback";
 

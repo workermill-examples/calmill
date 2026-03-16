@@ -3,7 +3,13 @@
 import { Suspense, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -12,7 +18,15 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { cn } from "@/lib/utils";
-import { Copy, Check, ExternalLink, Code, Palette, Settings, Eye } from "lucide-react";
+import {
+  Copy,
+  Check,
+  ExternalLink,
+  Code,
+  Palette,
+  Settings,
+  Eye,
+} from "lucide-react";
 
 interface EventType {
   id: string;
@@ -82,9 +96,12 @@ function EmbedCodeGeneratorContent() {
 
       // Fetch event types
       const eventTypesResponse = await fetch("/api/event-types");
-      if (!eventTypesResponse.ok) throw new Error("Failed to fetch event types");
+      if (!eventTypesResponse.ok)
+        throw new Error("Failed to fetch event types");
       const eventTypesData = await eventTypesResponse.json();
-      const activeEventTypes = eventTypesData.eventTypes.filter((et: EventType) => et.isActive);
+      const activeEventTypes = eventTypesData.eventTypes.filter(
+        (et: EventType) => et.isActive,
+      );
       setEventTypes(activeEventTypes);
 
       if (activeEventTypes.length > 0 && !selectedEventType) {
@@ -102,14 +119,15 @@ function EmbedCodeGeneratorContent() {
     if (!user || !selectedEventType) return "";
 
     const embedPath = `${user.username}/${selectedEventType}`;
-    const baseUrl = typeof window !== "undefined"
-      ? window.location.origin
-      : "https://calmill.workermill.com";
+    const baseUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://calmill.workermill.com";
 
     switch (type) {
       case "html":
         if (config.mode === "inline") {
-          return `<div data-calmill-embed="${embedPath}" style="width: ${config.width}; height: ${config.height}; border-radius: ${config.borderRadius}; overflow: hidden;${config.backgroundColor !== 'transparent' ? ` background-color: ${config.backgroundColor};` : ''}"></div>
+          return `<div data-calmill-embed="${embedPath}" style="width: ${config.width}; height: ${config.height}; border-radius: ${config.borderRadius}; overflow: hidden;${config.backgroundColor !== "transparent" ? ` background-color: ${config.backgroundColor};` : ""}"></div>
 <script src="${baseUrl}/embed/calmill-embed.js"></script>`;
         } else {
           return `<button data-calmill-popup="${embedPath}" style="padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: system-ui, sans-serif;">Book a Meeting</button>
@@ -126,14 +144,15 @@ function EmbedCodeGeneratorContent() {
   document.head.appendChild(script);
 
   script.onload = function() {
-    ${config.mode === "inline"
-      ? `CalMill.embed('#calmill-container', '${embedPath}');`
-      : `// Use CalMill.popup('${embedPath}') to open booking popup`
+    ${
+      config.mode === "inline"
+        ? `CalMill.embed('#calmill-container', '${embedPath}');`
+        : `// Use CalMill.popup('${embedPath}') to open booking popup`
     }
   };
 })();
 </script>
-${config.mode === "inline" ? `<div id="calmill-container" style="width: ${config.width}; height: ${config.height}; border-radius: ${config.borderRadius};${config.backgroundColor !== 'transparent' ? ` background-color: ${config.backgroundColor};` : ''}"></div>` : ""}`;
+${config.mode === "inline" ? `<div id="calmill-container" style="width: ${config.width}; height: ${config.height}; border-radius: ${config.borderRadius};${config.backgroundColor !== "transparent" ? ` background-color: ${config.backgroundColor};` : ""}"></div>` : ""}`;
 
       case "react":
         return `import { useEffect } from 'react';
@@ -146,13 +165,14 @@ export function CalMillEmbed() {
     script.async = true;
     document.head.appendChild(script);
 
-    ${config.mode === "inline"
-      ? `script.onload = () => {
+    ${
+      config.mode === "inline"
+        ? `script.onload = () => {
       if (window.CalMill) {
         window.CalMill.embed('#calmill-container', '${embedPath}');
       }
     };`
-      : `// Listen for booking events
+        : `// Listen for booking events
     const handleBooking = (event) => {
       console.log('Booking completed:', event.detail);
       // Handle booking completion
@@ -170,20 +190,21 @@ export function CalMillEmbed() {
     };
   }, []);
 
-  ${config.mode === "inline"
-    ? `return (
+  ${
+    config.mode === "inline"
+      ? `return (
     <div
       id="calmill-container"
       style={{
         width: '${config.width}',
         height: '${config.height}',
         borderRadius: '${config.borderRadius}',
-        ${config.backgroundColor !== 'transparent' ? `backgroundColor: '${config.backgroundColor}',` : ''}
+        ${config.backgroundColor !== "transparent" ? `backgroundColor: '${config.backgroundColor}',` : ""}
         overflow: 'hidden'
       }}
     />
   );`
-    : `const openBooking = () => {
+      : `const openBooking = () => {
     if (window.CalMill) {
       window.CalMill.popup('${embedPath}');
     }
@@ -206,10 +227,10 @@ export function CalMillEmbed() {
     </button>
   );`
   }
-}`
+}`;
 
-    default:
-      return "";
+      default:
+        return "";
     }
   };
 
@@ -226,16 +247,17 @@ export function CalMillEmbed() {
   };
 
   const updateConfig = (updates: Partial<EmbedConfig>) => {
-    setConfig(prev => ({ ...prev, ...updates }));
+    setConfig((prev) => ({ ...prev, ...updates }));
     // Force preview refresh
-    setPreviewKey(prev => prev + 1);
+    setPreviewKey((prev) => prev + 1);
   };
 
   const getPreviewUrl = () => {
     if (!user || !selectedEventType) return "";
-    const baseUrl = typeof window !== "undefined"
-      ? window.location.origin
-      : "https://calmill.workermill.com";
+    const baseUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://calmill.workermill.com";
     return `${baseUrl}/embed/${user.username}/${selectedEventType}`;
   };
 
@@ -275,9 +297,12 @@ export function CalMillEmbed() {
       <div className="space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Embed Code Generator</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Embed Code Generator
+          </h1>
           <p className="text-muted-foreground">
-            Generate embeddable booking widgets for your website. Choose your event type, customize the appearance, and copy the code.
+            Generate embeddable booking widgets for your website. Choose your
+            event type, customize the appearance, and copy the code.
           </p>
         </div>
 
@@ -298,30 +323,33 @@ export function CalMillEmbed() {
                   <Select
                     value={selectedEventType}
                     onValueChange={setSelectedEventType}
-                  >
-                    <option value="">Select an event type</option>
-                    {eventTypes.map((eventType) => (
-                      <option key={eventType.slug} value={eventType.slug}>
-                        {eventType.title} ({eventType.duration} min)
-                      </option>
-                    ))}
-                  </Select>
+                    placeholder="Select an event type"
+                    options={[
+                      { value: "", label: "Select an event type" },
+                      ...eventTypes.map((eventType) => ({
+                        value: eventType.slug,
+                        label: `${eventType.title} (${eventType.duration} min)`
+                      }))
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Embed Mode</label>
                   <Select
                     value={config.mode}
-                    onValueChange={(value) => updateConfig({ mode: value as "inline" | "popup" })}
-                  >
-                    <option value="inline">Inline Widget</option>
-                    <option value="popup">Popup Button</option>
-                  </Select>
+                    onValueChange={(value) =>
+                      updateConfig({ mode: value as "inline" | "popup" })
+                    }
+                    options={[
+                      { value: "inline", label: "Inline Widget" },
+                      { value: "popup", label: "Popup Button" }
+                    ]}
+                  />
                   <p className="text-xs text-muted-foreground">
                     {config.mode === "inline"
                       ? "Embeds the booking widget directly in your page"
-                      : "Shows a button that opens booking in a popup window"
-                    }
+                      : "Shows a button that opens booking in a popup window"}
                   </p>
                 </div>
               </CardContent>
@@ -342,7 +370,9 @@ export function CalMillEmbed() {
                       <label className="text-sm font-medium">Width</label>
                       <Input
                         value={config.width}
-                        onChange={(e) => updateConfig({ width: e.target.value })}
+                        onChange={(e) =>
+                          updateConfig({ width: e.target.value })
+                        }
                         placeholder="100%"
                       />
                     </div>
@@ -350,25 +380,37 @@ export function CalMillEmbed() {
                       <label className="text-sm font-medium">Height</label>
                       <Input
                         value={config.height}
-                        onChange={(e) => updateConfig({ height: e.target.value })}
+                        onChange={(e) =>
+                          updateConfig({ height: e.target.value })
+                        }
                         placeholder="600px"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Background Color</label>
+                    <label className="text-sm font-medium">
+                      Background Color
+                    </label>
                     <div className="flex space-x-2">
                       <Input
                         value={config.backgroundColor}
-                        onChange={(e) => updateConfig({ backgroundColor: e.target.value })}
+                        onChange={(e) =>
+                          updateConfig({ backgroundColor: e.target.value })
+                        }
                         placeholder="transparent"
                         className="flex-1"
                       />
                       <input
                         type="color"
-                        value={config.backgroundColor === "transparent" ? "#ffffff" : config.backgroundColor}
-                        onChange={(e) => updateConfig({ backgroundColor: e.target.value })}
+                        value={
+                          config.backgroundColor === "transparent"
+                            ? "#ffffff"
+                            : config.backgroundColor
+                        }
+                        onChange={(e) =>
+                          updateConfig({ backgroundColor: e.target.value })
+                        }
                         className="w-12 h-10 border rounded cursor-pointer"
                       />
                     </div>
@@ -378,7 +420,9 @@ export function CalMillEmbed() {
                     <label className="text-sm font-medium">Border Radius</label>
                     <Input
                       value={config.borderRadius}
-                      onChange={(e) => updateConfig({ borderRadius: e.target.value })}
+                      onChange={(e) =>
+                        updateConfig({ borderRadius: e.target.value })
+                      }
                       placeholder="8px"
                     />
                   </div>
@@ -418,7 +462,12 @@ export function CalMillEmbed() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => copyToClipboard(generateEmbedCode(type as any), type)}
+                            onClick={() =>
+                              copyToClipboard(
+                                generateEmbedCode(type as any),
+                                type,
+                              )
+                            }
                             className="flex items-center space-x-2"
                           >
                             {copied[type] ? (
@@ -453,7 +502,7 @@ export function CalMillEmbed() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(getPreviewUrl(), '_blank')}
+                      onClick={() => window.open(getPreviewUrl(), "_blank")}
                       className="flex items-center space-x-2"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -477,14 +526,20 @@ export function CalMillEmbed() {
                         style={{
                           border: "none",
                           background: config.backgroundColor,
-                          borderRadius: config.borderRadius
+                          borderRadius: config.borderRadius,
                         }}
                         title="CalMill Embed Preview"
                       />
                     ) : (
                       <div className="p-8 text-center bg-gray-50">
                         <Button
-                          onClick={() => window.open(getPreviewUrl(), '_blank', 'width=800,height=700')}
+                          onClick={() =>
+                            window.open(
+                              getPreviewUrl(),
+                              "_blank",
+                              "width=800,height=700",
+                            )
+                          }
                           className="mb-4"
                         >
                           Book a Meeting
@@ -512,31 +567,39 @@ export function CalMillEmbed() {
                 <div className="space-y-2">
                   <h4 className="font-medium">1. Copy the code</h4>
                   <p className="text-sm text-muted-foreground">
-                    Choose your preferred format (HTML, JavaScript, or React) and copy the generated code.
+                    Choose your preferred format (HTML, JavaScript, or React)
+                    and copy the generated code.
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <h4 className="font-medium">2. Add to your website</h4>
                   <p className="text-sm text-muted-foreground">
-                    Paste the code where you want the booking widget to appear on your website.
+                    Paste the code where you want the booking widget to appear
+                    on your website.
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <h4 className="font-medium">3. Customize (optional)</h4>
                   <p className="text-sm text-muted-foreground">
-                    Modify the styling or add event listeners to customize the integration further.
+                    Modify the styling or add event listeners to customize the
+                    integration further.
                   </p>
                 </div>
 
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-medium text-blue-900 mb-2">🎯 Pro Tips</h4>
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    🎯 Pro Tips
+                  </h4>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Use inline embeds for a seamless experience</li>
                     <li>• Use popup embeds to save space on your page</li>
                     <li>• Test on different devices and screen sizes</li>
-                    <li>• Listen for the `calmillBooking` event to track conversions</li>
+                    <li>
+                      • Listen for the `calmillBooking` event to track
+                      conversions
+                    </li>
                   </ul>
                 </div>
               </CardContent>

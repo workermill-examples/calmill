@@ -20,7 +20,7 @@ import {
   Copy,
   Trash2,
   Edit,
-  MoreVertical
+  MoreVertical,
 } from "lucide-react";
 import {
   Dropdown,
@@ -68,22 +68,24 @@ function EventTypesContent() {
       setLoading(true);
       setError(null);
 
-      const url = new URL('/api/event-types', window.location.origin);
+      const url = new URL("/api/event-types", window.location.origin);
       if (showInactive) {
-        url.searchParams.set('includeInactive', 'true');
+        url.searchParams.set("includeInactive", "true");
       }
 
       const response = await fetch(url.toString());
 
       if (!response.ok) {
-        throw new Error('Failed to fetch event types');
+        throw new Error("Failed to fetch event types");
       }
 
       const data: EventTypesResponse = await response.json();
       setEventTypes(data.eventTypes);
     } catch (err) {
-      console.error('Error fetching event types:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch event types');
+      console.error("Error fetching event types:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch event types",
+      );
     } finally {
       setLoading(false);
     }
@@ -92,37 +94,37 @@ function EventTypesContent() {
   const handleToggleActive = async (eventTypeId: string) => {
     try {
       const response = await fetch(`/api/event-types/${eventTypeId}/toggle`, {
-        method: 'PATCH',
+        method: "PATCH",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to toggle event type');
+        throw new Error(errorData.message || "Failed to toggle event type");
       }
 
       const data = await response.json();
 
       // Update local state
-      setEventTypes(prev =>
-        prev.map(et =>
+      setEventTypes((prev) =>
+        prev.map((et) =>
           et.id === eventTypeId
             ? { ...et, isActive: data.eventType.isActive }
-            : et
-        )
+            : et,
+        ),
       );
     } catch (err) {
-      console.error('Error toggling event type:', err);
+      console.error("Error toggling event type:", err);
       // Show error feedback to user
-      alert(err instanceof Error ? err.message : 'Failed to toggle event type');
+      alert(err instanceof Error ? err.message : "Failed to toggle event type");
     }
   };
 
   const handleDuplicate = async (eventType: EventType) => {
     try {
-      const response = await fetch('/api/event-types', {
-        method: 'POST',
+      const response = await fetch("/api/event-types", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...eventType,
@@ -134,37 +136,43 @@ function EventTypesContent() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to duplicate event type');
+        throw new Error(errorData.message || "Failed to duplicate event type");
       }
 
       // Refresh the list
       await fetchEventTypes();
     } catch (err) {
-      console.error('Error duplicating event type:', err);
-      alert(err instanceof Error ? err.message : 'Failed to duplicate event type');
+      console.error("Error duplicating event type:", err);
+      alert(
+        err instanceof Error ? err.message : "Failed to duplicate event type",
+      );
     }
   };
 
   const handleDelete = async (eventTypeId: string) => {
-    if (!confirm('Are you sure you want to delete this event type? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this event type? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
     try {
       const response = await fetch(`/api/event-types/${eventTypeId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete event type');
+        throw new Error(errorData.message || "Failed to delete event type");
       }
 
       // Remove from local state
-      setEventTypes(prev => prev.filter(et => et.id !== eventTypeId));
+      setEventTypes((prev) => prev.filter((et) => et.id !== eventTypeId));
     } catch (err) {
-      console.error('Error deleting event type:', err);
-      alert(err instanceof Error ? err.message : 'Failed to delete event type');
+      console.error("Error deleting event type:", err);
+      alert(err instanceof Error ? err.message : "Failed to delete event type");
     }
   };
 
@@ -177,7 +185,7 @@ function EventTypesContent() {
     const button = document.activeElement as HTMLButtonElement;
     if (button) {
       const originalText = button.textContent;
-      button.textContent = 'Copied!';
+      button.textContent = "Copied!";
       setTimeout(() => {
         button.textContent = originalText;
       }, 2000);
@@ -185,13 +193,14 @@ function EventTypesContent() {
   };
 
   // Filter event types based on search query
-  const filteredEventTypes = eventTypes.filter(et =>
-    et.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    et.slug.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredEventTypes = eventTypes.filter(
+    (et) =>
+      et.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      et.slug.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const activeEventTypes = filteredEventTypes.filter(et => et.isActive);
-  const inactiveEventTypes = filteredEventTypes.filter(et => !et.isActive);
+  const activeEventTypes = filteredEventTypes.filter((et) => et.isActive);
+  const inactiveEventTypes = filteredEventTypes.filter((et) => !et.isActive);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -258,7 +267,7 @@ function EventTypesContent() {
           }
           action={{
             text: "Create Event Type",
-            onClick: () => window.location.href = '/event-types/new'
+            onClick: () => (window.location.href = "/event-types/new"),
           }}
         />
       ) : (
@@ -323,13 +332,15 @@ function EventTypeCard({
   onToggleActive,
   onDuplicate,
   onDelete,
-  onCopyUrl
+  onCopyUrl,
 }: EventTypeCardProps) {
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const publicUrl = `${baseUrl}/demo/${eventType.slug}`;
 
   return (
-    <Card className={`transition-all duration-200 hover:shadow-md ${!eventType.isActive ? 'opacity-60' : ''}`}>
+    <Card
+      className={`transition-all duration-200 hover:shadow-md ${!eventType.isActive ? "opacity-60" : ""}`}
+    >
       <CardContent className="p-6">
         <div className="flex items-center space-x-4">
           {/* Color bar */}
@@ -372,10 +383,10 @@ function EventTypeCard({
                 <Toggle
                   pressed={eventType.isActive}
                   onPressedChange={() => onToggleActive(eventType.id)}
-                  aria-label={`${eventType.isActive ? 'Deactivate' : 'Activate'} ${eventType.title}`}
+                  aria-label={`${eventType.isActive ? "Deactivate" : "Activate"} ${eventType.title}`}
                   size="sm"
                 >
-                  {eventType.isActive ? 'Active' : 'Inactive'}
+                  {eventType.isActive ? "Active" : "Inactive"}
                 </Toggle>
 
                 <Button
@@ -391,7 +402,9 @@ function EventTypeCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.location.href = `/event-types/${eventType.id}`}
+                  onClick={() =>
+                    (window.location.href = `/event-types/${eventType.id}`)
+                  }
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit

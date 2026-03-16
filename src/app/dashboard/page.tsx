@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSkeleton } from "@/components/ui/loading-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Users, TrendingUp, ArrowUpRight, ExternalLink } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Users,
+  TrendingUp,
+  ArrowUpRight,
+  ExternalLink,
+} from "lucide-react";
 import {
   LineChart,
   Line,
@@ -19,7 +27,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
 } from "recharts";
 import { format } from "date-fns";
 
@@ -49,9 +57,9 @@ interface UpcomingBooking {
 }
 
 interface ChartData {
-  bookingsPerDay: { date: string; bookings: number; }[];
-  bookingsByEventType: { eventType: string; bookings: number; color: string; }[];
-  bookingsByStatus: { status: string; count: number; color: string; }[];
+  bookingsPerDay: { date: string; bookings: number }[];
+  bookingsByEventType: { eventType: string; bookings: number; color: string }[];
+  bookingsByStatus: { status: string; count: number; color: string }[];
 }
 
 interface DashboardData {
@@ -84,7 +92,9 @@ export default function DashboardPage() {
         setData(dashboardData);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        setError(err instanceof Error ? err.message : "Failed to load dashboard data");
+        setError(
+          err instanceof Error ? err.message : "Failed to load dashboard data",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -99,7 +109,7 @@ export default function DashboardPage() {
 
     return {
       ...data.charts,
-      bookingsPerDay: data.charts.bookingsPerDay.map(item => ({
+      bookingsPerDay: data.charts.bookingsPerDay.map((item) => ({
         ...item,
         date: format(new Date(item.date), "MMM d"),
       })),
@@ -137,7 +147,9 @@ export default function DashboardPage() {
       <div className="p-8">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">No data available</p>
+            <p className="text-center text-muted-foreground">
+              No data available
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -192,15 +204,21 @@ export default function DashboardPage() {
           return (
             <Card key={index} className="relative overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {stat.description}
+                </p>
                 <div className="flex items-center pt-1">
                   <ArrowUpRight className="h-3 w-3 text-emerald-500" />
-                  <span className="text-xs text-emerald-500 ml-1">{stat.trend}</span>
+                  <span className="text-xs text-emerald-500 ml-1">
+                    {stat.trend}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -293,10 +311,13 @@ export default function DashboardPage() {
         <Card className="lg:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Upcoming Bookings</CardTitle>
-            <a href="/bookings" className="text-sm text-muted-foreground hover:text-foreground flex items-center">
+            <Link
+              href="/bookings"
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center"
+            >
               View All
               <ExternalLink className="h-3 w-3 ml-1" />
-            </a>
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SlotList } from "@/components/booking/slot-list";
 import type { SlotListProps, TimeSlot } from "@/components/booking/slot-list";
@@ -19,7 +19,9 @@ vi.mock("@/components/ui/button", () => ({
 }));
 
 vi.mock("@/components/ui/loading-skeleton", () => ({
-  LoadingSkeleton: vi.fn(({ className }) => <div className={className}>Loading skeleton</div>),
+  LoadingSkeleton: vi.fn(({ className }) => (
+    <div className={className}>Loading skeleton</div>
+  )),
 }));
 
 vi.mock("@/components/ui/empty-state", () => ({
@@ -27,9 +29,7 @@ vi.mock("@/components/ui/empty-state", () => ({
     <div data-testid="empty-state">
       <h3>{title}</h3>
       <p>{description}</p>
-      {action && (
-        <button onClick={action.onClick}>{action.text}</button>
-      )}
+      {action && <button onClick={action.onClick}>{action.text}</button>}
     </div>
   )),
 }));
@@ -84,6 +84,10 @@ describe("SlotList", () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   describe("Rendering", () => {
     it("renders without crashing", () => {
       render(<SlotList {...defaultProps} />);
@@ -104,7 +108,7 @@ describe("SlotList", () => {
           error="Failed to load slots"
           onRetry={mockOnRetry}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Failed to load time slots")).toBeInTheDocument();
@@ -113,15 +117,14 @@ describe("SlotList", () => {
     });
 
     it("displays empty state when no slots available", () => {
-      render(
-        <SlotList
-          {...defaultProps}
-          selectedDate={testDate}
-        />
-      );
+      render(<SlotList {...defaultProps} selectedDate={testDate} />);
 
       expect(screen.getByText("No time slots available")).toBeInTheDocument();
-      expect(screen.getByText("There are no available times for this date. Please select another day.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "There are no available times for this date. Please select another day.",
+        ),
+      ).toBeInTheDocument();
     });
 
     it("renders slots grouped by time period", () => {
@@ -130,7 +133,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={sampleSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Morning")).toBeInTheDocument();
@@ -152,7 +155,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={sampleSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Monday, Jan 15")).toBeInTheDocument();
@@ -163,11 +166,7 @@ describe("SlotList", () => {
     it("handles today/tomorrow/yesterday date labels", () => {
       const today = new Date();
       render(
-        <SlotList
-          {...defaultProps}
-          slots={sampleSlots}
-          selectedDate={today}
-        />
+        <SlotList {...defaultProps} slots={sampleSlots} selectedDate={today} />,
       );
 
       expect(screen.getByText("Today")).toBeInTheDocument();
@@ -182,7 +181,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={sampleSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       const slotButton = screen.getByText("9:00 AM");
@@ -198,7 +197,7 @@ describe("SlotList", () => {
           slots={sampleSlots}
           selectedSlot={sampleSlots[0]}
           selectedDate={testDate}
-        />
+        />,
       );
 
       const selectedButton = screen.getByText("9:00 AM");
@@ -215,7 +214,7 @@ describe("SlotList", () => {
           slots={sampleSlots}
           selectedSlot={sampleSlots[0]}
           selectedDate={testDate}
-        />
+        />,
       );
 
       const selectedButton = screen.getByText("9:00 AM");
@@ -233,7 +232,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={sampleSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       const slotButton = screen.getByText("9:00 AM");
@@ -248,7 +247,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={sampleSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       const slotButton = screen.getByText("9:00 AM");
@@ -263,7 +262,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={sampleSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       const slotButton = screen.getByText("9:00 AM");
@@ -285,7 +284,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={morningSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Morning")).toBeInTheDocument();
@@ -303,7 +302,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={afternoonSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Afternoon")).toBeInTheDocument();
@@ -321,7 +320,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={eveningSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Evening")).toBeInTheDocument();
@@ -338,7 +337,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={morningOnlySlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Morning")).toBeInTheDocument();
@@ -356,7 +355,7 @@ describe("SlotList", () => {
           error="Network error"
           onRetry={mockOnRetry}
           selectedDate={testDate}
-        />
+        />,
       );
 
       const retryButton = screen.getByText("Try again");
@@ -378,7 +377,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={malformedSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       // Should still render valid slots
@@ -397,13 +396,14 @@ describe("SlotList", () => {
           slots={sampleSlots}
           selectedDate={testDate}
           eventTitle="Team Meeting"
-        />
+        />,
       );
 
-      const slotButton = screen.getByText("9:00 AM");
+      const slotButtons = screen.getAllByText("9:00 AM");
+      const slotButton = slotButtons[0];
       expect(slotButton).toHaveAttribute(
         "aria-label",
-        "Book Team Meeting at 9:00 AM for 30 minutes"
+        "Book Team Meeting at 9:00 AM for 30 minutes",
       );
     });
 
@@ -413,13 +413,14 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={sampleSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
-      const slotButton = screen.getByText("9:00 AM");
+      const slotButtons = screen.getAllByText("9:00 AM");
+      const slotButton = slotButtons[0];
       expect(slotButton).toHaveAttribute(
         "aria-label",
-        "Select time slot 9:00 AM for 30 minutes"
+        "Select time slot 9:00 AM for 30 minutes",
       );
     });
 
@@ -431,10 +432,12 @@ describe("SlotList", () => {
           selectedSlot={sampleSlots[0]}
           selectedDate={testDate}
           eventTitle="Team Meeting"
-        />
+        />,
       );
 
-      const liveRegion = screen.getByText(/Selected time: 9:00 AM for 30 minutes, Team Meeting/);
+      const liveRegion = screen.getByText(
+        /Selected time: 9:00 AM for 30 minutes, Team Meeting/,
+      );
       expect(liveRegion.parentElement).toHaveClass("sr-only");
       expect(liveRegion.parentElement).toHaveAttribute("aria-live", "polite");
     });
@@ -449,10 +452,11 @@ describe("SlotList", () => {
           selectedSlot={sampleSlots[0]}
           selectedDate={testDate}
           eventTitle="Technical Interview"
-        />
+        />,
       );
 
-      expect(screen.getByText(/Technical Interview/)).toBeInTheDocument();
+      const matches = screen.getAllByText(/Technical Interview/);
+      expect(matches.length).toBeGreaterThan(0);
     });
 
     it("shows duration information", () => {
@@ -466,7 +470,7 @@ describe("SlotList", () => {
           slots={longerSlots}
           selectedSlot={longerSlots[0]}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Duration: 60 minutes")).toBeInTheDocument();
@@ -483,7 +487,7 @@ describe("SlotList", () => {
           slots={shortSlots}
           selectedSlot={shortSlots[0]}
           selectedDate={testDate}
-        />
+        />,
       );
 
       expect(screen.getByText("Duration: 1 minute")).toBeInTheDocument();
@@ -498,7 +502,7 @@ describe("SlotList", () => {
           slots={sampleSlots}
           className="custom-slot-list"
           selectedDate={testDate}
-        />
+        />,
       );
 
       const container = screen.getByText("Monday, Jan 15").parentElement;
@@ -508,24 +512,13 @@ describe("SlotList", () => {
 
   describe("Edge Cases", () => {
     it("handles empty slots array gracefully", () => {
-      render(
-        <SlotList
-          {...defaultProps}
-          slots={[]}
-          selectedDate={testDate}
-        />
-      );
+      render(<SlotList {...defaultProps} slots={[]} selectedDate={testDate} />);
 
       expect(screen.getByTestId("empty-state")).toBeInTheDocument();
     });
 
     it("handles missing selectedDate gracefully", () => {
-      render(
-        <SlotList
-          {...defaultProps}
-          slots={sampleSlots}
-        />
-      );
+      render(<SlotList {...defaultProps} slots={sampleSlots} />);
 
       // Should still render slots without date context
       expect(screen.getByText("Morning")).toBeInTheDocument();
@@ -543,7 +536,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={duplicateSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       // Should render both slots
@@ -562,7 +555,7 @@ describe("SlotList", () => {
           {...defaultProps}
           slots={extremeSlots}
           selectedDate={testDate}
-        />
+        />,
       );
 
       // Early morning slots should still be grouped as "Evening" based on hour logic

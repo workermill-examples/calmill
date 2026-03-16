@@ -19,11 +19,25 @@ export interface SelectProps {
 }
 
 const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
-  ({ className, options, placeholder, value, onValueChange, disabled, name, ...props }, ref) => {
+  (
+    {
+      className,
+      options,
+      placeholder,
+      value,
+      onValueChange,
+      disabled,
+      name,
+      ...props
+    },
+    ref,
+  ) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const [selectedValue, setSelectedValue] = React.useState(value || "");
 
-    const selectedOption = options.find(option => option.value === selectedValue);
+    const selectedOption = options.find(
+      (option) => option.value === selectedValue,
+    );
 
     const handleSelect = (optionValue: string) => {
       setSelectedValue(optionValue);
@@ -37,24 +51,36 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           type="button"
           className={cn(
             "flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-            className
+            className,
           )}
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           ref={ref}
           {...props}
         >
-          <span className={selectedOption ? "text-foreground" : "text-muted-foreground"}>
+          <span
+            className={
+              selectedOption ? "text-foreground" : "text-muted-foreground"
+            }
+          >
             {selectedOption?.label || placeholder || "Select an option"}
           </span>
           <svg
-            className={cn("h-4 w-4 opacity-50 transition-transform", isOpen && "rotate-180")}
+            className={cn(
+              "h-4 w-4 opacity-50 transition-transform",
+              isOpen && "rotate-180",
+            )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
 
@@ -83,7 +109,12 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       </span>
                     )}
@@ -112,7 +143,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         </select>
       </div>
     );
-  }
+  },
 );
 
 Select.displayName = "Select";

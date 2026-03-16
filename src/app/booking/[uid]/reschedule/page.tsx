@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, parseISO, addDays, startOfDay, isSameDay } from "date-fns";
-import { toZonedTime, fromZonedTime } from "@date-fns/tz";
+import { TZDate } from "@date-fns/tz";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,7 @@ import {
   CheckCircle,
   AlertTriangle,
   X,
-  Edit
+  Edit,
 } from "lucide-react";
 
 interface RouteParams {
@@ -108,7 +108,10 @@ export default function BookingReschedulePage({ params }: RouteParams) {
         const bookingData = data.booking;
 
         // Check if booking can be rescheduled
-        if (bookingData.status === "CANCELLED" || bookingData.status === "REJECTED") {
+        if (
+          bookingData.status === "CANCELLED" ||
+          bookingData.status === "REJECTED"
+        ) {
           setError("Cannot reschedule cancelled or declined bookings.");
           setBooking(bookingData);
           return;
@@ -141,36 +144,39 @@ export default function BookingReschedulePage({ params }: RouteParams) {
   }, [uid]);
 
   // Fetch available slots when date is selected
-  const fetchAvailableSlots = useCallback(async (date: Date) => {
-    if (!booking) return;
+  const fetchAvailableSlots = useCallback(
+    async (date: Date) => {
+      if (!booking) return;
 
-    try {
-      setLoadingSlots(true);
-      const dateStr = format(date, "yyyy-MM-dd");
+      try {
+        setLoadingSlots(true);
+        const dateStr = format(date, "yyyy-MM-dd");
 
-      const params = new URLSearchParams({
-        eventTypeId: booking.eventType.id,
-        startDate: dateStr,
-        endDate: dateStr,
-        timezone: booking.attendeeTimezone,
-      });
+        const params = new URLSearchParams({
+          eventTypeId: booking.eventType.id,
+          startDate: dateStr,
+          endDate: dateStr,
+          timezone: booking.attendeeTimezone,
+        });
 
-      const response = await fetch(`/api/slots?${params}`);
-      if (!response.ok) {
-        console.error("Failed to fetch slots");
+        const response = await fetch(`/api/slots?${params}`);
+        if (!response.ok) {
+          console.error("Failed to fetch slots");
+          setAvailableSlots([]);
+          return;
+        }
+
+        const data = await response.json();
+        setAvailableSlots(data.slots || []);
+      } catch (err) {
+        console.error("Error fetching slots:", err);
         setAvailableSlots([]);
-        return;
+      } finally {
+        setLoadingSlots(false);
       }
-
-      const data = await response.json();
-      setAvailableSlots(data.slots || []);
-    } catch (err) {
-      console.error("Error fetching slots:", err);
-      setAvailableSlots([]);
-    } finally {
-      setLoadingSlots(false);
-    }
-  }, [booking]);
+    },
+    [booking],
+  );
 
   useEffect(() => {
     if (selectedDate && booking) {
@@ -196,7 +202,10 @@ export default function BookingReschedulePage({ params }: RouteParams) {
       newStartTime.setHours(hours, minutes, 0, 0);
 
       // Convert to UTC for the API
-      const utcStartTime = fromZonedTime(newStartTime, booking.attendeeTimezone);
+      const utcStartTime = new TZDate(
+        newStartTime,
+        booking.attendeeTimezone,
+      );
 
       const response = await fetch(`/api/bookings/${booking.uid}/reschedule`, {
         method: "PUT",
@@ -223,22 +232,27 @@ export default function BookingReschedulePage({ params }: RouteParams) {
       setTimeout(() => {
         router.push(`/booking/${result.newBooking.uid}`);
       }, 3000);
-
     } catch (err) {
       console.error("Error rescheduling booking:", err);
-      setError(err instanceof Error ? err.message : "Failed to reschedule booking. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to reschedule booking. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
   // Generate available dates (next 60 days)
-  const availableDates = booking ? Array.from({ length: 60 }, (_, i) => {
-    const date = addDays(startOfDay(new Date()), i);
-    // Don't show the current booking date
-    const currentBookingDate = parseISO(booking.startTime);
-    return !isSameDay(date, currentBookingDate) ? date : null;
-  }).filter((date): date is Date => date !== null) : [];
+  const availableDates = booking
+    ? Array.from({ length: 60 }, (_, i) => {
+        const date = addDays(startOfDay(new Date()), i);
+        // Don't show the current booking date
+        const currentBookingDate = parseISO(booking.startTime);
+        return !isSameDay(date, currentBookingDate) ? date : null;
+      }).filter((date): date is Date => date !== null)
+    : [];
 
   if (loading) {
     return (
@@ -268,10 +282,11 @@ export default function BookingReschedulePage({ params }: RouteParams) {
               Booking Rescheduled
             </h1>
             <p className="text-gray-600 mb-6">
-              Your booking has been successfully rescheduled. You&apos;ll receive a confirmation email with the new details.
+              Your booking has been successfully rescheduled. You&apos;ll
+              receive a confirmation email with the new details.
             </p>
             <div className="space-y-3">
-              <Button asChild className="w-full">
+              <Button  className="w-full">
                 <Link href={`/booking/${newBookingUid}`}>
                   View Updated Booking
                 </Link>
@@ -298,7 +313,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
               Unable to Reschedule Booking
             </h1>
             <p className="text-gray-600 mb-6">{error}</p>
-            <Button asChild variant="outline">
+            <Button  variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -319,9 +334,10 @@ export default function BookingReschedulePage({ params }: RouteParams) {
               Booking Not Found
             </h1>
             <p className="text-gray-600 mb-6">
-              This booking could not be found. Please check the link and try again.
+              This booking could not be found. Please check the link and try
+              again.
             </p>
-            <Button asChild variant="outline">
+            <Button  variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -330,8 +346,14 @@ export default function BookingReschedulePage({ params }: RouteParams) {
     );
   }
 
-  const originalStartTime = toZonedTime(parseISO(booking.startTime), booking.attendeeTimezone);
-  const originalEndTime = toZonedTime(parseISO(booking.endTime), booking.attendeeTimezone);
+  const originalStartTime = new TZDate(
+    parseISO(booking.startTime),
+    booking.attendeeTimezone,
+  );
+  const originalEndTime = new TZDate(
+    parseISO(booking.endTime),
+    booking.attendeeTimezone,
+  );
   const canReschedule = !error;
 
   return (
@@ -340,8 +362,11 @@ export default function BookingReschedulePage({ params }: RouteParams) {
         <div className="space-y-6">
           {/* Navigation */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/booking/${booking.uid}`} className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm" >
+              <Link
+                href={`/booking/${booking.uid}`}
+                className="flex items-center space-x-2"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Booking</span>
               </Link>
@@ -383,7 +408,9 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                   <span>Current Booking</span>
                 </CardTitle>
                 <Badge variant="outline">
-                  {booking.status === "PENDING" ? "Pending Confirmation" : "Confirmed"}
+                  {booking.status === "PENDING"
+                    ? "Pending Confirmation"
+                    : "Confirmed"}
                 </Badge>
               </div>
             </CardHeader>
@@ -394,10 +421,13 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                   <div>
                     <p className="font-medium">{booking.title}</p>
                     <p className="text-sm text-muted-foreground line-through">
-                      {format(originalStartTime, "EEEE, MMMM d, yyyy")} at {format(originalStartTime, "h:mm a")} - {format(originalEndTime, "h:mm a")}
+                      {format(originalStartTime, "EEEE, MMMM d, yyyy")} at{" "}
+                      {format(originalStartTime, "h:mm a")} -{" "}
+                      {format(originalEndTime, "h:mm a")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {booking.attendeeTimezone} • {booking.eventType.duration} minutes
+                      {booking.attendeeTimezone} • {booking.eventType.duration}{" "}
+                      minutes
                     </p>
                   </div>
                 </div>
@@ -406,7 +436,9 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                   <div className="flex items-start space-x-3">
                     <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
                     <div>
-                      <p className="text-sm text-muted-foreground">{booking.location}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {booking.location}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -481,7 +513,10 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                       {loadingSlots ? (
                         <div className="space-y-2">
                           {Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />
+                            <div
+                              key={i}
+                              className="h-10 bg-gray-200 rounded animate-pulse"
+                            />
                           ))}
                         </div>
                       ) : availableSlots.length === 0 ? (
@@ -493,7 +528,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
                           {availableSlots
-                            .filter(slot => slot.available)
+                            .filter((slot) => slot.available)
                             .map((slot) => {
                               const slotTime = parseISO(slot.time);
                               const timeString = format(slotTime, "HH:mm");
@@ -508,7 +543,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                                     "px-3 py-2 text-sm rounded-md border transition-colors",
                                     selectedTime === timeString
                                       ? "bg-blue-600 text-white border-blue-600"
-                                      : "bg-white text-gray-700 border-gray-300 hover:border-blue-300 hover:bg-blue-50"
+                                      : "bg-white text-gray-700 border-gray-300 hover:border-blue-300 hover:bg-blue-50",
                                   )}
                                 >
                                   {displayTime}
@@ -520,15 +555,23 @@ export default function BookingReschedulePage({ params }: RouteParams) {
 
                       {/* Reason Form */}
                       {selectedTime && (
-                        <form onSubmit={handleReschedule} className="space-y-4 pt-4 border-t">
+                        <form
+                          onSubmit={handleReschedule}
+                          className="space-y-4 pt-4 border-t"
+                        >
                           <div className="space-y-2">
-                            <label htmlFor="reschedule-reason" className="block text-sm font-medium text-gray-700">
+                            <label
+                              htmlFor="reschedule-reason"
+                              className="block text-sm font-medium text-gray-700"
+                            >
                               Reason for rescheduling (optional)
                             </label>
                             <textarea
                               id="reschedule-reason"
                               value={rescheduleReason}
-                              onChange={(e) => setRescheduleReason(e.target.value)}
+                              onChange={(e) =>
+                                setRescheduleReason(e.target.value)
+                              }
                               placeholder="Let the host know why you're rescheduling..."
                               rows={3}
                               disabled={submitting}
@@ -541,15 +584,19 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                               type="submit"
                               className="w-full"
                               loading={submitting}
-                              disabled={submitting || !selectedDate || !selectedTime}
+                              disabled={
+                                submitting || !selectedDate || !selectedTime
+                              }
                             >
-                              {submitting ? "Rescheduling..." : "Confirm Reschedule"}
+                              {submitting
+                                ? "Rescheduling..."
+                                : "Confirm Reschedule"}
                             </Button>
                             <Button
                               type="button"
                               variant="outline"
                               className="w-full"
-                              asChild
+                              
                               disabled={submitting}
                             >
                               <Link href={`/booking/${booking.uid}`}>
@@ -575,10 +622,23 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                   <div className="text-sm text-yellow-700">
                     <p className="font-medium mb-1">Important:</p>
                     <ul className="space-y-1 text-xs">
-                      <li>• This will create a new booking and cancel the current one</li>
-                      <li>• Both you and the host will receive email notifications</li>
-                      <li>• {booking.eventType.requiresConfirmation ? "The new booking may require host confirmation" : "The new booking will be automatically confirmed"}</li>
-                      <li>• If you need to cancel instead, use the &quot;Cancel&quot; option</li>
+                      <li>
+                        • This will create a new booking and cancel the current
+                        one
+                      </li>
+                      <li>
+                        • Both you and the host will receive email notifications
+                      </li>
+                      <li>
+                        •{" "}
+                        {booking.eventType.requiresConfirmation
+                          ? "The new booking may require host confirmation"
+                          : "The new booking will be automatically confirmed"}
+                      </li>
+                      <li>
+                        • If you need to cancel instead, use the
+                        &quot;Cancel&quot; option
+                      </li>
                     </ul>
                   </div>
                 </div>

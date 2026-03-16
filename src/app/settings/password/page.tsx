@@ -57,7 +57,7 @@ export default function PasswordSettingsPage() {
   ];
 
   const passwordRequirements = getPasswordRequirements(formData.newPassword);
-  const isNewPasswordValid = passwordRequirements.every(req => req.met);
+  const isNewPasswordValid = passwordRequirements.every((req) => req.met);
   const doPasswordsMatch = formData.newPassword === formData.confirmPassword;
 
   // Save password changes
@@ -108,7 +108,8 @@ export default function PasswordSettingsPage() {
       });
     } catch (error) {
       console.error("Error saving password:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to save password";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save password";
       setError(errorMessage);
       addToast({
         title: "Error",
@@ -122,7 +123,7 @@ export default function PasswordSettingsPage() {
 
   // Handle form field changes
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -132,7 +133,7 @@ export default function PasswordSettingsPage() {
 
   // Toggle password visibility
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
-    setShowPasswords(prev => ({
+    setShowPasswords((prev) => ({
       ...prev,
       [field]: !prev[field],
     }));
@@ -150,7 +151,9 @@ export default function PasswordSettingsPage() {
       <div className="space-y-6 max-w-md">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Password</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            Password
+          </h2>
           <p className="text-muted-foreground">
             Change your password to keep your account secure.
           </p>
@@ -182,7 +185,10 @@ export default function PasswordSettingsPage() {
         <div className="space-y-6">
           {/* Current Password */}
           <div>
-            <label htmlFor="current-password" className="text-sm font-medium text-foreground mb-2 block">
+            <label
+              htmlFor="current-password"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
               Current Password
             </label>
             <div className="relative">
@@ -190,7 +196,9 @@ export default function PasswordSettingsPage() {
                 id="current-password"
                 type={showPasswords.current ? "text" : "password"}
                 value={formData.currentPassword}
-                onChange={(e) => handleInputChange("currentPassword", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("currentPassword", e.target.value)
+                }
                 placeholder="Enter your current password"
                 className="pr-10"
               />
@@ -210,7 +218,10 @@ export default function PasswordSettingsPage() {
 
           {/* New Password */}
           <div>
-            <label htmlFor="new-password" className="text-sm font-medium text-foreground mb-2 block">
+            <label
+              htmlFor="new-password"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
               New Password
             </label>
             <div className="relative">
@@ -218,7 +229,9 @@ export default function PasswordSettingsPage() {
                 id="new-password"
                 type={showPasswords.new ? "text" : "password"}
                 value={formData.newPassword}
-                onChange={(e) => handleInputChange("newPassword", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("newPassword", e.target.value)
+                }
                 placeholder="Enter your new password"
                 className="pr-10"
               />
@@ -248,7 +261,9 @@ export default function PasswordSettingsPage() {
                     ) : (
                       <XCircle className="h-3 w-3 text-red-500" />
                     )}
-                    <div className={`text-xs ${requirement.met ? 'text-green-600' : 'text-red-600'}`}>
+                    <div
+                      className={`text-xs ${requirement.met ? "text-green-600" : "text-red-600"}`}
+                    >
                       {requirement.text}
                     </div>
                   </div>
@@ -259,7 +274,10 @@ export default function PasswordSettingsPage() {
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="confirm-password" className="text-sm font-medium text-foreground mb-2 block">
+            <label
+              htmlFor="confirm-password"
+              className="text-sm font-medium text-foreground mb-2 block"
+            >
               Confirm New Password
             </label>
             <div className="relative">
@@ -267,7 +285,9 @@ export default function PasswordSettingsPage() {
                 id="confirm-password"
                 type={showPasswords.confirm ? "text" : "password"}
                 value={formData.confirmPassword}
-                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("confirmPassword", e.target.value)
+                }
                 placeholder="Confirm your new password"
                 className="pr-10"
               />
@@ -290,12 +310,16 @@ export default function PasswordSettingsPage() {
                 {doPasswordsMatch ? (
                   <>
                     <CheckCircle className="h-3 w-3 text-green-500" />
-                    <div className="text-xs text-green-600">Passwords match</div>
+                    <div className="text-xs text-green-600">
+                      Passwords match
+                    </div>
                   </>
                 ) : (
                   <>
                     <XCircle className="h-3 w-3 text-red-500" />
-                    <div className="text-xs text-red-600">Passwords do not match</div>
+                    <div className="text-xs text-red-600">
+                      Passwords do not match
+                    </div>
                   </>
                 )}
               </div>
@@ -331,7 +355,9 @@ export default function PasswordSettingsPage() {
             <div className="text-sm text-blue-700">
               <div className="font-medium mb-1">Security Tips:</div>
               <ul className="space-y-1 text-xs">
-                <li>• Use a unique password that you don&apos;t use anywhere else</li>
+                <li>
+                  • Use a unique password that you don&apos;t use anywhere else
+                </li>
                 <li>• Include a mix of letters, numbers, and symbols</li>
                 <li>• Avoid common words or personal information</li>
                 <li>• Consider using a password manager</li>

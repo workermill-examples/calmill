@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, MapPin, Users, Crown, Shield, User, ExternalLink } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Crown,
+  Shield,
+  User,
+  ExternalLink,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,13 +54,16 @@ interface PublicTeam {
   }>;
 }
 
-function EventTypeCard({ eventType, teamSlug }: {
-  eventType: PublicTeam['eventTypes'][0];
+function EventTypeCard({
+  eventType,
+  teamSlug,
+}: {
+  eventType: PublicTeam["eventTypes"][0];
   teamSlug: string;
 }) {
   const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
       currency,
     }).format(price / 100); // Assuming price is in cents
   };
@@ -78,7 +90,9 @@ function EventTypeCard({ eventType, teamSlug }: {
             <div>
               <h3 className="font-semibold text-lg mb-1">{eventType.title}</h3>
               {eventType.description && (
-                <p className="text-muted-foreground text-sm mb-3">{eventType.description}</p>
+                <p className="text-muted-foreground text-sm mb-3">
+                  {eventType.description}
+                </p>
               )}
 
               <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-4">
@@ -89,13 +103,19 @@ function EventTypeCard({ eventType, teamSlug }: {
 
                 <div className="flex items-center space-x-1">
                   <Users className="h-4 w-4" />
-                  <span>{eventType.schedulingType === 'ROUND_ROBIN' ? 'Round Robin' : 'Collective'}</span>
+                  <span>
+                    {eventType.schedulingType === "ROUND_ROBIN"
+                      ? "Round Robin"
+                      : "Collective"}
+                  </span>
                 </div>
 
                 {eventType.minimumNotice && (
                   <div className="flex items-center space-x-1">
                     <Clock className="h-4 w-4" />
-                    <span>{formatMinimumNotice(eventType.minimumNotice)} notice</span>
+                    <span>
+                      {formatMinimumNotice(eventType.minimumNotice)} notice
+                    </span>
                   </div>
                 )}
 
@@ -105,11 +125,15 @@ function EventTypeCard({ eventType, teamSlug }: {
                   </Badge>
                 )}
 
-                {eventType.price && eventType.price > 0 && eventType.currency && (
-                  <div className="flex items-center space-x-1 font-medium text-primary">
-                    <span>{formatPrice(eventType.price, eventType.currency)}</span>
-                  </div>
-                )}
+                {eventType.price &&
+                  eventType.price > 0 &&
+                  eventType.currency && (
+                    <div className="flex items-center space-x-1 font-medium text-primary">
+                      <span>
+                        {formatPrice(eventType.price, eventType.currency)}
+                      </span>
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -128,7 +152,7 @@ function EventTypeCard({ eventType, teamSlug }: {
   );
 }
 
-function MemberCard({ member }: { member: PublicTeam['members'][0] }) {
+function MemberCard({ member }: { member: PublicTeam["members"][0] }) {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case "OWNER":
@@ -155,16 +179,28 @@ function MemberCard({ member }: { member: PublicTeam['members'][0] }) {
     <Card className="p-4">
       <div className="flex items-center space-x-3">
         <Avatar size="md">
-          {member.user.image && <AvatarImage src={member.user.image} alt={member.user.name || "Team member"} />}
-          <AvatarFallback>{(member.user.name || "U").charAt(0).toUpperCase()}</AvatarFallback>
+          {member.user.image && (
+            <AvatarImage
+              src={member.user.image}
+              alt={member.user.name || "Team member"}
+            />
+          )}
+          <AvatarFallback>
+            {(member.user.name || "U").charAt(0).toUpperCase()}
+          </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="font-medium">{member.user.name || "Anonymous"}</div>
           {member.user.username && (
-            <div className="text-sm text-muted-foreground">@{member.user.username}</div>
+            <div className="text-sm text-muted-foreground">
+              @{member.user.username}
+            </div>
           )}
         </div>
-        <Badge variant={getRoleColor(member.role) as any} className="flex items-center space-x-1">
+        <Badge
+          variant={getRoleColor(member.role) as any}
+          className="flex items-center space-x-1"
+        >
           {getRoleIcon(member.role)}
           <span>{member.role}</span>
         </Badge>
@@ -239,7 +275,9 @@ export default function PublicTeamPage({
   const [team, setTeam] = useState<PublicTeam | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [resolvedParams, setResolvedParams] = useState<{ slug: string } | null>(null);
+  const [resolvedParams, setResolvedParams] = useState<{ slug: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     params.then(setResolvedParams);
@@ -303,7 +341,8 @@ export default function PublicTeamPage({
           <div className="text-center py-16">
             <h1 className="text-2xl font-bold mb-4">Team Not Found</h1>
             <p className="text-muted-foreground mb-8">
-              The team you&apos;re looking for doesn&apos;t exist or is not publicly available.
+              The team you&apos;re looking for doesn&apos;t exist or is not
+              publicly available.
             </p>
             <Link href="/">
               <Button>Go Home</Button>
@@ -323,7 +362,9 @@ export default function PublicTeamPage({
             {team.logoUrl && <AvatarImage src={team.logoUrl} alt={team.name} />}
             <AvatarFallback>{team.name.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">{team.name}</h1>
+          <h1 className="text-4xl font-bold tracking-tight mb-4">
+            {team.name}
+          </h1>
           {team.bio && (
             <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
               {team.bio}
@@ -331,10 +372,11 @@ export default function PublicTeamPage({
           )}
           <div className="flex justify-center items-center space-x-4">
             <Badge variant="outline" className="text-sm">
-              {team.memberCount} member{team.memberCount !== 1 ? 's' : ''}
+              {team.memberCount} member{team.memberCount !== 1 ? "s" : ""}
             </Badge>
             <Badge variant="outline" className="text-sm">
-              {team.eventTypeCount} event type{team.eventTypeCount !== 1 ? 's' : ''}
+              {team.eventTypeCount} event type
+              {team.eventTypeCount !== 1 ? "s" : ""}
             </Badge>
           </div>
         </div>

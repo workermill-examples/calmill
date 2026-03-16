@@ -25,10 +25,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dropdown, DropdownContent, DropdownItem, DropdownTrigger } from "@/components/ui/dropdown";
+import {
+  Dropdown,
+  DropdownContent,
+  DropdownItem,
+  DropdownTrigger,
+} from "@/components/ui/dropdown";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,7 +80,13 @@ interface Team {
   }>;
 }
 
-function InviteMemberModal({ teamSlug, onMemberInvited }: { teamSlug: string; onMemberInvited: () => void }) {
+function InviteMemberModal({
+  teamSlug,
+  onMemberInvited,
+}: {
+  teamSlug: string;
+  onMemberInvited: () => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -101,7 +118,9 @@ function InviteMemberModal({ teamSlug, onMemberInvited }: { teamSlug: string; on
       setIsOpen(false);
       onMemberInvited();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to invite member");
+      setError(
+        error instanceof Error ? error.message : "Failed to invite member",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -174,27 +193,36 @@ function InviteMemberModal({ teamSlug, onMemberInvited }: { teamSlug: string; on
   );
 }
 
-function MemberCard({ member, teamSlug, userRole, onMemberUpdated }: {
-  member: Team['members'][0];
+function MemberCard({
+  member,
+  teamSlug,
+  userRole,
+  onMemberUpdated,
+}: {
+  member: Team["members"][0];
   teamSlug: string;
   userRole: string;
   onMemberUpdated: () => void;
 }) {
   const [isLoading, setIsLoading] = useState(false);
-  const canManageMembers = userRole === "OWNER" || (userRole === "ADMIN" && member.role !== "OWNER");
+  const canManageMembers =
+    userRole === "OWNER" || (userRole === "ADMIN" && member.role !== "OWNER");
 
   const handleRoleChange = async (newRole: string) => {
     if (!canManageMembers || newRole === member.role) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/teams/${teamSlug}/members/${member.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/teams/${teamSlug}/members/${member.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ role: newRole }),
         },
-        body: JSON.stringify({ role: newRole }),
-      });
+      );
 
       if (!response.ok) {
         const result = await response.json();
@@ -212,15 +240,22 @@ function MemberCard({ member, teamSlug, userRole, onMemberUpdated }: {
   const handleRemoveMember = async () => {
     if (!canManageMembers) return;
 
-    if (!confirm(`Are you sure you want to remove ${member.user.name || member.user.email} from the team?`)) {
+    if (
+      !confirm(
+        `Are you sure you want to remove ${member.user.name || member.user.email} from the team?`,
+      )
+    ) {
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/teams/${teamSlug}/members/${member.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/teams/${teamSlug}/members/${member.id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (!response.ok) {
         const result = await response.json();
@@ -262,10 +297,14 @@ function MemberCard({ member, teamSlug, userRole, onMemberUpdated }: {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Avatar size="sm">
-            <AvatarFallback>{(member.user.name || member.user.email).charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>
+              {(member.user.name || member.user.email).charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-medium">{member.user.name || member.user.email}</div>
+            <div className="font-medium">
+              {member.user.name || member.user.email}
+            </div>
             <div className="text-sm text-muted-foreground flex items-center space-x-2">
               <Mail className="h-3 w-3" />
               <span>{member.user.email}</span>
@@ -273,13 +312,14 @@ function MemberCard({ member, teamSlug, userRole, onMemberUpdated }: {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Badge variant={getRoleColor(member.role) as any} className="flex items-center space-x-1">
+          <Badge
+            variant={getRoleColor(member.role) as any}
+            className="flex items-center space-x-1"
+          >
             {getRoleIcon(member.role)}
             <span>{member.role}</span>
           </Badge>
-          {!member.accepted && (
-            <Badge variant="outline">Pending</Badge>
-          )}
+          {!member.accepted && <Badge variant="outline">Pending</Badge>}
           {canManageMembers && member.role !== "OWNER" && (
             <Dropdown>
               <DropdownTrigger asChild>
@@ -300,7 +340,10 @@ function MemberCard({ member, teamSlug, userRole, onMemberUpdated }: {
                     Make Member
                   </DropdownItem>
                 )}
-                <DropdownItem onClick={handleRemoveMember} className="text-destructive">
+                <DropdownItem
+                  onClick={handleRemoveMember}
+                  className="text-destructive"
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remove Member
                 </DropdownItem>
@@ -313,8 +356,13 @@ function MemberCard({ member, teamSlug, userRole, onMemberUpdated }: {
   );
 }
 
-function EventTypeCard({ eventType, teamSlug, userRole, onEventTypeUpdated }: {
-  eventType: Team['eventTypes'][0];
+function EventTypeCard({
+  eventType,
+  teamSlug,
+  userRole,
+  onEventTypeUpdated,
+}: {
+  eventType: Team["eventTypes"][0];
   teamSlug: string;
   userRole: string;
   onEventTypeUpdated: () => void;
@@ -355,7 +403,9 @@ function EventTypeCard({ eventType, teamSlug, userRole, onEventTypeUpdated }: {
           <div>
             <div className="font-medium">{eventType.title}</div>
             {eventType.description && (
-              <div className="text-sm text-muted-foreground">{eventType.description}</div>
+              <div className="text-sm text-muted-foreground">
+                {eventType.description}
+              </div>
             )}
             <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
               <div className="flex items-center space-x-1">
@@ -364,7 +414,10 @@ function EventTypeCard({ eventType, teamSlug, userRole, onEventTypeUpdated }: {
               </div>
               <div className="flex items-center space-x-1">
                 <Calendar className="h-3 w-3" />
-                <span>{eventType.bookingCount} booking{eventType.bookingCount !== 1 ? 's' : ''}</span>
+                <span>
+                  {eventType.bookingCount} booking
+                  {eventType.bookingCount !== 1 ? "s" : ""}
+                </span>
               </div>
               <Badge variant="outline" className="text-xs">
                 {eventType.schedulingType}
@@ -378,7 +431,11 @@ function EventTypeCard({ eventType, teamSlug, userRole, onEventTypeUpdated }: {
               pressed={eventType.isActive}
               onPressedChange={handleToggleActive}
               disabled={isLoading}
-              aria-label={eventType.isActive ? "Deactivate event type" : "Activate event type"}
+              aria-label={
+                eventType.isActive
+                  ? "Deactivate event type"
+                  : "Activate event type"
+              }
             />
           )}
           <Dropdown>
@@ -389,7 +446,10 @@ function EventTypeCard({ eventType, teamSlug, userRole, onEventTypeUpdated }: {
             </DropdownTrigger>
             <DropdownContent align="end">
               <DropdownItem>
-                <Link href={`/team/${teamSlug}/${eventType.slug}`} target="_blank">
+                <Link
+                  href={`/team/${teamSlug}/${eventType.slug}`}
+                  target="_blank"
+                >
                   <Eye className="h-4 w-4 mr-2" />
                   View Public Page
                 </Link>
@@ -404,7 +464,9 @@ function EventTypeCard({ eventType, teamSlug, userRole, onEventTypeUpdated }: {
               )}
               <DropdownItem
                 onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/team/${teamSlug}/${eventType.slug}`);
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/team/${teamSlug}/${eventType.slug}`,
+                  );
                 }}
               >
                 <Copy className="h-4 w-4 mr-2" />
@@ -418,7 +480,10 @@ function EventTypeCard({ eventType, teamSlug, userRole, onEventTypeUpdated }: {
   );
 }
 
-function TeamSettingsTab({ team, onTeamUpdated }: {
+function TeamSettingsTab({
+  team,
+  onTeamUpdated,
+}: {
   team: Team;
   onTeamUpdated: () => void;
 }) {
@@ -470,7 +535,11 @@ function TeamSettingsTab({ team, onTeamUpdated }: {
   };
 
   const handleDeleteTeam = async () => {
-    if (!confirm(`Are you sure you want to delete "${team.name}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${team.name}"? This action cannot be undone.`,
+      )
+    ) {
       return;
     }
 
@@ -499,27 +568,37 @@ function TeamSettingsTab({ team, onTeamUpdated }: {
         <h3 className="text-lg font-semibold mb-4">Team Settings</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="team-name" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-name"
+              className="block text-sm font-medium mb-1"
+            >
               Team Name
             </label>
             <Input
               id="team-name"
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
               required
             />
           </div>
 
           <div>
-            <label htmlFor="team-slug" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-slug"
+              className="block text-sm font-medium mb-1"
+            >
               URL Slug
             </label>
             <Input
               id="team-slug"
               type="text"
               value={formData.slug}
-              onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, slug: e.target.value }))
+              }
               required
             />
             <p className="text-xs text-muted-foreground mt-1">
@@ -528,26 +607,36 @@ function TeamSettingsTab({ team, onTeamUpdated }: {
           </div>
 
           <div>
-            <label htmlFor="team-logo" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-logo"
+              className="block text-sm font-medium mb-1"
+            >
               Logo URL (optional)
             </label>
             <Input
               id="team-logo"
               type="url"
               value={formData.logoUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, logoUrl: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, logoUrl: e.target.value }))
+              }
               placeholder="https://example.com/logo.png"
             />
           </div>
 
           <div>
-            <label htmlFor="team-bio" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="team-bio"
+              className="block text-sm font-medium mb-1"
+            >
               Description (optional)
             </label>
             <textarea
               id="team-bio"
               value={formData.bio}
-              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, bio: e.target.value }))
+              }
               placeholder="Brief description of your team..."
               className="w-full px-3 py-2 border rounded-md resize-none h-20"
               maxLength={1000}
@@ -564,7 +653,9 @@ function TeamSettingsTab({ team, onTeamUpdated }: {
 
       {team.userRole === "OWNER" && (
         <Card className="p-6 border-destructive/20">
-          <h3 className="text-lg font-semibold text-destructive mb-2">Danger Zone</h3>
+          <h3 className="text-lg font-semibold text-destructive mb-2">
+            Danger Zone
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
             Once you delete a team, there is no going back. Please be certain.
           </p>
@@ -592,7 +683,9 @@ export default function TeamDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("members");
-  const [resolvedParams, setResolvedParams] = useState<{ slug: string } | null>(null);
+  const [resolvedParams, setResolvedParams] = useState<{ slug: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     params.then(setResolvedParams);
@@ -672,15 +765,14 @@ export default function TeamDetailPage({
         </Avatar>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
-          {team.bio && (
-            <p className="text-muted-foreground mt-1">{team.bio}</p>
-          )}
+          {team.bio && <p className="text-muted-foreground mt-1">{team.bio}</p>}
           <div className="flex items-center space-x-4 mt-2">
             <Badge variant="outline">
-              {team.memberCount} member{team.memberCount !== 1 ? 's' : ''}
+              {team.memberCount} member{team.memberCount !== 1 ? "s" : ""}
             </Badge>
             <Badge variant="outline">
-              {team.eventTypeCount} event type{team.eventTypeCount !== 1 ? 's' : ''}
+              {team.eventTypeCount} event type
+              {team.eventTypeCount !== 1 ? "s" : ""}
             </Badge>
             <Link href={`/team/${team.slug}`} target="_blank">
               <Button variant="outline" size="sm">
@@ -712,7 +804,10 @@ export default function TeamDetailPage({
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Team Members</h2>
             {(team.userRole === "OWNER" || team.userRole === "ADMIN") && (
-              <InviteMemberModal teamSlug={team.slug} onMemberInvited={fetchTeam} />
+              <InviteMemberModal
+                teamSlug={team.slug}
+                onMemberInvited={fetchTeam}
+              />
             )}
           </div>
 
@@ -779,7 +874,9 @@ export default function TeamDetailPage({
             <Card className="p-6">
               <div className="text-center py-8">
                 <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Access Restricted
+                </h3>
                 <p className="text-muted-foreground">
                   Only team owners and admins can access team settings.
                 </p>

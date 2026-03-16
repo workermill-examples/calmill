@@ -18,7 +18,9 @@ interface TabsContextValue {
   orientation: "horizontal" | "vertical";
 }
 
-const TabsContext = React.createContext<TabsContextValue | undefined>(undefined);
+const TabsContext = React.createContext<TabsContextValue | undefined>(
+  undefined,
+);
 
 const useTabs = () => {
   const context = React.useContext(TabsContext);
@@ -36,7 +38,9 @@ const Tabs: React.FC<TabsProps> = ({
   className,
   children,
 }) => {
-  const [internalValue, setInternalValue] = React.useState(value ?? defaultValue);
+  const [internalValue, setInternalValue] = React.useState(
+    value ?? defaultValue,
+  );
 
   React.useEffect(() => {
     if (value !== undefined) {
@@ -44,12 +48,15 @@ const Tabs: React.FC<TabsProps> = ({
     }
   }, [value]);
 
-  const handleValueChange = React.useCallback((newValue: string) => {
-    if (value === undefined) {
-      setInternalValue(newValue);
-    }
-    onValueChange?.(newValue);
-  }, [value, onValueChange]);
+  const handleValueChange = React.useCallback(
+    (newValue: string) => {
+      if (value === undefined) {
+        setInternalValue(newValue);
+      }
+      onValueChange?.(newValue);
+    },
+    [value, onValueChange],
+  );
 
   const contextValue = React.useMemo(
     () => ({
@@ -57,7 +64,7 @@ const Tabs: React.FC<TabsProps> = ({
       onValueChange: handleValueChange,
       orientation,
     }),
-    [internalValue, handleValueChange, orientation]
+    [internalValue, handleValueChange, orientation],
   );
 
   return (
@@ -66,7 +73,7 @@ const Tabs: React.FC<TabsProps> = ({
         className={cn(
           "w-full",
           orientation === "vertical" && "flex gap-4",
-          className
+          className,
         )}
       >
         {children}
@@ -91,7 +98,7 @@ const TabsList: React.FC<TabsListProps> = ({ className, children }) => {
         "inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
         orientation === "vertical" && "flex-col space-y-1 space-x-0",
         orientation === "horizontal" && "h-9 space-x-1",
-        className
+        className,
       )}
     >
       {children}
@@ -128,7 +135,7 @@ const TabsTrigger: React.FC<TabsTriggerProps> = ({
         isSelected
           ? "bg-background text-foreground shadow"
           : "text-muted-foreground hover:text-foreground",
-        className
+        className,
       )}
       onClick={() => !disabled && onValueChange(triggerValue)}
     >
@@ -160,7 +167,7 @@ const TabsContent: React.FC<TabsContentProps> = ({
       aria-labelledby={`trigger-${contentValue}`}
       className={cn(
         "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        className
+        className,
       )}
       tabIndex={0}
     >

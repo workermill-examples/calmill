@@ -2,7 +2,13 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
@@ -61,9 +67,12 @@ async function fetchUserProfile(username: string): Promise<UserProfile | null> {
 async function fetchUserEventTypes(username: string): Promise<EventType[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const response = await fetch(`${baseUrl}/api/users/${username}/event-types`, {
-      next: { revalidate: 300 }, // Cache for 5 minutes
-    });
+    const response = await fetch(
+      `${baseUrl}/api/users/${username}/event-types`,
+      {
+        next: { revalidate: 300 }, // Cache for 5 minutes
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to fetch event types: ${response.status}`);
@@ -129,11 +138,16 @@ function formatDuration(minutes: number): string {
   } else {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+    return remainingMinutes > 0
+      ? `${hours}h ${remainingMinutes}m`
+      : `${hours}h`;
   }
 }
 
-function formatPrice(price: number | undefined, currency: string | undefined): string {
+function formatPrice(
+  price: number | undefined,
+  currency: string | undefined,
+): string {
   if (!price || price === 0) return "Free";
 
   const formatter = new Intl.NumberFormat("en-US", {
@@ -194,7 +208,10 @@ async function UserProfilePage({ params }: PageProps) {
 
               <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
                 <span>📍 {userProfile.timezone}</span>
-                <span>📅 {userProfile.stats.eventTypes} event type{userProfile.stats.eventTypes !== 1 ? 's' : ''}</span>
+                <span>
+                  📅 {userProfile.stats.eventTypes} event type
+                  {userProfile.stats.eventTypes !== 1 ? "s" : ""}
+                </span>
               </div>
             </div>
           </div>
@@ -224,12 +241,17 @@ async function UserProfilePage({ params }: PageProps) {
                     href={`/${username}/${eventType.slug}`}
                     className="group"
                   >
-                    <Card className="h-full transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-l-4 group-hover:border-l-blue-500" style={{ borderLeftColor: eventType.color || "#3b82f6" }}>
+                    <Card
+                      className="h-full transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-l-4 group-hover:border-l-blue-500"
+                      style={{ borderLeftColor: eventType.color || "#3b82f6" }}
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex items-start space-x-3">
                           <div
                             className="w-4 h-12 rounded flex-shrink-0"
-                            style={{ backgroundColor: eventType.color || "#3b82f6" }}
+                            style={{
+                              backgroundColor: eventType.color || "#3b82f6",
+                            }}
                           />
                           <div className="flex-1 space-y-1">
                             <CardTitle className="text-lg font-semibold group-hover:text-blue-600 transition-colors">
@@ -240,7 +262,12 @@ async function UserProfilePage({ params }: PageProps) {
                               {eventType.price && eventType.price > 0 && (
                                 <>
                                   <span>•</span>
-                                  <span>{formatPrice(eventType.price, eventType.currency)}</span>
+                                  <span>
+                                    {formatPrice(
+                                      eventType.price,
+                                      eventType.currency,
+                                    )}
+                                  </span>
                                 </>
                               )}
                             </div>
@@ -264,14 +291,18 @@ async function UserProfilePage({ params }: PageProps) {
                                 </Badge>
                               )}
                               {eventType.price === 0 && (
-                                <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs text-green-600 border-green-200"
+                                >
                                   Free
                                 </Badge>
                               )}
                             </div>
 
                             <span className="text-xs text-muted-foreground">
-                              {eventType.bookingCount} booking{eventType.bookingCount !== 1 ? 's' : ''}
+                              {eventType.bookingCount} booking
+                              {eventType.bookingCount !== 1 ? "s" : ""}
                             </span>
                           </div>
                         </div>
@@ -326,7 +357,9 @@ export async function generateMetadata({ params }: PageProps) {
 
   return {
     title: `${userProfile.name} (@${userProfile.username}) - CalMill`,
-    description: userProfile.bio || `Book a meeting with ${userProfile.name} using CalMill. Choose from ${userProfile.stats.eventTypes} available event types.`,
+    description:
+      userProfile.bio ||
+      `Book a meeting with ${userProfile.name} using CalMill. Choose from ${userProfile.stats.eventTypes} available event types.`,
     openGraph: {
       title: `${userProfile.name} - CalMill`,
       description: userProfile.bio || `Book a meeting with ${userProfile.name}`,

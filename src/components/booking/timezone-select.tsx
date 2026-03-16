@@ -29,50 +29,240 @@ export interface TimezoneSelectProps {
 // Common timezone options with proper formatting
 const TIMEZONE_OPTIONS: TimezoneOption[] = [
   // US/Canada
-  { value: "America/New_York", label: "Eastern Time", offset: "UTC-5/-4", city: "New York" },
-  { value: "America/Chicago", label: "Central Time", offset: "UTC-6/-5", city: "Chicago" },
-  { value: "America/Denver", label: "Mountain Time", offset: "UTC-7/-6", city: "Denver" },
-  { value: "America/Los_Angeles", label: "Pacific Time", offset: "UTC-8/-7", city: "Los Angeles" },
-  { value: "America/Anchorage", label: "Alaska Time", offset: "UTC-9/-8", city: "Anchorage" },
-  { value: "Pacific/Honolulu", label: "Hawaii Time", offset: "UTC-10", city: "Honolulu" },
-  { value: "America/Toronto", label: "Eastern Time", offset: "UTC-5/-4", city: "Toronto" },
-  { value: "America/Vancouver", label: "Pacific Time", offset: "UTC-8/-7", city: "Vancouver" },
+  {
+    value: "America/New_York",
+    label: "Eastern Time",
+    offset: "UTC-5/-4",
+    city: "New York",
+  },
+  {
+    value: "America/Chicago",
+    label: "Central Time",
+    offset: "UTC-6/-5",
+    city: "Chicago",
+  },
+  {
+    value: "America/Denver",
+    label: "Mountain Time",
+    offset: "UTC-7/-6",
+    city: "Denver",
+  },
+  {
+    value: "America/Los_Angeles",
+    label: "Pacific Time",
+    offset: "UTC-8/-7",
+    city: "Los Angeles",
+  },
+  {
+    value: "America/Anchorage",
+    label: "Alaska Time",
+    offset: "UTC-9/-8",
+    city: "Anchorage",
+  },
+  {
+    value: "Pacific/Honolulu",
+    label: "Hawaii Time",
+    offset: "UTC-10",
+    city: "Honolulu",
+  },
+  {
+    value: "America/Toronto",
+    label: "Eastern Time",
+    offset: "UTC-5/-4",
+    city: "Toronto",
+  },
+  {
+    value: "America/Vancouver",
+    label: "Pacific Time",
+    offset: "UTC-8/-7",
+    city: "Vancouver",
+  },
 
   // Europe
-  { value: "Europe/London", label: "Greenwich Mean Time", offset: "UTC±0/+1", city: "London" },
-  { value: "Europe/Dublin", label: "Greenwich Mean Time", offset: "UTC±0/+1", city: "Dublin" },
-  { value: "Europe/Paris", label: "Central European Time", offset: "UTC+1/+2", city: "Paris" },
-  { value: "Europe/Berlin", label: "Central European Time", offset: "UTC+1/+2", city: "Berlin" },
-  { value: "Europe/Rome", label: "Central European Time", offset: "UTC+1/+2", city: "Rome" },
-  { value: "Europe/Amsterdam", label: "Central European Time", offset: "UTC+1/+2", city: "Amsterdam" },
-  { value: "Europe/Madrid", label: "Central European Time", offset: "UTC+1/+2", city: "Madrid" },
-  { value: "Europe/Stockholm", label: "Central European Time", offset: "UTC+1/+2", city: "Stockholm" },
-  { value: "Europe/Helsinki", label: "Eastern European Time", offset: "UTC+2/+3", city: "Helsinki" },
-  { value: "Europe/Athens", label: "Eastern European Time", offset: "UTC+2/+3", city: "Athens" },
-  { value: "Europe/Istanbul", label: "Turkey Time", offset: "UTC+3", city: "Istanbul" },
-  { value: "Europe/Moscow", label: "Moscow Standard Time", offset: "UTC+3", city: "Moscow" },
+  {
+    value: "Europe/London",
+    label: "Greenwich Mean Time",
+    offset: "UTC±0/+1",
+    city: "London",
+  },
+  {
+    value: "Europe/Dublin",
+    label: "Greenwich Mean Time",
+    offset: "UTC±0/+1",
+    city: "Dublin",
+  },
+  {
+    value: "Europe/Paris",
+    label: "Central European Time",
+    offset: "UTC+1/+2",
+    city: "Paris",
+  },
+  {
+    value: "Europe/Berlin",
+    label: "Central European Time",
+    offset: "UTC+1/+2",
+    city: "Berlin",
+  },
+  {
+    value: "Europe/Rome",
+    label: "Central European Time",
+    offset: "UTC+1/+2",
+    city: "Rome",
+  },
+  {
+    value: "Europe/Amsterdam",
+    label: "Central European Time",
+    offset: "UTC+1/+2",
+    city: "Amsterdam",
+  },
+  {
+    value: "Europe/Madrid",
+    label: "Central European Time",
+    offset: "UTC+1/+2",
+    city: "Madrid",
+  },
+  {
+    value: "Europe/Stockholm",
+    label: "Central European Time",
+    offset: "UTC+1/+2",
+    city: "Stockholm",
+  },
+  {
+    value: "Europe/Helsinki",
+    label: "Eastern European Time",
+    offset: "UTC+2/+3",
+    city: "Helsinki",
+  },
+  {
+    value: "Europe/Athens",
+    label: "Eastern European Time",
+    offset: "UTC+2/+3",
+    city: "Athens",
+  },
+  {
+    value: "Europe/Istanbul",
+    label: "Turkey Time",
+    offset: "UTC+3",
+    city: "Istanbul",
+  },
+  {
+    value: "Europe/Moscow",
+    label: "Moscow Standard Time",
+    offset: "UTC+3",
+    city: "Moscow",
+  },
 
   // Asia Pacific
-  { value: "Asia/Dubai", label: "Gulf Standard Time", offset: "UTC+4", city: "Dubai" },
-  { value: "Asia/Kolkata", label: "India Standard Time", offset: "UTC+5:30", city: "Mumbai" },
-  { value: "Asia/Dhaka", label: "Bangladesh Standard Time", offset: "UTC+6", city: "Dhaka" },
-  { value: "Asia/Singapore", label: "Singapore Standard Time", offset: "UTC+8", city: "Singapore" },
-  { value: "Asia/Hong_Kong", label: "Hong Kong Time", offset: "UTC+8", city: "Hong Kong" },
-  { value: "Asia/Shanghai", label: "China Standard Time", offset: "UTC+8", city: "Shanghai" },
-  { value: "Asia/Tokyo", label: "Japan Standard Time", offset: "UTC+9", city: "Tokyo" },
-  { value: "Asia/Seoul", label: "Korea Standard Time", offset: "UTC+9", city: "Seoul" },
-  { value: "Australia/Sydney", label: "Australian Eastern Time", offset: "UTC+10/+11", city: "Sydney" },
-  { value: "Australia/Melbourne", label: "Australian Eastern Time", offset: "UTC+10/+11", city: "Melbourne" },
-  { value: "Australia/Perth", label: "Australian Western Time", offset: "UTC+8", city: "Perth" },
-  { value: "Pacific/Auckland", label: "New Zealand Standard Time", offset: "UTC+12/+13", city: "Auckland" },
+  {
+    value: "Asia/Dubai",
+    label: "Gulf Standard Time",
+    offset: "UTC+4",
+    city: "Dubai",
+  },
+  {
+    value: "Asia/Kolkata",
+    label: "India Standard Time",
+    offset: "UTC+5:30",
+    city: "Mumbai",
+  },
+  {
+    value: "Asia/Dhaka",
+    label: "Bangladesh Standard Time",
+    offset: "UTC+6",
+    city: "Dhaka",
+  },
+  {
+    value: "Asia/Singapore",
+    label: "Singapore Standard Time",
+    offset: "UTC+8",
+    city: "Singapore",
+  },
+  {
+    value: "Asia/Hong_Kong",
+    label: "Hong Kong Time",
+    offset: "UTC+8",
+    city: "Hong Kong",
+  },
+  {
+    value: "Asia/Shanghai",
+    label: "China Standard Time",
+    offset: "UTC+8",
+    city: "Shanghai",
+  },
+  {
+    value: "Asia/Tokyo",
+    label: "Japan Standard Time",
+    offset: "UTC+9",
+    city: "Tokyo",
+  },
+  {
+    value: "Asia/Seoul",
+    label: "Korea Standard Time",
+    offset: "UTC+9",
+    city: "Seoul",
+  },
+  {
+    value: "Australia/Sydney",
+    label: "Australian Eastern Time",
+    offset: "UTC+10/+11",
+    city: "Sydney",
+  },
+  {
+    value: "Australia/Melbourne",
+    label: "Australian Eastern Time",
+    offset: "UTC+10/+11",
+    city: "Melbourne",
+  },
+  {
+    value: "Australia/Perth",
+    label: "Australian Western Time",
+    offset: "UTC+8",
+    city: "Perth",
+  },
+  {
+    value: "Pacific/Auckland",
+    label: "New Zealand Standard Time",
+    offset: "UTC+12/+13",
+    city: "Auckland",
+  },
 
   // Other regions
-  { value: "America/Sao_Paulo", label: "Brasília Time", offset: "UTC-3", city: "São Paulo" },
-  { value: "America/Argentina/Buenos_Aires", label: "Argentina Time", offset: "UTC-3", city: "Buenos Aires" },
-  { value: "America/Mexico_City", label: "Central Standard Time", offset: "UTC-6/-5", city: "Mexico City" },
-  { value: "Africa/Cairo", label: "Eastern European Time", offset: "UTC+2", city: "Cairo" },
-  { value: "Africa/Lagos", label: "West Africa Time", offset: "UTC+1", city: "Lagos" },
-  { value: "Africa/Johannesburg", label: "South Africa Standard Time", offset: "UTC+2", city: "Johannesburg" },
+  {
+    value: "America/Sao_Paulo",
+    label: "Brasília Time",
+    offset: "UTC-3",
+    city: "São Paulo",
+  },
+  {
+    value: "America/Argentina/Buenos_Aires",
+    label: "Argentina Time",
+    offset: "UTC-3",
+    city: "Buenos Aires",
+  },
+  {
+    value: "America/Mexico_City",
+    label: "Central Standard Time",
+    offset: "UTC-6/-5",
+    city: "Mexico City",
+  },
+  {
+    value: "Africa/Cairo",
+    label: "Eastern European Time",
+    offset: "UTC+2",
+    city: "Cairo",
+  },
+  {
+    value: "Africa/Lagos",
+    label: "West Africa Time",
+    offset: "UTC+1",
+    city: "Lagos",
+  },
+  {
+    value: "Africa/Johannesburg",
+    label: "South Africa Standard Time",
+    offset: "UTC+2",
+    city: "Johannesburg",
+  },
 ];
 
 // Auto-detect user's timezone
@@ -89,16 +279,17 @@ function detectTimezone(): string {
 function getTimezoneOffset(timezone: string): string {
   try {
     const date = new Date();
-    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-    const targetTime = new Date(utc + (0));
+    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+    const targetTime = new Date(utc + 0);
 
     const formatter = new Intl.DateTimeFormat("en", {
       timeZone: timezone,
-      timeZoneName: "short"
+      timeZoneName: "short",
     });
 
     const parts = formatter.formatToParts(targetTime);
-    const timeZoneName = parts.find(part => part.type === "timeZoneName")?.value || "";
+    const timeZoneName =
+      parts.find((part) => part.type === "timeZoneName")?.value || "";
 
     return timeZoneName;
   } catch (error) {
@@ -108,31 +299,32 @@ function getTimezoneOffset(timezone: string): string {
 
 // Get display label for a timezone
 function getTimezoneDisplay(timezone: string): TimezoneOption | null {
-  const option = TIMEZONE_OPTIONS.find(opt => opt.value === timezone);
+  const option = TIMEZONE_OPTIONS.find((opt) => opt.value === timezone);
   if (option) return option;
 
   // If not in our list, try to create a basic display
   try {
     const formatter = new Intl.DateTimeFormat("en", {
       timeZone: timezone,
-      timeZoneName: "long"
+      timeZoneName: "long",
     });
 
     const parts = formatter.formatToParts(new Date());
-    const timeZoneName = parts.find(part => part.type === "timeZoneName")?.value || timezone;
+    const timeZoneName =
+      parts.find((part) => part.type === "timeZoneName")?.value || timezone;
 
     return {
       value: timezone,
       label: timeZoneName,
       offset: getTimezoneOffset(timezone),
-      city: timezone.split("/").pop()?.replace(/_/g, " ") || timezone
+      city: timezone.split("/").pop()?.replace(/_/g, " ") || timezone,
     };
   } catch (error) {
     return {
       value: timezone,
       label: timezone,
       offset: "",
-      city: timezone
+      city: timezone,
     };
   }
 }
@@ -142,7 +334,7 @@ export function TimezoneSelect({
   onChange,
   className,
   disabled = false,
-  placeholder = "Select timezone..."
+  placeholder = "Select timezone...",
 }: TimezoneSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -156,10 +348,11 @@ export function TimezoneSelect({
     if (!search.trim()) return TIMEZONE_OPTIONS;
 
     const searchLower = search.toLowerCase();
-    return TIMEZONE_OPTIONS.filter(option =>
-      option.label.toLowerCase().includes(searchLower) ||
-      option.city.toLowerCase().includes(searchLower) ||
-      option.value.toLowerCase().includes(searchLower)
+    return TIMEZONE_OPTIONS.filter(
+      (option) =>
+        option.label.toLowerCase().includes(searchLower) ||
+        option.city.toLowerCase().includes(searchLower) ||
+        option.value.toLowerCase().includes(searchLower),
     );
   }, [search]);
 
@@ -169,11 +362,14 @@ export function TimezoneSelect({
   }, [value]);
 
   // Handle option selection
-  const handleSelect = React.useCallback((timezone: string) => {
-    onChange(timezone);
-    setIsOpen(false);
-    setSearch("");
-  }, [onChange]);
+  const handleSelect = React.useCallback(
+    (timezone: string) => {
+      onChange(timezone);
+      setIsOpen(false);
+      setSearch("");
+    },
+    [onChange],
+  );
 
   // Auto-detect timezone on mount if no value
   React.useEffect(() => {
@@ -185,7 +381,10 @@ export function TimezoneSelect({
   // Handle click outside to close
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setSearch("");
       }
@@ -193,7 +392,8 @@ export function TimezoneSelect({
 
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isOpen]);
 
@@ -220,7 +420,7 @@ export function TimezoneSelect({
         variant="outline"
         className={cn(
           "w-full justify-between text-left font-normal",
-          !selectedOption && "text-muted-foreground"
+          !selectedOption && "text-muted-foreground",
         )}
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
@@ -246,13 +446,18 @@ export function TimezoneSelect({
         <svg
           className={cn(
             "h-4 w-4 transition-transform duration-200",
-            isOpen ? "rotate-180" : "rotate-0"
+            isOpen ? "rotate-180" : "rotate-0",
           )}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </Button>
 
@@ -289,7 +494,8 @@ export function TimezoneSelect({
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">
-                        {getTimezoneDisplay(detectedTimezone)?.city || detectedTimezone}
+                        {getTimezoneDisplay(detectedTimezone)?.city ||
+                          detectedTimezone}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {getTimezoneDisplay(detectedTimezone)?.label}
@@ -320,7 +526,7 @@ export function TimezoneSelect({
                   type="button"
                   className={cn(
                     "w-full px-3 py-2 text-left hover:bg-secondary focus:bg-secondary focus:outline-none transition-colors",
-                    value === option.value && "bg-secondary"
+                    value === option.value && "bg-secondary",
                   )}
                   onClick={() => handleSelect(option.value)}
                   role="option"

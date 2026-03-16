@@ -48,7 +48,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     <div
       className={cn(
         "flex flex-col items-center justify-center space-y-6 text-center p-8",
-        className
+        className,
       )}
     >
       {icon || <DefaultEmptyIcon />}
@@ -86,7 +86,10 @@ interface NoEventTypesProps {
   className?: string;
 }
 
-export const NoEventTypes: React.FC<NoEventTypesProps> = ({ onCreateEventType, className }) => (
+export const NoEventTypes: React.FC<NoEventTypesProps> = ({
+  onCreateEventType,
+  className,
+}) => (
   <EmptyState
     title="No event types yet"
     description="Create your first event type to start accepting bookings. Event types define the duration, availability, and booking details."
@@ -119,7 +122,10 @@ interface NoBookingsProps {
   className?: string;
 }
 
-export const NoBookings: React.FC<NoBookingsProps> = ({ onViewEventTypes, className }) => (
+export const NoBookings: React.FC<NoBookingsProps> = ({
+  onViewEventTypes,
+  className,
+}) => (
   <EmptyState
     title="No bookings yet"
     description="Once people start booking time with you, their appointments will appear here."
@@ -156,7 +162,10 @@ interface NoTeamsProps {
   className?: string;
 }
 
-export const NoTeams: React.FC<NoTeamsProps> = ({ onCreateTeam, className }) => (
+export const NoTeams: React.FC<NoTeamsProps> = ({
+  onCreateTeam,
+  className,
+}) => (
   <EmptyState
     title="No teams yet"
     description="Create a team to collaborate with others and manage shared event types and bookings."
@@ -189,7 +198,10 @@ interface NoSchedulesProps {
   className?: string;
 }
 
-export const NoSchedules: React.FC<NoSchedulesProps> = ({ onCreateSchedule, className }) => (
+export const NoSchedules: React.FC<NoSchedulesProps> = ({
+  onCreateSchedule,
+  className,
+}) => (
   <EmptyState
     title="No schedules yet"
     description="Create your availability schedule to define when people can book time with you."
@@ -222,7 +234,10 @@ interface NoWebhooksProps {
   className?: string;
 }
 
-export const NoWebhooks: React.FC<NoWebhooksProps> = ({ onCreateWebhook, className }) => (
+export const NoWebhooks: React.FC<NoWebhooksProps> = ({
+  onCreateWebhook,
+  className,
+}) => (
   <EmptyState
     title="No webhooks configured"
     description="Set up webhooks to receive real-time notifications when bookings are created, updated, or cancelled."
@@ -256,7 +271,11 @@ interface SearchEmptyProps {
   className?: string;
 }
 
-export const SearchEmpty: React.FC<SearchEmptyProps> = ({ query, onClearSearch, className }) => (
+export const SearchEmpty: React.FC<SearchEmptyProps> = ({
+  query,
+  onClearSearch,
+  className,
+}) => (
   <EmptyState
     title="No results found"
     description={`No items match "${query}". Try adjusting your search terms.`}

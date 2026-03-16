@@ -13,7 +13,7 @@ import {
   isSameDay,
   parseISO,
   isAfter,
-  isBefore
+  isBefore,
 } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 
@@ -53,7 +53,7 @@ export function CalendarPicker({
   eventTitle,
 }: CalendarPickerProps) {
   const [currentMonth, setCurrentMonth] = React.useState<Date>(
-    selectedDate || new Date()
+    selectedDate || new Date(),
   );
 
   // Default constraints: today to 60 days out
@@ -64,60 +64,76 @@ export function CalendarPicker({
   const effectiveMaxDate = maxDate || defaultMaxDate;
 
   // Check if a date is disabled
-  const isDayDisabled = React.useCallback((date: Date) => {
-    // Past dates
-    if (isBefore(date, effectiveMinDate)) return true;
+  const isDayDisabled = React.useCallback(
+    (date: Date) => {
+      // Past dates
+      if (isBefore(date, effectiveMinDate)) return true;
 
-    // Future limit
-    if (isAfter(date, effectiveMaxDate)) return true;
+      // Future limit
+      if (isAfter(date, effectiveMaxDate)) return true;
 
-    // No available slots
-    if (availableDates.length > 0) {
-      return !availableDates.some(availableDate => isSameDay(date, availableDate));
-    }
+      // No available slots
+      if (availableDates.length > 0) {
+        return !availableDates.some((availableDate) =>
+          isSameDay(date, availableDate),
+        );
+      }
 
-    return false;
-  }, [availableDates, effectiveMinDate, effectiveMaxDate]);
+      return false;
+    },
+    [availableDates, effectiveMinDate, effectiveMaxDate],
+  );
 
   // Check if a date has available slots
-  const isDayAvailable = React.useCallback((date: Date) => {
-    if (availableDates.length === 0) return true; // Assume available if no data yet
-    return availableDates.some(availableDate => isSameDay(date, availableDate));
-  }, [availableDates]);
+  const isDayAvailable = React.useCallback(
+    (date: Date) => {
+      if (availableDates.length === 0) return true; // Assume available if no data yet
+      return availableDates.some((availableDate) =>
+        isSameDay(date, availableDate),
+      );
+    },
+    [availableDates],
+  );
 
   // Handle date selection
-  const handleDateSelect = React.useCallback((date: Date | Date[] | undefined) => {
-    if (!date || Array.isArray(date)) return;
+  const handleDateSelect = React.useCallback(
+    (date: Date | Date[] | undefined) => {
+      if (!date || Array.isArray(date)) return;
 
-    // Convert to timezone-aware date
-    const tzDate = new TZDate(date, timezone);
-    onDateSelect(tzDate);
-  }, [onDateSelect, timezone]);
+      // Convert to timezone-aware date
+      const tzDate = new TZDate(date, timezone);
+      onDateSelect(tzDate);
+    },
+    [onDateSelect, timezone],
+  );
 
   // Generate description for screen readers
-  const getDateDescription = React.useCallback((date: Date): string => {
-    const isAvailable = isDayAvailable(date);
-    const isSelected = selectedDate && isSameDay(date, selectedDate);
-    const isToday = isSameDay(date, new Date());
+  const getDateDescription = React.useCallback(
+    (date: Date): string => {
+      const isAvailable = isDayAvailable(date);
+      const isSelected = selectedDate && isSameDay(date, selectedDate);
+      const isToday = isSameDay(date, new Date());
 
-    let description = format(date, 'EEEE, MMMM do, yyyy');
+      let description = format(date, "EEEE, MMMM do, yyyy");
 
-    if (isToday) description += ', today';
-    if (isSelected) description += ', selected';
-    if (eventTitle) {
-      description += `, ${eventTitle}`;
-      if (eventDuration) {
-        description += ` (${eventDuration} minutes)`;
+      if (isToday) description += ", today";
+      if (isSelected) description += ", selected";
+      if (eventTitle) {
+        description += `, ${eventTitle}`;
+        if (eventDuration) {
+          description += ` (${eventDuration} minutes)`;
+        }
       }
-    }
-    if (isAvailable) {
-      description += ', available';
-    } else {
-      description += ', no availability';
-    }
+      if (isAvailable) {
+        description += ", available";
+      } else {
+        description += ", no availability";
+      }
 
-    return description;
-  }, [isDayAvailable, selectedDate, eventTitle, eventDuration]);
+      return description;
+    },
+    [isDayAvailable, selectedDate, eventTitle, eventDuration],
+  );
 
   // Navigation handlers
   const handlePreviousMonth = React.useCallback(() => {
@@ -159,14 +175,20 @@ export function CalendarPicker({
           {/* Weekday headers skeleton */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="w-9 h-6 bg-muted rounded animate-shimmer" />
+              <div
+                key={i}
+                className="w-9 h-6 bg-muted rounded animate-shimmer"
+              />
             ))}
           </div>
 
           {/* Calendar grid skeleton */}
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: 42 }).map((_, i) => (
-              <div key={i} className="w-9 h-9 bg-muted rounded animate-shimmer" />
+              <div
+                key={i}
+                className="w-9 h-9 bg-muted rounded animate-shimmer"
+              />
             ))}
           </div>
         </div>
@@ -194,9 +216,7 @@ export function CalendarPicker({
         {/* Accessibility information */}
         <div className="sr-only" aria-live="polite">
           {selectedDate && (
-            <span>
-              Selected date: {getDateDescription(selectedDate)}
-            </span>
+            <span>Selected date: {getDateDescription(selectedDate)}</span>
           )}
         </div>
 
@@ -223,7 +243,10 @@ export function CalendarPicker({
             <div className="text-xs text-muted-foreground pt-1 border-t">
               <span className="font-medium">{eventTitle}</span>
               {eventDuration && (
-                <span> • {eventDuration} minute{eventDuration !== 1 ? 's' : ''}</span>
+                <span>
+                  {" "}
+                  • {eventDuration} minute{eventDuration !== 1 ? "s" : ""}
+                </span>
               )}
             </div>
           )}

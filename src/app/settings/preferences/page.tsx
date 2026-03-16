@@ -83,9 +83,9 @@ export default function PreferencesSettingsPage() {
   // Auto-detect timezone
   const detectTimezone = () => {
     const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const timezoneOption = TIMEZONES.find(tz => tz.value === detected);
+    const timezoneOption = TIMEZONES.find((tz) => tz.value === detected);
     if (timezoneOption) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         timezone: detected,
       }));
@@ -125,7 +125,9 @@ export default function PreferencesSettingsPage() {
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error("Error fetching preferences:", error);
-      setError(error instanceof Error ? error.message : "Failed to load preferences");
+      setError(
+        error instanceof Error ? error.message : "Failed to load preferences",
+      );
     } finally {
       setLoading(false);
     }
@@ -165,7 +167,8 @@ export default function PreferencesSettingsPage() {
       });
     } catch (error) {
       console.error("Error saving preferences:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to save preferences";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save preferences";
       setError(errorMessage);
       addToast({
         title: "Error",
@@ -180,9 +183,9 @@ export default function PreferencesSettingsPage() {
   // Handle form field changes
   const handleInputChange = <T extends keyof typeof formData>(
     field: T,
-    value: typeof formData[T]
+    value: (typeof formData)[T],
   ) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -242,7 +245,9 @@ export default function PreferencesSettingsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Preferences</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            Preferences
+          </h2>
           <p className="text-muted-foreground">
             Configure your timezone, calendar, and interface preferences.
           </p>
@@ -267,13 +272,18 @@ export default function PreferencesSettingsPage() {
             </div>
             <div className="space-y-4 pl-7">
               <div>
-                <label htmlFor="timezone" className="text-sm font-medium text-foreground mb-2 block">
+                <label
+                  htmlFor="timezone"
+                  className="text-sm font-medium text-foreground mb-2 block"
+                >
                   Your Timezone
                 </label>
                 <div className="space-y-2">
                   <Select
                     value={formData.timezone}
-                    onValueChange={(value) => handleInputChange("timezone", value)}
+                    onValueChange={(value) =>
+                      handleInputChange("timezone", value)
+                    }
                     options={TIMEZONES}
                   />
                   <div className="flex items-center gap-2">
@@ -286,7 +296,8 @@ export default function PreferencesSettingsPage() {
                       Auto-detect
                     </Button>
                     <p className="text-xs text-muted-foreground">
-                      Current time: {new Date().toLocaleString("en-US", {
+                      Current time:{" "}
+                      {new Date().toLocaleString("en-US", {
                         timeZone: formData.timezone,
                         dateStyle: "short",
                         timeStyle: "medium",
@@ -306,13 +317,21 @@ export default function PreferencesSettingsPage() {
             </div>
             <div className="space-y-4 pl-7">
               <div>
-                <label htmlFor="weekStart" className="text-sm font-medium text-foreground mb-2 block">
+                <label
+                  htmlFor="weekStart"
+                  className="text-sm font-medium text-foreground mb-2 block"
+                >
                   Week starts on
                 </label>
                 <Select
                   value={formData.weekStart.toString()}
-                  onValueChange={(value) => handleInputChange("weekStart", parseInt(value))}
-                  options={WEEK_START_OPTIONS.map(option => ({ value: option.value.toString(), label: option.label }))}
+                  onValueChange={(value) =>
+                    handleInputChange("weekStart", parseInt(value))
+                  }
+                  options={WEEK_START_OPTIONS.map((option) => ({
+                    value: option.value.toString(),
+                    label: option.label,
+                  }))}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   This affects how calendars and availability are displayed
@@ -325,17 +344,25 @@ export default function PreferencesSettingsPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-medium text-foreground">Appearance</h3>
+              <h3 className="text-lg font-medium text-foreground">
+                Appearance
+              </h3>
             </div>
             <div className="space-y-4 pl-7">
               <div>
-                <label htmlFor="theme" className="text-sm font-medium text-foreground mb-2 block">
+                <label
+                  htmlFor="theme"
+                  className="text-sm font-medium text-foreground mb-2 block"
+                >
                   Theme
                 </label>
                 <Select
                   value={formData.theme}
                   onValueChange={(value) => handleInputChange("theme", value)}
-                  options={THEME_OPTIONS.map(option => ({ value: option.value, label: `${option.label} - ${option.description}` }))}
+                  options={THEME_OPTIONS.map((option) => ({
+                    value: option.value,
+                    label: `${option.label} - ${option.description}`,
+                  }))}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Choose your preferred interface theme

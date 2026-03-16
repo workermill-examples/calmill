@@ -64,7 +64,8 @@ export default function DangerZoneSettingsPage() {
       router.push("/");
     } catch (error) {
       console.error("Error deleting account:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to delete account";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete account";
       setError(errorMessage);
       addToast({
         title: "Error",
@@ -78,7 +79,7 @@ export default function DangerZoneSettingsPage() {
 
   // Handle form field changes
   const handleInputChange = (field: keyof typeof deleteForm, value: string) => {
-    setDeleteForm(prev => ({
+    setDeleteForm((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -103,7 +104,9 @@ export default function DangerZoneSettingsPage() {
       <div className="space-y-6 max-w-2xl">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Danger Zone</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            Danger Zone
+          </h2>
           <p className="text-muted-foreground">
             Irreversible and destructive actions for your account.
           </p>
@@ -118,8 +121,8 @@ export default function DangerZoneSettingsPage() {
                 Proceed with Caution
               </h3>
               <p className="text-sm text-orange-700 mb-4">
-                The actions in this section are permanent and cannot be undone. Make sure you understand
-                the consequences before proceeding.
+                The actions in this section are permanent and cannot be undone.
+                Make sure you understand the consequences before proceeding.
               </p>
               <ul className="text-sm text-orange-700 space-y-1">
                 <li>• All your data will be permanently deleted</li>
@@ -142,9 +145,9 @@ export default function DangerZoneSettingsPage() {
           <div className="p-6">
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Once you delete your account, there is no going back. This will permanently delete
-                your account, all your event types, bookings, availability settings, and remove
-                all data from our servers.
+                Once you delete your account, there is no going back. This will
+                permanently delete your account, all your event types, bookings,
+                availability settings, and remove all data from our servers.
               </p>
 
               <div className="bg-red-50 border border-red-200 rounded p-4">
@@ -158,7 +161,9 @@ export default function DangerZoneSettingsPage() {
                   <li>• Availability and schedule configurations</li>
                   <li>• Calendar connections and integrations</li>
                   <li>• Webhook configurations</li>
-                  <li>• Team memberships (you&apos;ll be removed from teams)</li>
+                  <li>
+                    • Team memberships (you&apos;ll be removed from teams)
+                  </li>
                 </ul>
               </div>
 
@@ -178,11 +183,14 @@ export default function DangerZoneSettingsPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start">
             <div className="text-sm text-blue-700">
-              <div className="font-medium mb-1">Before you delete your account:</div>
+              <div className="font-medium mb-1">
+                Before you delete your account:
+              </div>
               <p>
-                Consider exporting your data first. You can download your booking history and
-                event type configurations from the dashboard. Once your account is deleted,
-                this data will no longer be available.
+                Consider exporting your data first. You can download your
+                booking history and event type configurations from the
+                dashboard. Once your account is deleted, this data will no
+                longer be available.
               </p>
             </div>
           </div>
@@ -204,8 +212,10 @@ export default function DangerZoneSettingsPage() {
               </div>
 
               <p className="text-sm text-muted-foreground mb-6">
-                This action cannot be undone. This will permanently delete your account
-                <strong> {session?.user?.email}</strong> and remove all associated data.
+                This action cannot be undone. This will permanently delete your
+                account
+                <strong> {session?.user?.email}</strong> and remove all
+                associated data.
               </p>
 
               {/* Error Display */}
@@ -221,7 +231,10 @@ export default function DangerZoneSettingsPage() {
               <div className="space-y-4">
                 {/* Password Confirmation */}
                 <div>
-                  <label htmlFor="delete-password" className="text-sm font-medium text-foreground mb-2 block">
+                  <label
+                    htmlFor="delete-password"
+                    className="text-sm font-medium text-foreground mb-2 block"
+                  >
                     Enter your password to confirm
                   </label>
                   <div className="relative">
@@ -229,7 +242,9 @@ export default function DangerZoneSettingsPage() {
                       id="delete-password"
                       type={showPassword ? "text" : "password"}
                       value={deleteForm.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
                       placeholder="Enter your password"
                       className="pr-10"
                     />
@@ -249,14 +264,19 @@ export default function DangerZoneSettingsPage() {
 
                 {/* Deletion Confirmation */}
                 <div>
-                  <label htmlFor="delete-confirmation" className="text-sm font-medium text-foreground mb-2 block">
+                  <label
+                    htmlFor="delete-confirmation"
+                    className="text-sm font-medium text-foreground mb-2 block"
+                  >
                     Type <strong>DELETE</strong> to confirm
                   </label>
                   <Input
                     id="delete-confirmation"
                     type="text"
                     value={deleteForm.confirmation}
-                    onChange={(e) => handleInputChange("confirmation", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("confirmation", e.target.value)
+                    }
                     placeholder="Type DELETE to confirm"
                   />
                 </div>

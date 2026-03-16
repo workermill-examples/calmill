@@ -71,7 +71,7 @@ const dayNames = [
   "Wednesday",
   "Thursday",
   "Friday",
-  "Saturday"
+  "Saturday",
 ];
 
 // Generate time slots in 15-minute increments
@@ -79,12 +79,15 @@ const generateTimeSlots = () => {
   const slots = [];
   for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
-      const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      const time12 = new Date(`2000-01-01 ${timeValue}`).toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
+      const timeValue = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+      const time12 = new Date(`2000-01-01 ${timeValue}`).toLocaleTimeString(
+        "en-US",
+        {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        },
+      );
       slots.push({ value: timeValue, label: time12 });
     }
   }
@@ -118,7 +121,7 @@ export default function AvailabilityPage() {
   });
 
   const selectedSchedule = useMemo(() => {
-    return schedules.find(s => s.id === selectedScheduleId) || null;
+    return schedules.find((s) => s.id === selectedScheduleId) || null;
   }, [schedules, selectedScheduleId]);
 
   // Fetch schedules
@@ -141,14 +144,18 @@ export default function AvailabilityPage() {
         setSchedules(data.schedules || []);
 
         // Select default schedule or first one
-        const defaultSchedule = data.schedules.find((s: Schedule) => s.isDefault);
+        const defaultSchedule = data.schedules.find(
+          (s: Schedule) => s.isDefault,
+        );
         const initialSchedule = defaultSchedule || data.schedules[0];
         if (initialSchedule) {
           setSelectedScheduleId(initialSchedule.id);
         }
       } catch (err) {
         console.error("Error fetching schedules:", err);
-        setError(err instanceof Error ? err.message : "Failed to load schedules");
+        setError(
+          err instanceof Error ? err.message : "Failed to load schedules",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -179,7 +186,9 @@ export default function AvailabilityPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to create schedule: ${response.status}`);
+        throw new Error(
+          errorData.message || `Failed to create schedule: ${response.status}`,
+        );
       }
 
       const data = await response.json();
@@ -197,11 +206,17 @@ export default function AvailabilityPage() {
       }
 
       // Reset form
-      setNewSchedule({ name: "", timezone: "America/New_York", isDefault: false });
+      setNewSchedule({
+        name: "",
+        timezone: "America/New_York",
+        isDefault: false,
+      });
       setShowCreateForm(false);
     } catch (err) {
       console.error("Error creating schedule:", err);
-      setError(err instanceof Error ? err.message : "Failed to create schedule");
+      setError(
+        err instanceof Error ? err.message : "Failed to create schedule",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -228,18 +243,22 @@ export default function AvailabilityPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to update schedule: ${response.status}`);
+        throw new Error(
+          errorData.message || `Failed to update schedule: ${response.status}`,
+        );
       }
 
       const data = await response.json();
 
       // Update local state
-      setSchedules(prev => prev.map(s =>
-        s.id === selectedSchedule.id ? data.schedule : s
-      ));
+      setSchedules((prev) =>
+        prev.map((s) => (s.id === selectedSchedule.id ? data.schedule : s)),
+      );
     } catch (err) {
       console.error("Error updating schedule:", err);
-      setError(err instanceof Error ? err.message : "Failed to update schedule");
+      setError(
+        err instanceof Error ? err.message : "Failed to update schedule",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -265,31 +284,42 @@ export default function AvailabilityPage() {
             isUnavailable: false,
           };
 
-      const response = await fetch(`/api/schedules/${selectedSchedule.id}/overrides`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/schedules/${selectedSchedule.id}/overrides`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
         },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to add date override: ${response.status}`);
+        throw new Error(
+          errorData.message ||
+            `Failed to add date override: ${response.status}`,
+        );
       }
 
       // Refresh schedule data
-      const scheduleResponse = await fetch(`/api/schedules/${selectedSchedule.id}`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const scheduleResponse = await fetch(
+        `/api/schedules/${selectedSchedule.id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
 
       if (scheduleResponse.ok) {
         const scheduleData = await scheduleResponse.json();
-        setSchedules(prev => prev.map(s =>
-          s.id === selectedSchedule.id ? scheduleData.schedule : s
-        ));
+        setSchedules((prev) =>
+          prev.map((s) =>
+            s.id === selectedSchedule.id ? scheduleData.schedule : s,
+          ),
+        );
       }
 
       // Reset form
@@ -302,7 +332,9 @@ export default function AvailabilityPage() {
       setShowOverrideForm(false);
     } catch (err) {
       console.error("Error adding date override:", err);
-      setError(err instanceof Error ? err.message : "Failed to add date override");
+      setError(
+        err instanceof Error ? err.message : "Failed to add date override",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -316,31 +348,44 @@ export default function AvailabilityPage() {
       setIsSaving(true);
       setError(null);
 
-      const response = await fetch(`/api/schedules/${selectedSchedule.id}/overrides/${overrideId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `/api/schedules/${selectedSchedule.id}/overrides/${overrideId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to delete date override: ${response.status}`);
+        throw new Error(
+          errorData.message ||
+            `Failed to delete date override: ${response.status}`,
+        );
       }
 
       // Refresh schedule data
-      const scheduleResponse = await fetch(`/api/schedules/${selectedSchedule.id}`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const scheduleResponse = await fetch(
+        `/api/schedules/${selectedSchedule.id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
 
       if (scheduleResponse.ok) {
         const scheduleData = await scheduleResponse.json();
-        setSchedules(prev => prev.map(s =>
-          s.id === selectedSchedule.id ? scheduleData.schedule : s
-        ));
+        setSchedules((prev) =>
+          prev.map((s) =>
+            s.id === selectedSchedule.id ? scheduleData.schedule : s,
+          ),
+        );
       }
     } catch (err) {
       console.error("Error deleting date override:", err);
-      setError(err instanceof Error ? err.message : "Failed to delete date override");
+      setError(
+        err instanceof Error ? err.message : "Failed to delete date override",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -360,7 +405,9 @@ export default function AvailabilityPage() {
         <Card className="border-destructive">
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-destructive mb-4">Failed to load availability</p>
+              <p className="text-destructive mb-4">
+                Failed to load availability
+              </p>
               <p className="text-sm text-muted-foreground mb-4">{error}</p>
               <Button onClick={() => window.location.reload()}>
                 Try Again
@@ -413,7 +460,7 @@ export default function AvailabilityPage() {
             <Select
               value={selectedScheduleId}
               onValueChange={setSelectedScheduleId}
-              options={schedules.map(schedule => ({
+              options={schedules.map((schedule) => ({
                 value: schedule.id,
                 label: `${schedule.name}${schedule.isDefault ? " (Default)" : ""} - ${schedule.eventTypeCount} event types`,
               }))}
@@ -424,7 +471,9 @@ export default function AvailabilityPage() {
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  {timezoneOptions.find(tz => tz.value === selectedSchedule.timezone)?.label || selectedSchedule.timezone}
+                  {timezoneOptions.find(
+                    (tz) => tz.value === selectedSchedule.timezone,
+                  )?.label || selectedSchedule.timezone}
                 </span>
                 {selectedSchedule.isDefault && (
                   <Badge variant="secondary">Default</Badge>
@@ -443,10 +492,14 @@ export default function AvailabilityPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Schedule Name</label>
+              <label className="text-sm font-medium mb-2 block">
+                Schedule Name
+              </label>
               <Input
                 value={newSchedule.name}
-                onChange={(e) => setNewSchedule(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) =>
+                  setNewSchedule((prev) => ({ ...prev, name: e.target.value }))
+                }
                 placeholder="e.g. Business Hours"
               />
             </div>
@@ -455,7 +508,9 @@ export default function AvailabilityPage() {
               <label className="text-sm font-medium mb-2 block">Timezone</label>
               <Select
                 value={newSchedule.timezone}
-                onValueChange={(value) => setNewSchedule(prev => ({ ...prev, timezone: value }))}
+                onValueChange={(value) =>
+                  setNewSchedule((prev) => ({ ...prev, timezone: value }))
+                }
                 options={timezoneOptions}
               />
             </div>
@@ -463,9 +518,13 @@ export default function AvailabilityPage() {
             <div className="flex items-center gap-2">
               <Switch
                 checked={newSchedule.isDefault}
-                onCheckedChange={(checked) => setNewSchedule(prev => ({ ...prev, isDefault: checked }))}
+                onCheckedChange={(checked) =>
+                  setNewSchedule((prev) => ({ ...prev, isDefault: checked }))
+                }
               />
-              <label className="text-sm font-medium">Set as default schedule</label>
+              <label className="text-sm font-medium">
+                Set as default schedule
+              </label>
             </div>
 
             <div className="flex gap-2 pt-4">
@@ -480,7 +539,11 @@ export default function AvailabilityPage() {
                 variant="outline"
                 onClick={() => {
                   setShowCreateForm(false);
-                  setNewSchedule({ name: "", timezone: "America/New_York", isDefault: false });
+                  setNewSchedule({
+                    name: "",
+                    timezone: "America/New_York",
+                    isDefault: false,
+                  });
                 }}
               >
                 Cancel
@@ -524,39 +587,69 @@ export default function AvailabilityPage() {
                 <h4 className="font-medium mb-4">Add Date Override</h4>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Date</label>
+                    <label className="text-sm font-medium mb-2 block">
+                      Date
+                    </label>
                     <Input
                       type="date"
                       value={overrideForm.date}
-                      onChange={(e) => setOverrideForm(prev => ({ ...prev, date: e.target.value }))}
-                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) =>
+                        setOverrideForm((prev) => ({
+                          ...prev,
+                          date: e.target.value,
+                        }))
+                      }
+                      min={new Date().toISOString().split("T")[0]}
                     />
                   </div>
 
                   <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-1">
                     <Switch
                       checked={overrideForm.isUnavailable}
-                      onCheckedChange={(checked) => setOverrideForm(prev => ({ ...prev, isUnavailable: checked }))}
+                      onCheckedChange={(checked) =>
+                        setOverrideForm((prev) => ({
+                          ...prev,
+                          isUnavailable: checked,
+                        }))
+                      }
                     />
-                    <label className="text-sm font-medium">Mark as unavailable</label>
+                    <label className="text-sm font-medium">
+                      Mark as unavailable
+                    </label>
                   </div>
 
                   {!overrideForm.isUnavailable && (
                     <>
                       <div>
-                        <label className="text-sm font-medium mb-2 block">Start Time</label>
+                        <label className="text-sm font-medium mb-2 block">
+                          Start Time
+                        </label>
                         <Select
                           value={overrideForm.startTime}
-                          onValueChange={(value) => setOverrideForm(prev => ({ ...prev, startTime: value }))}
+                          onValueChange={(value) =>
+                            setOverrideForm((prev) => ({
+                              ...prev,
+                              startTime: value,
+                            }))
+                          }
                           options={timeSlots}
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-2 block">End Time</label>
+                        <label className="text-sm font-medium mb-2 block">
+                          End Time
+                        </label>
                         <Select
                           value={overrideForm.endTime}
-                          onValueChange={(value) => setOverrideForm(prev => ({ ...prev, endTime: value }))}
-                          options={timeSlots.filter(slot => slot.value > overrideForm.startTime)}
+                          onValueChange={(value) =>
+                            setOverrideForm((prev) => ({
+                              ...prev,
+                              endTime: value,
+                            }))
+                          }
+                          options={timeSlots.filter(
+                            (slot) => slot.value > overrideForm.startTime,
+                          )}
                         />
                       </div>
                     </>
@@ -605,11 +698,16 @@ export default function AvailabilityPage() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="font-medium">
-                          {format(new Date(override.date), "EEEE, MMMM d, yyyy")}
+                          {format(
+                            new Date(override.date),
+                            "EEEE, MMMM d, yyyy",
+                          )}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {override.isUnavailable ? (
-                            <span className="text-destructive">Unavailable</span>
+                            <span className="text-destructive">
+                              Unavailable
+                            </span>
                           ) : (
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -649,18 +747,29 @@ interface WeeklyScheduleGridProps {
 function WeeklyScheduleGrid({
   schedule,
   onUpdateAvailabilities,
-  isSaving
+  isSaving,
 }: WeeklyScheduleGridProps) {
-  const [availabilities, setAvailabilities] = useState<Availability[]>(schedule.availabilities);
+  const [availabilities, setAvailabilities] = useState<Availability[]>(
+    schedule.availabilities,
+  );
 
   useEffect(() => {
-    setAvailabilities(schedule.availabilities);
+    // Only update if schedule changes from outside
+    const timeout = setTimeout(() => {
+      if (JSON.stringify(availabilities) !== JSON.stringify(schedule.availabilities)) {
+        setAvailabilities(schedule.availabilities);
+      }
+    }, 0);
+    return () => clearTimeout(timeout);
   }, [schedule.availabilities]);
 
   // Save changes with debouncing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (JSON.stringify(availabilities) !== JSON.stringify(schedule.availabilities)) {
+      if (
+        JSON.stringify(availabilities) !==
+        JSON.stringify(schedule.availabilities)
+      ) {
         onUpdateAvailabilities(availabilities);
       }
     }, 1000);
@@ -672,43 +781,48 @@ function WeeklyScheduleGrid({
   const toggleDay = (day: number, enabled: boolean) => {
     if (enabled) {
       // Add default availability for this day
-      setAvailabilities(prev => [
-        ...prev.filter(a => a.day !== day),
-        { day, startTime: "09:00", endTime: "17:00" }
+      setAvailabilities((prev) => [
+        ...prev.filter((a) => a.day !== day),
+        { day, startTime: "09:00", endTime: "17:00" },
       ]);
     } else {
       // Remove all availabilities for this day
-      setAvailabilities(prev => prev.filter(a => a.day !== day));
+      setAvailabilities((prev) => prev.filter((a) => a.day !== day));
     }
   };
 
   // Update time for day
-  const updateTime = (day: number, field: 'startTime' | 'endTime', value: string) => {
-    setAvailabilities(prev => prev.map(a =>
-      a.day === day ? { ...a, [field]: value } : a
-    ));
+  const updateTime = (
+    day: number,
+    field: "startTime" | "endTime",
+    value: string,
+  ) => {
+    setAvailabilities((prev) =>
+      prev.map((a) => (a.day === day ? { ...a, [field]: value } : a)),
+    );
   };
 
   // Add time slot for day
   const addTimeSlot = (day: number) => {
-    const existingSlots = availabilities.filter(a => a.day === day);
+    const existingSlots = availabilities.filter((a) => a.day === day);
     const lastSlot = existingSlots[existingSlots.length - 1];
     const startTime = lastSlot ? lastSlot.endTime : "09:00";
 
-    setAvailabilities(prev => [
+    setAvailabilities((prev) => [
       ...prev,
-      { day, startTime, endTime: "17:00" }
+      { day, startTime, endTime: "17:00" },
     ]);
   };
 
   // Remove time slot
   const removeTimeSlot = (day: number, index: number) => {
-    const daySlots = availabilities.filter(a => a.day === day);
+    const daySlots = availabilities.filter((a) => a.day === day);
     if (daySlots.length > 1) {
-      setAvailabilities(prev => {
+      setAvailabilities((prev) => {
         const newAvailabilities = [...prev];
-        const slotIndex = newAvailabilities.findIndex((a, i) => a.day === day &&
-          daySlots.indexOf(a) === index);
+        const slotIndex = newAvailabilities.findIndex(
+          (a, i) => a.day === day && daySlots.indexOf(a) === index,
+        );
         if (slotIndex >= 0) {
           newAvailabilities.splice(slotIndex, 1);
         }
@@ -733,7 +847,9 @@ function WeeklyScheduleGrid({
       <CardContent>
         <div className="space-y-4">
           {dayNames.map((dayName, day) => {
-            const dayAvailabilities = availabilities.filter(a => a.day === day);
+            const dayAvailabilities = availabilities.filter(
+              (a) => a.day === day,
+            );
             const isEnabled = dayAvailabilities.length > 0;
 
             return (
@@ -765,15 +881,21 @@ function WeeklyScheduleGrid({
                       <div key={index} className="flex items-center gap-2">
                         <Select
                           value={availability.startTime}
-                          onValueChange={(value) => updateTime(day, 'startTime', value)}
+                          onValueChange={(value) =>
+                            updateTime(day, "startTime", value)
+                          }
                           options={timeSlots}
                           className="flex-1"
                         />
                         <span className="text-muted-foreground">to</span>
                         <Select
                           value={availability.endTime}
-                          onValueChange={(value) => updateTime(day, 'endTime', value)}
-                          options={timeSlots.filter(slot => slot.value > availability.startTime)}
+                          onValueChange={(value) =>
+                            updateTime(day, "endTime", value)
+                          }
+                          options={timeSlots.filter(
+                            (slot) => slot.value > availability.startTime,
+                          )}
                           className="flex-1"
                         />
                         {dayAvailabilities.length > 1 && (

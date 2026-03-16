@@ -5,7 +5,8 @@ const buttonVariants = {
   variant: {
     primary: "bg-primary text-primary-foreground hover:bg-blue-700 shadow-sm",
     secondary: "bg-secondary text-secondary-foreground hover:bg-gray-200",
-    outline: "border border-input bg-background hover:bg-secondary hover:text-secondary-foreground",
+    outline:
+      "border border-input bg-background hover:bg-secondary hover:text-secondary-foreground",
     ghost: "hover:bg-secondary hover:text-secondary-foreground",
     danger: "bg-danger text-danger-foreground hover:bg-red-700 shadow-sm",
     success: "bg-success text-success-foreground hover:bg-green-700 shadow-sm",
@@ -18,8 +19,7 @@ const buttonVariants = {
   },
 };
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof buttonVariants.variant;
   size?: keyof typeof buttonVariants.size;
   loading?: boolean;
@@ -27,7 +27,18 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", loading, children, disabled, ...props }, ref) => {
+  (
+    {
+      className,
+      variant = "primary",
+      size = "md",
+      loading,
+      children,
+      disabled,
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <button
         className={cn(
@@ -35,7 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           buttonVariants.variant[variant],
           buttonVariants.size[size],
           loading && "cursor-not-allowed opacity-75",
-          className
+          className,
         )}
         ref={ref}
         disabled={loading || disabled}
@@ -47,7 +58,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

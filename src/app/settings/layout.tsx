@@ -86,7 +86,7 @@ function SettingsLayoutContent({ children }: SettingsLayoutProps) {
                       "group flex items-start px-3 py-3 text-sm font-medium rounded-lg transition-colors",
                       isActive
                         ? "bg-primary/10 text-primary border-l-4 border-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted",
                     )}
                   >
                     <item.icon
@@ -94,7 +94,7 @@ function SettingsLayoutContent({ children }: SettingsLayoutProps) {
                         "mt-0.5 mr-3 h-5 w-5 flex-shrink-0 transition-colors",
                         isActive
                           ? "text-primary"
-                          : "text-muted-foreground group-hover:text-foreground"
+                          : "text-muted-foreground group-hover:text-foreground",
                       )}
                       aria-hidden="true"
                     />
@@ -102,7 +102,7 @@ function SettingsLayoutContent({ children }: SettingsLayoutProps) {
                       <div
                         className={cn(
                           "text-sm font-medium",
-                          isActive ? "text-primary" : "text-foreground"
+                          isActive ? "text-primary" : "text-foreground",
                         )}
                       >
                         {item.name}
@@ -131,17 +131,19 @@ function SettingsLayoutContent({ children }: SettingsLayoutProps) {
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
-    <Suspense fallback={
-      <div className="p-6 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-96" />
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
+    <Suspense
+      fallback={
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-96" />
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <SettingsLayoutContent>{children}</SettingsLayoutContent>
     </Suspense>
   );

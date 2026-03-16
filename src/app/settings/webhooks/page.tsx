@@ -35,11 +35,31 @@ import {
 
 // Webhook event types based on the API schema
 const WEBHOOK_EVENTS = [
-  { value: "BOOKING_CREATED", label: "Booking Created", description: "When a new booking is made" },
-  { value: "BOOKING_ACCEPTED", label: "Booking Accepted", description: "When you accept a pending booking" },
-  { value: "BOOKING_REJECTED", label: "Booking Rejected", description: "When you reject a pending booking" },
-  { value: "BOOKING_CANCELLED", label: "Booking Cancelled", description: "When a booking is cancelled" },
-  { value: "BOOKING_RESCHEDULED", label: "Booking Rescheduled", description: "When a booking is moved to a different time" },
+  {
+    value: "BOOKING_CREATED",
+    label: "Booking Created",
+    description: "When a new booking is made",
+  },
+  {
+    value: "BOOKING_ACCEPTED",
+    label: "Booking Accepted",
+    description: "When you accept a pending booking",
+  },
+  {
+    value: "BOOKING_REJECTED",
+    label: "Booking Rejected",
+    description: "When you reject a pending booking",
+  },
+  {
+    value: "BOOKING_CANCELLED",
+    label: "Booking Cancelled",
+    description: "When a booking is cancelled",
+  },
+  {
+    value: "BOOKING_RESCHEDULED",
+    label: "Booking Rescheduled",
+    description: "When a booking is moved to a different time",
+  },
 ];
 
 interface WebhookDelivery {
@@ -117,7 +137,9 @@ export default function WebhooksPage() {
       setWebhooks(Array.isArray(webhooksData) ? webhooksData : []);
     } catch (error) {
       console.error("Error loading webhooks:", error);
-      setError(error instanceof Error ? error.message : "Failed to load webhooks");
+      setError(
+        error instanceof Error ? error.message : "Failed to load webhooks",
+      );
     } finally {
       setLoading(false);
     }
@@ -154,7 +176,7 @@ export default function WebhooksPage() {
       }
 
       const newWebhook = await response.json();
-      setWebhooks(prev => [newWebhook, ...prev]);
+      setWebhooks((prev) => [newWebhook, ...prev]);
       setIsCreateModalOpen(false);
       resetForm();
 
@@ -166,7 +188,8 @@ export default function WebhooksPage() {
       console.error("Error creating webhook:", error);
       addToast({
         title: "Creation Failed",
-        description: error instanceof Error ? error.message : "Failed to create webhook",
+        description:
+          error instanceof Error ? error.message : "Failed to create webhook",
         variant: "danger",
       });
     } finally {
@@ -205,7 +228,9 @@ export default function WebhooksPage() {
       }
 
       const updatedWebhook = await response.json();
-      setWebhooks(prev => prev.map(w => w.id === updatedWebhook.id ? updatedWebhook : w));
+      setWebhooks((prev) =>
+        prev.map((w) => (w.id === updatedWebhook.id ? updatedWebhook : w)),
+      );
       setIsEditModalOpen(false);
       setEditingWebhook(null);
       resetForm();
@@ -218,7 +243,8 @@ export default function WebhooksPage() {
       console.error("Error updating webhook:", error);
       addToast({
         title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update webhook",
+        description:
+          error instanceof Error ? error.message : "Failed to update webhook",
         variant: "danger",
       });
     } finally {
@@ -228,7 +254,11 @@ export default function WebhooksPage() {
 
   // Delete webhook
   const deleteWebhook = async (webhook: Webhook) => {
-    if (!confirm(`Are you sure you want to delete this webhook?\n\n${webhook.url}`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete this webhook?\n\n${webhook.url}`,
+      )
+    ) {
       return;
     }
 
@@ -242,7 +272,7 @@ export default function WebhooksPage() {
         throw new Error("Failed to delete webhook");
       }
 
-      setWebhooks(prev => prev.filter(w => w.id !== webhook.id));
+      setWebhooks((prev) => prev.filter((w) => w.id !== webhook.id));
 
       addToast({
         title: "Webhook Deleted",
@@ -252,7 +282,8 @@ export default function WebhooksPage() {
       console.error("Error deleting webhook:", error);
       addToast({
         title: "Deletion Failed",
-        description: error instanceof Error ? error.message : "Failed to delete webhook",
+        description:
+          error instanceof Error ? error.message : "Failed to delete webhook",
         variant: "danger",
       });
     }
@@ -282,7 +313,8 @@ export default function WebhooksPage() {
       console.error("Error testing webhook:", error);
       addToast({
         title: "Test Failed",
-        description: error instanceof Error ? error.message : "Failed to test webhook",
+        description:
+          error instanceof Error ? error.message : "Failed to test webhook",
         variant: "danger",
       });
     } finally {
@@ -336,10 +368,10 @@ export default function WebhooksPage() {
 
   // Handle event trigger toggle
   const handleEventTriggerToggle = (eventType: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       eventTriggers: prev.eventTriggers.includes(eventType)
-        ? prev.eventTriggers.filter(e => e !== eventType)
+        ? prev.eventTriggers.filter((e) => e !== eventType)
         : [...prev.eventTriggers, eventType],
     }));
   };
@@ -363,7 +395,7 @@ export default function WebhooksPage() {
 
   // Toggle secret visibility
   const toggleSecretVisibility = (webhookId: string) => {
-    setVisibleSecrets(prev => {
+    setVisibleSecrets((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(webhookId)) {
         newSet.delete(webhookId);
@@ -402,7 +434,9 @@ export default function WebhooksPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-foreground mb-2">Webhooks</h2>
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
+              Webhooks
+            </h2>
             <p className="text-muted-foreground">
               Receive real-time notifications when booking events occur.
             </p>
@@ -423,7 +457,10 @@ export default function WebhooksPage() {
               <div className="space-y-4">
                 {/* URL Input */}
                 <div>
-                  <label htmlFor="webhook-url" className="text-sm font-medium text-foreground mb-2 block">
+                  <label
+                    htmlFor="webhook-url"
+                    className="text-sm font-medium text-foreground mb-2 block"
+                  >
                     Endpoint URL
                   </label>
                   <Input
@@ -431,11 +468,15 @@ export default function WebhooksPage() {
                     type="url"
                     placeholder="https://your-app.com/webhooks/calmill"
                     value={formData.url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, url: e.target.value }))
+                    }
                     className={formErrors.url ? "border-destructive" : ""}
                   />
                   {formErrors.url && (
-                    <p className="text-sm text-destructive mt-1">{formErrors.url}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {formErrors.url}
+                    </p>
                   )}
                 </div>
 
@@ -445,11 +486,16 @@ export default function WebhooksPage() {
                     Events to Subscribe
                   </label>
                   {formErrors.eventTriggers && (
-                    <p className="text-sm text-destructive mb-2">{formErrors.eventTriggers}</p>
+                    <p className="text-sm text-destructive mb-2">
+                      {formErrors.eventTriggers}
+                    </p>
                   )}
                   <div className="space-y-3">
                     {WEBHOOK_EVENTS.map((event) => (
-                      <div key={event.value} className="flex items-start gap-3 p-3 border border-border rounded-lg">
+                      <div
+                        key={event.value}
+                        className="flex items-start gap-3 p-3 border border-border rounded-lg"
+                      >
                         <input
                           type="checkbox"
                           id={`create-event-${event.value}`}
@@ -457,9 +503,16 @@ export default function WebhooksPage() {
                           onChange={() => handleEventTriggerToggle(event.value)}
                           className="mt-0.5"
                         />
-                        <label htmlFor={`create-event-${event.value}`} className="cursor-pointer flex-1">
-                          <div className="font-medium text-sm text-foreground">{event.label}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{event.description}</div>
+                        <label
+                          htmlFor={`create-event-${event.value}`}
+                          className="cursor-pointer flex-1"
+                        >
+                          <div className="font-medium text-sm text-foreground">
+                            {event.label}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {event.description}
+                          </div>
                         </label>
                       </div>
                     ))}
@@ -470,11 +523,17 @@ export default function WebhooksPage() {
                 <div className="flex items-center gap-3">
                   <Toggle
                     pressed={formData.active}
-                    onPressedChange={(active) => setFormData(prev => ({ ...prev, active }))}
+                    onPressedChange={(active) =>
+                      setFormData((prev) => ({ ...prev, active }))
+                    }
                   />
                   <div>
-                    <p className="text-sm font-medium text-foreground">Active</p>
-                    <p className="text-xs text-muted-foreground">Enable this webhook to receive events</p>
+                    <p className="text-sm font-medium text-foreground">
+                      Active
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Enable this webhook to receive events
+                    </p>
                   </div>
                 </div>
               </div>
@@ -516,20 +575,24 @@ export default function WebhooksPage() {
           <>
             {webhooks.length === 0 ? (
               <EmptyState
-                icon={Webhook}
+                icon={<Webhook />}
                 title="No webhooks configured"
                 description="Create your first webhook to receive real-time notifications when booking events occur."
-                action={
-                  <Button onClick={() => { resetForm(); setIsCreateModalOpen(true); }}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Webhook
-                  </Button>
-                }
+                action={{
+                  text: "Add Your First Webhook",
+                  onClick: () => {
+                    resetForm();
+                    setIsCreateModalOpen(true);
+                  }
+                }}
               />
             ) : (
               <div className="space-y-4">
                 {webhooks.map((webhook) => (
-                  <div key={webhook.id} className="border border-border rounded-lg p-6">
+                  <div
+                    key={webhook.id}
+                    className="border border-border rounded-lg p-6"
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
@@ -537,20 +600,26 @@ export default function WebhooksPage() {
                             {webhook.url}
                           </p>
                           {webhook.active ? (
-                            <Badge variant="success" size="sm">Active</Badge>
+                            <Badge variant="success" size="sm">
+                              Active
+                            </Badge>
                           ) : (
-                            <Badge variant="secondary" size="sm">Inactive</Badge>
+                            <Badge variant="secondary" size="sm">
+                              Inactive
+                            </Badge>
                           )}
                         </div>
                         <div className="flex flex-wrap gap-1 mb-2">
                           {webhook.eventTriggers.map((event) => (
                             <Badge key={event} variant="outline" size="sm">
-                              {WEBHOOK_EVENTS.find(e => e.value === event)?.label || event}
+                              {WEBHOOK_EVENTS.find((e) => e.value === event)
+                                ?.label || event}
                             </Badge>
                           ))}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Created {new Date(webhook.createdAt).toLocaleDateString()} •{" "}
+                          Created{" "}
+                          {new Date(webhook.createdAt).toLocaleDateString()} •{" "}
                           {webhook._count.deliveries} deliveries
                         </p>
                       </div>
@@ -597,7 +666,9 @@ export default function WebhooksPage() {
                     {/* Secret */}
                     <div className="bg-muted/50 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-medium text-foreground">Signing Secret</label>
+                        <label className="text-xs font-medium text-foreground">
+                          Signing Secret
+                        </label>
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
@@ -624,8 +695,7 @@ export default function WebhooksPage() {
                       <code className="text-xs font-mono text-foreground">
                         {visibleSecrets.has(webhook.id)
                           ? webhook.secret
-                          : '•'.repeat(32)
-                        }
+                          : "•".repeat(32)}
                       </code>
                     </div>
                   </div>
@@ -645,7 +715,10 @@ export default function WebhooksPage() {
             <div className="space-y-4">
               {/* URL Input */}
               <div>
-                <label htmlFor="edit-webhook-url" className="text-sm font-medium text-foreground mb-2 block">
+                <label
+                  htmlFor="edit-webhook-url"
+                  className="text-sm font-medium text-foreground mb-2 block"
+                >
                   Endpoint URL
                 </label>
                 <Input
@@ -653,11 +726,15 @@ export default function WebhooksPage() {
                   type="url"
                   placeholder="https://your-app.com/webhooks/calmill"
                   value={formData.url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, url: e.target.value }))
+                  }
                   className={formErrors.url ? "border-destructive" : ""}
                 />
                 {formErrors.url && (
-                  <p className="text-sm text-destructive mt-1">{formErrors.url}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {formErrors.url}
+                  </p>
                 )}
               </div>
 
@@ -667,11 +744,16 @@ export default function WebhooksPage() {
                   Events to Subscribe
                 </label>
                 {formErrors.eventTriggers && (
-                  <p className="text-sm text-destructive mb-2">{formErrors.eventTriggers}</p>
+                  <p className="text-sm text-destructive mb-2">
+                    {formErrors.eventTriggers}
+                  </p>
                 )}
                 <div className="space-y-3">
                   {WEBHOOK_EVENTS.map((event) => (
-                    <div key={event.value} className="flex items-start gap-3 p-3 border border-border rounded-lg">
+                    <div
+                      key={event.value}
+                      className="flex items-start gap-3 p-3 border border-border rounded-lg"
+                    >
                       <input
                         type="checkbox"
                         id={`edit-event-${event.value}`}
@@ -679,9 +761,16 @@ export default function WebhooksPage() {
                         onChange={() => handleEventTriggerToggle(event.value)}
                         className="mt-0.5"
                       />
-                      <label htmlFor={`edit-event-${event.value}`} className="cursor-pointer flex-1">
-                        <div className="font-medium text-sm text-foreground">{event.label}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">{event.description}</div>
+                      <label
+                        htmlFor={`edit-event-${event.value}`}
+                        className="cursor-pointer flex-1"
+                      >
+                        <div className="font-medium text-sm text-foreground">
+                          {event.label}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {event.description}
+                        </div>
                       </label>
                     </div>
                   ))}
@@ -692,11 +781,15 @@ export default function WebhooksPage() {
               <div className="flex items-center gap-3">
                 <Toggle
                   pressed={formData.active}
-                  onPressedChange={(active) => setFormData(prev => ({ ...prev, active }))}
+                  onPressedChange={(active) =>
+                    setFormData((prev) => ({ ...prev, active }))
+                  }
                 />
                 <div>
                   <p className="text-sm font-medium text-foreground">Active</p>
-                  <p className="text-xs text-muted-foreground">Enable this webhook to receive events</p>
+                  <p className="text-xs text-muted-foreground">
+                    Enable this webhook to receive events
+                  </p>
                 </div>
               </div>
             </div>
@@ -730,9 +823,15 @@ export default function WebhooksPage() {
             Webhook Security
           </h3>
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>• All webhook payloads are signed with HMAC-SHA256 using your webhook secret</p>
+            <p>
+              • All webhook payloads are signed with HMAC-SHA256 using your
+              webhook secret
+            </p>
             <p>• Verify the signature using the X-CalMill-Signature header</p>
-            <p>• Events are delivered with a 10-second timeout and are fire-and-forget</p>
+            <p>
+              • Events are delivered with a 10-second timeout and are
+              fire-and-forget
+            </p>
             <p>• Check the X-CalMill-Event header to identify the event type</p>
           </div>
         </div>

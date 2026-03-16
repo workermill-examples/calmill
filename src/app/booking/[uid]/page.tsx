@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
-import { TZDate, toZonedTime } from "@date-fns/tz";
+import { TZDate } from "@date-fns/tz";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ import {
   Download,
   ExternalLink,
   Edit,
-  X
+  X,
 } from "lucide-react";
 
 interface RouteParams {
@@ -178,11 +178,14 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
   const getGoogleCalendarUrl = () => {
     if (!booking) return "";
 
-    const startTime = toZonedTime(parseISO(booking.startTime), "UTC");
-    const endTime = toZonedTime(parseISO(booking.endTime), "UTC");
+    const startTime = new TZDate(parseISO(booking.startTime), "UTC");
+    const endTime = new TZDate(parseISO(booking.endTime), "UTC");
 
     const formatGoogleDate = (date: Date) => {
-      return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+      return date
+        .toISOString()
+        .replace(/[-:]/g, "")
+        .replace(/\.\d{3}/, "");
     };
 
     const params = new URLSearchParams({
@@ -224,7 +227,7 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
             <p className="text-gray-600 mb-6">
               {error || "This booking could not be found."}
             </p>
-            <Button asChild variant="outline">
+            <Button  variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -234,8 +237,14 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
   }
 
   const statusInfo = statusConfig[booking.status];
-  const startTime = toZonedTime(parseISO(booking.startTime), booking.attendeeTimezone);
-  const endTime = toZonedTime(parseISO(booking.endTime), booking.attendeeTimezone);
+  const startTime = new TZDate(
+    parseISO(booking.startTime),
+    booking.attendeeTimezone,
+  );
+  const endTime = new TZDate(
+    parseISO(booking.endTime),
+    booking.attendeeTimezone,
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -243,27 +252,37 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center">
-            <div className={cn(
-              "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4",
-              booking.status === "ACCEPTED" && "bg-green-100",
-              booking.status === "PENDING" && "bg-yellow-100",
-              booking.status === "CANCELLED" && "bg-gray-100",
-              booking.status === "REJECTED" && "bg-red-100",
-              booking.status === "RESCHEDULED" && "bg-blue-100"
-            )}>
-              {booking.status === "ACCEPTED" && <CheckCircle className="w-8 h-8 text-green-600" />}
-              {booking.status === "PENDING" && <Clock className="w-8 h-8 text-yellow-600" />}
-              {booking.status === "CANCELLED" && <X className="w-8 h-8 text-gray-600" />}
-              {booking.status === "REJECTED" && <X className="w-8 h-8 text-red-600" />}
-              {booking.status === "RESCHEDULED" && <Edit className="w-8 h-8 text-blue-600" />}
+            <div
+              className={cn(
+                "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4",
+                booking.status === "ACCEPTED" && "bg-green-100",
+                booking.status === "PENDING" && "bg-yellow-100",
+                booking.status === "CANCELLED" && "bg-gray-100",
+                booking.status === "REJECTED" && "bg-red-100",
+                booking.status === "RESCHEDULED" && "bg-blue-100",
+              )}
+            >
+              {booking.status === "ACCEPTED" && (
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              )}
+              {booking.status === "PENDING" && (
+                <Clock className="w-8 h-8 text-yellow-600" />
+              )}
+              {booking.status === "CANCELLED" && (
+                <X className="w-8 h-8 text-gray-600" />
+              )}
+              {booking.status === "REJECTED" && (
+                <X className="w-8 h-8 text-red-600" />
+              )}
+              {booking.status === "RESCHEDULED" && (
+                <Edit className="w-8 h-8 text-blue-600" />
+              )}
             </div>
 
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {statusInfo.label}
             </h1>
-            <p className="text-gray-600">
-              {statusInfo.description}
-            </p>
+            <p className="text-gray-600">{statusInfo.description}</p>
           </div>
 
           {/* Booking Status */}
@@ -297,7 +316,9 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
                       {format(startTime, "EEEE, MMMM d, yyyy")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {format(startTime, "h:mm a")} - {format(endTime, "h:mm a")} ({booking.eventType.duration} min)
+                      {format(startTime, "h:mm a")} -{" "}
+                      {format(endTime, "h:mm a")} ({booking.eventType.duration}{" "}
+                      min)
                     </p>
                   </div>
                 </div>
@@ -367,33 +388,44 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">{booking.attendeeEmail}</span>
+                <span className="text-sm text-muted-foreground">
+                  {booking.attendeeEmail}
+                </span>
               </div>
 
               {booking.attendeeNotes && (
                 <div className="pt-3 border-t">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Notes:</p>
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Notes:
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {booking.attendeeNotes}
                   </p>
                 </div>
               )}
 
-              {booking.responses && Object.keys(booking.responses).length > 0 && (
-                <div className="pt-3 border-t">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Additional Information:</p>
-                  <div className="space-y-2">
-                    {Object.entries(booking.responses).map(([key, value]) => (
-                      <div key={key} className="text-sm">
-                        <span className="font-medium text-gray-700">{key}: </span>
-                        <span className="text-muted-foreground">
-                          {Array.isArray(value) ? value.join(", ") : String(value)}
-                        </span>
-                      </div>
-                    ))}
+              {booking.responses &&
+                Object.keys(booking.responses).length > 0 && (
+                  <div className="pt-3 border-t">
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Additional Information:
+                    </p>
+                    <div className="space-y-2">
+                      {Object.entries(booking.responses).map(([key, value]) => (
+                        <div key={key} className="text-sm">
+                          <span className="font-medium text-gray-700">
+                            {key}:{" "}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {Array.isArray(value)
+                              ? value.join(", ")
+                              : String(value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </CardContent>
           </Card>
 
@@ -440,10 +472,14 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
                   <Button
                     variant="outline"
                     size="sm"
-                    asChild
+                    
                     className="flex items-center space-x-2"
                   >
-                    <a href={getGoogleCalendarUrl()} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={getGoogleCalendarUrl()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <ExternalLink className="w-4 h-4" />
                       <span>Google Calendar</span>
                     </a>
@@ -461,13 +497,13 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" >
                     <Link href={`/booking/${booking.uid}/reschedule`}>
                       <Edit className="w-4 h-4 mr-2" />
                       Reschedule
                     </Link>
                   </Button>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" >
                     <Link href={`/booking/${booking.uid}/cancel`}>
                       <X className="w-4 h-4 mr-2" />
                       Cancel

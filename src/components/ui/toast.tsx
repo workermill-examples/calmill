@@ -19,7 +19,17 @@ const toastVariants = {
 };
 
 const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
-  ({ className, variant = "default", onClose, duration = 5000, children, ...props }, ref) => {
+  (
+    {
+      className,
+      variant = "default",
+      onClose,
+      duration = 5000,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     React.useEffect(() => {
       if (duration && duration > 0 && onClose) {
         const timer = setTimeout(onClose, duration);
@@ -33,14 +43,12 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         className={cn(
           "relative w-full rounded-lg border p-4 shadow-lg",
           toastVariants[variant],
-          className
+          className,
         )}
         {...props}
       >
         <div className="flex">
-          <div className="flex-1">
-            {children}
-          </div>
+          <div className="flex-1">{children}</div>
           {onClose && (
             <button
               type="button"
@@ -54,7 +62,12 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
               <span className="sr-only">Close</span>
             </button>
@@ -62,7 +75,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 Toast.displayName = "Toast";
@@ -76,21 +89,18 @@ const ToastTitle = React.forwardRef<HTMLHeadingElement, ToastTitleProps>(
       className={cn("mb-1 font-semibold text-sm", className)}
       {...props}
     />
-  )
+  ),
 );
 ToastTitle.displayName = "ToastTitle";
 
 interface ToastDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
 
-const ToastDescription = React.forwardRef<HTMLParagraphElement, ToastDescriptionProps>(
-  ({ className, ...props }, ref) => (
-    <p
-      ref={ref}
-      className={cn("text-sm opacity-90", className)}
-      {...props}
-    />
-  )
-);
+const ToastDescription = React.forwardRef<
+  HTMLParagraphElement,
+  ToastDescriptionProps
+>(({ className, ...props }, ref) => (
+  <p ref={ref} className={cn("text-sm opacity-90", className)} {...props} />
+));
 ToastDescription.displayName = "ToastDescription";
 
 // Toast Provider Context for managing toasts globally
@@ -111,7 +121,9 @@ interface ToastContextValue {
   removeToast: (id: string) => void;
 }
 
-const ToastContext = React.createContext<ToastContextValue | undefined>(undefined);
+const ToastContext = React.createContext<ToastContextValue | undefined>(
+  undefined,
+);
 
 export const useToast = () => {
   const context = React.useContext(ToastContext);
@@ -128,25 +140,28 @@ interface ToastProviderProps {
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = React.useState<ToastContextValue["toasts"]>([]);
 
-  const addToast = React.useCallback((toast: Omit<ToastContextValue["toasts"][0], "id">) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { id, ...toast }]);
-  }, []);
+  const addToast = React.useCallback(
+    (toast: Omit<ToastContextValue["toasts"][0], "id">) => {
+      const id = Math.random().toString(36).substr(2, 9);
+      setToasts((prev) => [...prev, { id, ...toast }]);
+    },
+    [],
+  );
 
   const removeToast = React.useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
   const value = React.useMemo(
     () => ({ toasts, addToast, removeToast }),
-    [toasts, addToast, removeToast]
+    [toasts, addToast, removeToast],
   );
 
   return (
     <ToastContext.Provider value={value}>
       {children}
       <div className="fixed bottom-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]">
-        {toasts.map(toast => (
+        {toasts.map((toast) => (
           <Toast
             key={toast.id}
             variant={toast.variant}
@@ -155,7 +170,9 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
             className="mb-2 last:mb-0"
           >
             {toast.title && <ToastTitle>{toast.title}</ToastTitle>}
-            {toast.description && <ToastDescription>{toast.description}</ToastDescription>}
+            {toast.description && (
+              <ToastDescription>{toast.description}</ToastDescription>
+            )}
           </Toast>
         ))}
       </div>

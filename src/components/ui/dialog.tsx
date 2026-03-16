@@ -18,10 +18,13 @@ const Dialog: React.FC<DialogProps> = ({ children, open, onOpenChange }) => {
     }
   }, [open]);
 
-  const handleOpenChange = React.useCallback((newOpen: boolean) => {
-    setIsOpen(newOpen);
-    onOpenChange?.(newOpen);
-  }, [onOpenChange]);
+  const handleOpenChange = React.useCallback(
+    (newOpen: boolean) => {
+      setIsOpen(newOpen);
+      onOpenChange?.(newOpen);
+    },
+    [onOpenChange],
+  );
 
   // Handle escape key
   React.useEffect(() => {
@@ -54,7 +57,9 @@ interface DialogContextValue {
   onOpenChange: (open: boolean) => void;
 }
 
-const DialogContext = React.createContext<DialogContextValue | undefined>(undefined);
+const DialogContext = React.createContext<DialogContextValue | undefined>(
+  undefined,
+);
 
 const useDialog = () => {
   const context = React.useContext(DialogContext);
@@ -103,7 +108,7 @@ const DialogContent: React.FC<{
   React.useEffect(() => {
     if (isOpen && contentRef.current) {
       const focusableElements = contentRef.current.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       const firstElement = focusableElements[0] as HTMLElement;
       firstElement?.focus();
@@ -125,7 +130,7 @@ const DialogContent: React.FC<{
         aria-modal="true"
         className={cn(
           "relative z-50 grid w-full max-w-lg scale-100 gap-4 border bg-background p-6 opacity-100 shadow-lg duration-200 sm:rounded-lg md:w-full",
-          className
+          className,
         )}
         onClick={(e) => e.stopPropagation()}
       >
@@ -139,7 +144,12 @@ const DialogHeader: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ className, children }) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}>
+  <div
+    className={cn(
+      "flex flex-col space-y-1.5 text-center sm:text-left",
+      className,
+    )}
+  >
     {children}
   </div>
 );
@@ -148,7 +158,12 @@ const DialogTitle: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ className, children }) => (
-  <h2 className={cn("text-lg font-semibold leading-none tracking-tight", className)}>
+  <h2
+    className={cn(
+      "text-lg font-semibold leading-none tracking-tight",
+      className,
+    )}
+  >
     {children}
   </h2>
 );
@@ -157,16 +172,19 @@ const DialogDescription: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ className, children }) => (
-  <p className={cn("text-sm text-muted-foreground", className)}>
-    {children}
-  </p>
+  <p className={cn("text-sm text-muted-foreground", className)}>{children}</p>
 );
 
 const DialogFooter: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ className, children }) => (
-  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}>
+  <div
+    className={cn(
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      className,
+    )}
+  >
     {children}
   </div>
 );
@@ -201,7 +219,12 @@ const DialogClose: React.FC<{
         viewBox="0 0 24 24"
         stroke="currentColor"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M6 18L18 6M6 6l12 12"
+        />
       </svg>
       <span className="sr-only">Close</span>
     </button>

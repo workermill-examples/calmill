@@ -51,14 +51,20 @@ interface EventType {
   };
 }
 
-async function fetchUserEventType(username: string, slug: string): Promise<EventType | null> {
+async function fetchUserEventType(
+  username: string,
+  slug: string,
+): Promise<EventType | null> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     // First get the user's event types
-    const response = await fetch(`${baseUrl}/api/users/${username}/event-types`, {
-      next: { revalidate: 300 }, // Cache for 5 minutes
-    });
+    const response = await fetch(
+      `${baseUrl}/api/users/${username}/event-types`,
+      {
+        next: { revalidate: 300 }, // Cache for 5 minutes
+      },
+    );
 
     if (!response.ok) {
       if (response.status === 404) return null;
@@ -179,12 +185,13 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
-  const price = eventType.price && eventType.price > 0
-    ? ` - ${new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: eventType.currency || "USD",
-      }).format(eventType.price / 100)}`
-    : " - Free";
+  const price =
+    eventType.price && eventType.price > 0
+      ? ` - ${new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: eventType.currency || "USD",
+        }).format(eventType.price / 100)}`
+      : " - Free";
 
   return {
     title: `Book ${eventType.title} with ${eventType.user.name} - CalMill`,
@@ -193,7 +200,8 @@ export async function generateMetadata({ params }: PageProps) {
       `Book a ${eventType.duration} minute meeting: ${eventType.title} with ${eventType.user.name}${price}`,
     openGraph: {
       title: `${eventType.title} - ${eventType.user.name}`,
-      description: eventType.description || `${eventType.duration} minute meeting${price}`,
+      description:
+        eventType.description || `${eventType.duration} minute meeting${price}`,
       images: eventType.user.image ? [{ url: eventType.user.image }] : [],
     },
   };

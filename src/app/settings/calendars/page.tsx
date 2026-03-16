@@ -7,7 +7,14 @@ import { Skeleton } from "@/components/ui/loading-skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
-import { Calendar, Link as LinkIcon, Unlink, AlertCircle, CheckCircle, ExternalLink } from "lucide-react";
+import {
+  Calendar,
+  Link as LinkIcon,
+  Unlink,
+  AlertCircle,
+  CheckCircle,
+  ExternalLink,
+} from "lucide-react";
 
 interface CalendarConnection {
   id: string;
@@ -76,7 +83,11 @@ export default function CalendarSettingsPage() {
       }
     } catch (error) {
       console.error("Error loading calendar connection:", error);
-      setError(error instanceof Error ? error.message : "Failed to load calendar settings");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load calendar settings",
+      );
       // Try to check Google config even if there's an error
       await checkGoogleConfiguration();
     } finally {
@@ -107,7 +118,8 @@ export default function CalendarSettingsPage() {
     if (!googleConfigured) {
       addToast({
         title: "Google Calendar Not Available",
-        description: "Google Calendar integration is not configured on this server.",
+        description:
+          "Google Calendar integration is not configured on this server.",
         variant: "danger",
       });
       return;
@@ -132,7 +144,10 @@ export default function CalendarSettingsPage() {
       window.location.href = authUrl;
     } catch (error) {
       console.error("Error connecting to Google:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to connect to Google Calendar";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to connect to Google Calendar";
       setError(errorMessage);
       addToast({
         title: "Connection Failed",
@@ -156,7 +171,9 @@ export default function CalendarSettingsPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || "Failed to disconnect from Google Calendar");
+        throw new Error(
+          data.message || "Failed to disconnect from Google Calendar",
+        );
       }
 
       setConnection(null);
@@ -168,7 +185,10 @@ export default function CalendarSettingsPage() {
       });
     } catch (error) {
       console.error("Error disconnecting from Google:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to disconnect from Google Calendar";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to disconnect from Google Calendar";
       setError(errorMessage);
       addToast({
         title: "Disconnection Failed",
@@ -200,7 +220,8 @@ export default function CalendarSettingsPage() {
       setCalendars(calendars || []);
     } catch (error) {
       console.error("Error refreshing calendars:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to refresh calendars";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to refresh calendars";
       setError(errorMessage);
       addToast({
         title: "Refresh Failed",
@@ -266,9 +287,12 @@ export default function CalendarSettingsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Calendar Connections</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            Calendar Connections
+          </h2>
           <p className="text-muted-foreground">
-            Connect your calendar accounts to enable scheduling conflicts detection and automatic event creation.
+            Connect your calendar accounts to enable scheduling conflicts
+            detection and automatic event creation.
           </p>
         </div>
 
@@ -292,7 +316,8 @@ export default function CalendarSettingsPage() {
                   Google Calendar Integration Not Configured
                 </p>
                 <p className="text-sm text-yellow-700 mt-1">
-                  The server administrator needs to configure Google Calendar API credentials to enable this feature.
+                  The server administrator needs to configure Google Calendar
+                  API credentials to enable this feature.
                 </p>
               </div>
             </div>
@@ -306,9 +331,12 @@ export default function CalendarSettingsPage() {
               <Calendar className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-foreground">Google Calendar</h3>
+              <h3 className="text-lg font-medium text-foreground">
+                Google Calendar
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Connect your Google Calendar to prevent double bookings and sync events.
+                Connect your Google Calendar to prevent double bookings and sync
+                events.
               </p>
             </div>
           </div>
@@ -326,7 +354,10 @@ export default function CalendarSettingsPage() {
                 </span>
               </div>
             ) : (
-              <Badge variant="secondary" className="flex items-center gap-1 w-fit">
+              <Badge
+                variant="secondary"
+                className="flex items-center gap-1 w-fit"
+              >
                 <AlertCircle className="h-3 w-3" />
                 Not Connected
               </Badge>
@@ -394,7 +425,9 @@ export default function CalendarSettingsPage() {
           {/* Connected Calendars List */}
           {connection && (
             <div className="mt-6 pt-6 border-t border-border">
-              <h4 className="text-md font-medium text-foreground mb-3">Available Calendars</h4>
+              <h4 className="text-md font-medium text-foreground mb-3">
+                Available Calendars
+              </h4>
 
               {calendarsLoading ? (
                 <div className="space-y-2">
@@ -412,7 +445,10 @@ export default function CalendarSettingsPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className="w-4 h-4 rounded"
-                          style={{ backgroundColor: calendar.backgroundColor || '#4285f4' }}
+                          style={{
+                            backgroundColor:
+                              calendar.backgroundColor || "#4285f4",
+                          }}
                         />
                         <div>
                           <p className="text-sm font-medium text-foreground">
@@ -440,14 +476,13 @@ export default function CalendarSettingsPage() {
                 </div>
               ) : (
                 <EmptyState
-                  icon={Calendar}
+                  icon={<Calendar />}
                   title="No Calendars Found"
                   description="No calendars were found in your Google account or you may not have the necessary permissions."
-                  action={
-                    <Button variant="outline" onClick={refreshCalendars} size="sm">
-                      Refresh Calendars
-                    </Button>
-                  }
+                  action={{
+                    text: "Refresh Calendars",
+                    onClick: refreshCalendars
+                  }}
                 />
               )}
             </div>
@@ -457,8 +492,10 @@ export default function CalendarSettingsPage() {
           {connection && (
             <div className="mt-4 p-3 bg-muted/50 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                <strong>Note:</strong> CalMill will automatically check for conflicts across all your connected calendars
-                when someone tries to book a meeting with you. Events will be created in your primary calendar.
+                <strong>Note:</strong> CalMill will automatically check for
+                conflicts across all your connected calendars when someone tries
+                to book a meeting with you. Events will be created in your
+                primary calendar.
               </p>
             </div>
           )}
@@ -466,7 +503,9 @@ export default function CalendarSettingsPage() {
 
         {/* Future Integrations */}
         <div className="border border-border rounded-lg p-6 opacity-60">
-          <h3 className="text-lg font-medium text-foreground mb-4">Other Calendar Providers</h3>
+          <h3 className="text-lg font-medium text-foreground mb-4">
+            Other Calendar Providers
+          </h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 border border-border rounded-lg">
               <div className="flex items-center gap-3">
@@ -474,11 +513,17 @@ export default function CalendarSettingsPage() {
                   <Calendar className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Outlook Calendar</p>
-                  <p className="text-xs text-muted-foreground">Microsoft Exchange integration</p>
+                  <p className="text-sm font-medium text-foreground">
+                    Outlook Calendar
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Microsoft Exchange integration
+                  </p>
                 </div>
               </div>
-              <Badge variant="secondary" size="sm">Coming Soon</Badge>
+              <Badge variant="secondary" size="sm">
+                Coming Soon
+              </Badge>
             </div>
             <div className="flex items-center justify-between p-4 border border-border rounded-lg">
               <div className="flex items-center gap-3">
@@ -486,11 +531,17 @@ export default function CalendarSettingsPage() {
                   <Calendar className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Apple Calendar</p>
-                  <p className="text-xs text-muted-foreground">iCloud calendar sync</p>
+                  <p className="text-sm font-medium text-foreground">
+                    Apple Calendar
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    iCloud calendar sync
+                  </p>
                 </div>
               </div>
-              <Badge variant="secondary" size="sm">Coming Soon</Badge>
+              <Badge variant="secondary" size="sm">
+                Coming Soon
+              </Badge>
             </div>
           </div>
         </div>
