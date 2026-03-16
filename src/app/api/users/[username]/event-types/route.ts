@@ -41,6 +41,23 @@ export async function GET(
         color: true,
         requiresConfirmation: true,
         minimumNotice: true,
+        beforeBuffer: true,
+        afterBuffer: true,
+        slotInterval: true,
+        maxBookingsPerDay: true,
+        maxBookingsPerWeek: true,
+        futureLimit: true,
+        customQuestions: true,
+        recurringEnabled: true,
+        recurringFrequency: true,
+        createdAt: true,
+        schedule: {
+          select: {
+            id: true,
+            name: true,
+            timezone: true
+          }
+        },
         // Include booking count for popularity
         _count: {
           select: {
@@ -55,25 +72,16 @@ export async function GET(
         }
       },
       orderBy: [
-        // Order by booking count (most popular first)
-        { bookings: { _count: 'desc' } },
-        // Then by title
-        { title: 'asc' }
+        { createdAt: 'desc' }
       ]
     })
 
-    // Format response
+    // Format response with JSON parsing for customQuestions
     const formattedEventTypes = eventTypes.map(eventType => ({
-      id: eventType.id,
-      title: eventType.title,
-      slug: eventType.slug,
-      description: eventType.description,
-      duration: eventType.duration,
-      price: eventType.price,
-      currency: eventType.currency,
-      color: eventType.color,
-      requiresConfirmation: eventType.requiresConfirmation,
-      minimumNotice: eventType.minimumNotice,
+      ...eventType,
+      customQuestions: eventType.customQuestions
+        ? JSON.parse(eventType.customQuestions as string)
+        : [],
       bookingCount: eventType._count.bookings
     }))
 

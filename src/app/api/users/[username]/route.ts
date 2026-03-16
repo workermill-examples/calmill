@@ -21,6 +21,7 @@ export async function GET(
         image: true,
         bio: true,
         timezone: true,
+        createdAt: true,
         // Include active event types count
         _count: {
           select: {
@@ -47,8 +48,9 @@ export async function GET(
         image: user.image,
         bio: user.bio,
         timezone: user.timezone,
+        createdAt: user.createdAt,
         stats: {
-          activeEventTypes: user._count.eventTypes
+          eventTypes: user._count.eventTypes
         }
       }
     })
