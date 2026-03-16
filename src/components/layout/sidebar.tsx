@@ -67,6 +67,7 @@ export function Sidebar({ className }: SidebarProps) {
         "flex h-full w-64 flex-col bg-white border-r border-border",
         className,
       )}
+      data-testid="sidebar"
     >
       {/* Logo/Brand */}
       <div className="flex h-16 items-center px-4 border-b border-border">

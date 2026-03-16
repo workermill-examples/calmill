@@ -308,7 +308,7 @@ export function CalMillEmbed() {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Configuration Panel */}
-          <div className="space-y-6">
+          <div className="space-y-6" data-testid="config-panel">
             {/* Event Type Selection */}
             <Card>
               <CardHeader>
@@ -324,6 +324,7 @@ export function CalMillEmbed() {
                     value={selectedEventType}
                     onValueChange={setSelectedEventType}
                     placeholder="Select an event type"
+                    data-testid="event-type-selector"
                     options={[
                       { value: "", label: "Select an event type" },
                       ...eventTypes.map((eventType) => ({
@@ -341,6 +342,7 @@ export function CalMillEmbed() {
                     onValueChange={(value) =>
                       updateConfig({ mode: value as "inline" | "popup" })
                     }
+                    data-testid="embed-mode-selector"
                     options={[
                       { value: "inline", label: "Inline Widget" },
                       { value: "popup", label: "Popup Button" }
@@ -490,7 +492,7 @@ export function CalMillEmbed() {
           </div>
 
           {/* Preview Panel */}
-          <div className="space-y-6">
+          <div className="space-y-6" data-testid="preview-panel">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
