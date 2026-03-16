@@ -260,10 +260,24 @@ describe('Webhooks Library', () => {
         id: 'webhook-123',
         url: 'https://example.com/webhook',
         secret: 'test-secret',
+        eventTriggers: ['BOOKING_CREATED'],
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: 'user-123'
       };
 
       vi.mocked(prisma.webhook.findFirst).mockResolvedValueOnce(mockWebhook);
-      vi.mocked(prisma.webhookDelivery.create).mockResolvedValueOnce({});
+      vi.mocked(prisma.webhookDelivery.create).mockResolvedValueOnce({
+        id: 'delivery-123',
+        webhookId: 'webhook-123',
+        event: 'WEBHOOK_TEST',
+        payload: {},
+        statusCode: 200,
+        error: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -320,10 +334,24 @@ describe('Webhooks Library', () => {
         id: 'webhook-123',
         url: 'https://example.com/webhook',
         secret: 'test-secret',
+        eventTriggers: ['BOOKING_CREATED'],
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: 'user-123'
       };
 
       vi.mocked(prisma.webhook.findFirst).mockResolvedValueOnce(mockWebhook);
-      vi.mocked(prisma.webhookDelivery.create).mockResolvedValueOnce({});
+      vi.mocked(prisma.webhookDelivery.create).mockResolvedValueOnce({
+        id: 'delivery-123',
+        webhookId: 'webhook-123',
+        event: 'WEBHOOK_TEST',
+        payload: {},
+        statusCode: 200,
+        error: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
 
       mockFetch.mockRejectedValueOnce(new Error('Connection failed'));
 
@@ -389,6 +417,11 @@ describe('Webhooks Library', () => {
         id: 'webhook-123',
         url: 'https://example.com/webhook',
         secret: 'test-secret',
+        eventTriggers: ['BOOKING_CREATED'],
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: 'user-123'
       }]);
 
       // Mock database error when creating delivery log
