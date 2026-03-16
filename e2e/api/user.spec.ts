@@ -4,10 +4,7 @@
  */
 
 import { test, expect, Page } from "@playwright/test";
-import {
-  createAuthenticatedApiClient,
-  parseApiResponse,
-} from "./auth-helper";
+import { createAuthenticatedApiClient, parseApiResponse } from "./auth-helper";
 
 test.describe("User and Dashboard API", () => {
   let apiClient: Awaited<ReturnType<typeof createAuthenticatedApiClient>>;
@@ -199,7 +196,13 @@ test.describe("User and Dashboard API", () => {
         expect(dataPoint).toHaveProperty("color");
         expect(typeof dataPoint.status).toBe("string");
         expect(typeof dataPoint.count).toBe("number");
-        expect(["PENDING", "ACCEPTED", "CANCELLED", "REJECTED", "RESCHEDULED"]).toContain(dataPoint.status);
+        expect([
+          "PENDING",
+          "ACCEPTED",
+          "CANCELLED",
+          "REJECTED",
+          "RESCHEDULED",
+        ]).toContain(dataPoint.status);
       }
     });
 
@@ -369,7 +372,8 @@ test.describe("User and Dashboard API", () => {
       expect(typeof dashboardStats.thisMonthBookings).toBe("number");
 
       // Upcoming + pending should be <= total bookings
-      const activebookings = dashboardStats.upcomingBookings + dashboardStats.pendingBookings;
+      const activebookings =
+        dashboardStats.upcomingBookings + dashboardStats.pendingBookings;
       expect(activebookings).toBeLessThanOrEqual(userCounts.bookings);
     });
 
@@ -424,10 +428,16 @@ test.describe("User and Dashboard API", () => {
       const charts = result.data.charts;
 
       // Sum of bookings by status should equal some total
-      const statusCounts = charts.bookingsByStatus.reduce((sum: number, item: any) => sum + item.count, 0);
+      const statusCounts = charts.bookingsByStatus.reduce(
+        (sum: number, item: any) => sum + item.count,
+        0,
+      );
 
       // Sum of bookings by event type should equal some total
-      const eventTypeCounts = charts.bookingsByEventType.reduce((sum: number, item: any) => sum + item.count, 0);
+      const eventTypeCounts = charts.bookingsByEventType.reduce(
+        (sum: number, item: any) => sum + item.count,
+        0,
+      );
 
       // Both should be >= 0
       expect(statusCounts).toBeGreaterThanOrEqual(0);
@@ -501,11 +511,17 @@ test.describe("User and Dashboard API", () => {
 
       recentBookings.forEach((booking: any) => {
         // Should be valid ISO string
-        expect(booking.startTime).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
-        expect(booking.endTime).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
+        expect(booking.startTime).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/,
+        );
+        expect(booking.endTime).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/,
+        );
 
         // Should create valid Date objects
-        expect(new Date(booking.startTime).toISOString()).toBe(booking.startTime);
+        expect(new Date(booking.startTime).toISOString()).toBe(
+          booking.startTime,
+        );
         expect(new Date(booking.endTime).toISOString()).toBe(booking.endTime);
       });
     });

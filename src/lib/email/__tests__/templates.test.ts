@@ -19,17 +19,47 @@ vi.mock("resend", () => ({
 
 // Mock React Email components for testing import capability
 vi.mock("@react-email/components", () => ({
-  Html: ({ children, ...props }: any) => `<html ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</html>`,
+  Html: ({ children, ...props }: any) =>
+    `<html ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</html>`,
   Head: ({ children }: any) => `<head>${children}</head>`,
-  Body: ({ children, ...props }: any) => `<body ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</body>`,
-  Container: ({ children, ...props }: any) => `<div ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</div>`,
-  Text: ({ children, ...props }: any) => `<p ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</p>`,
-  Heading: ({ children, ...props }: any) => `<h1 ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</h1>`,
-  Button: ({ children, href, ...props }: any) => `<a href="${href}" ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</a>`,
-  Link: ({ children, href, ...props }: any) => `<a href="${href}" ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</a>`,
-  Section: ({ children, ...props }: any) => `<section ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</section>`,
-  Column: ({ children, ...props }: any) => `<div ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</div>`,
-  Row: ({ children, ...props }: any) => `<div ${Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(" ")}>${children}</div>`,
+  Body: ({ children, ...props }: any) =>
+    `<body ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</body>`,
+  Container: ({ children, ...props }: any) =>
+    `<div ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</div>`,
+  Text: ({ children, ...props }: any) =>
+    `<p ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</p>`,
+  Heading: ({ children, ...props }: any) =>
+    `<h1 ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</h1>`,
+  Button: ({ children, href, ...props }: any) =>
+    `<a href="${href}" ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</a>`,
+  Link: ({ children, href, ...props }: any) =>
+    `<a href="${href}" ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</a>`,
+  Section: ({ children, ...props }: any) =>
+    `<section ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</section>`,
+  Column: ({ children, ...props }: any) =>
+    `<div ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</div>`,
+  Row: ({ children, ...props }: any) =>
+    `<div ${Object.entries(props)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(" ")}>${children}</div>`,
   render: (component: any) => component,
 }));
 
@@ -69,7 +99,8 @@ describe("Email Template Rendering", () => {
       expect(html).toContain("color:");
 
       // Validate that interpolated content doesn't break HTML structure
-      const scriptTagTest = html.includes("<script>") || html.includes("javascript:");
+      const scriptTagTest =
+        html.includes("<script>") || html.includes("javascript:");
       expect(scriptTagTest).toBe(false);
 
       console.log(`✓ ${description} HTML template is well-formed`);
@@ -88,7 +119,8 @@ describe("Email Template Rendering", () => {
         hostName: "Jane Smith",
         bookingUid: "booking-123",
         cancelUrl: "https://calmill.example.com/booking/booking-123/cancel",
-        rescheduleUrl: "https://calmill.example.com/booking/booking-123/reschedule",
+        rescheduleUrl:
+          "https://calmill.example.com/booking/booking-123/reschedule",
       };
 
       // This should not throw any errors
@@ -99,14 +131,14 @@ describe("Email Template Rendering", () => {
         expect.stringContaining("📧 Email would be sent"),
         expect.objectContaining({
           subject: "Booking Confirmed: 30 Minute Meeting",
-        })
+        }),
       );
 
       // Extract the HTML from the email call to validate it
       // We need to access the internal HTML generation for validation
       // Since the functions use inline templates, we'll test the structure
       const emailCall = consoleSpy.mock.calls.find((call: any) =>
-        call[0].includes("📧 Email would be sent")
+        call[0].includes("📧 Email would be sent"),
       );
       expect(emailCall).toBeDefined();
     });
@@ -135,7 +167,7 @@ describe("Email Template Rendering", () => {
         expect.stringContaining("📧 Email would be sent"),
         expect.objectContaining({
           subject: "New Booking: Technical Interview with John Doe",
-        })
+        }),
       );
     });
 
@@ -156,7 +188,7 @@ describe("Email Template Rendering", () => {
         expect.stringContaining("📧 Email would be sent"),
         expect.objectContaining({
           subject: "Your booking has been cancelled: 30 Minute Meeting",
-        })
+        }),
       );
     });
 
@@ -168,17 +200,20 @@ describe("Email Template Rendering", () => {
         startTime: new Date("2024-01-15T14:00:00Z"),
         endTime: new Date("2024-01-15T14:30:00Z"),
         timezone: "America/New_York",
-        hostName: "Jane \"Manager\" Smith",
+        hostName: 'Jane "Manager" Smith',
         bookingUid: "booking-789",
         cancelUrl: "https://calmill.example.com/booking/booking-789/cancel",
-        rescheduleUrl: "https://calmill.example.com/booking/booking-789/reschedule",
+        rescheduleUrl:
+          "https://calmill.example.com/booking/booking-789/reschedule",
       };
 
-      expect(() => sendBookingConfirmationEmail(testDataWithSpecialChars)).not.toThrow();
+      expect(() =>
+        sendBookingConfirmationEmail(testDataWithSpecialChars),
+      ).not.toThrow();
 
       // Verify no script injection occurred
       const emailCall = consoleSpy.mock.calls.find((call: any) =>
-        call[0].includes("📧 Email would be sent")
+        call[0].includes("📧 Email would be sent"),
       );
       expect(emailCall).toBeDefined();
     });
@@ -194,7 +229,8 @@ describe("Email Template Rendering", () => {
         hostName: "Jane Smith",
         bookingUid: "booking-minimal",
         cancelUrl: "https://calmill.example.com/booking/booking-minimal/cancel",
-        rescheduleUrl: "https://calmill.example.com/booking/booking-minimal/reschedule",
+        rescheduleUrl:
+          "https://calmill.example.com/booking/booking-minimal/reschedule",
         // No location, meetingUrl, or other optional fields
       };
 
@@ -207,10 +243,10 @@ describe("Email Template Rendering", () => {
         "Europe/London",
         "Asia/Tokyo",
         "Australia/Sydney",
-        "UTC"
+        "UTC",
       ];
 
-      timezones.forEach(timezone => {
+      timezones.forEach((timezone) => {
         const testData = {
           attendeeName: "John Doe",
           attendeeEmail: "john@example.com",
@@ -219,7 +255,7 @@ describe("Email Template Rendering", () => {
           endTime: new Date("2024-06-15T14:30:00Z"),
           timezone,
           hostName: "Jane Smith",
-          bookingUid: `booking-${timezone.replace(/\W/g, '-')}`,
+          bookingUid: `booking-${timezone.replace(/\W/g, "-")}`,
           cancelUrl: "https://calmill.example.com/booking/test/cancel",
           rescheduleUrl: "https://calmill.example.com/booking/test/reschedule",
         };
@@ -233,7 +269,8 @@ describe("Email Template Rendering", () => {
     it("should be able to import React Email components without errors", async () => {
       // Test that React Email components can be imported
       expect(async () => {
-        const { Html, Head, Body, Container, Text, Heading, Button, Link } = await import("@react-email/components");
+        const { Html, Head, Body, Container, Text, Heading, Button, Link } =
+          await import("@react-email/components");
 
         // Test basic component creation
         const htmlComponent = Html({ children: "test" });
@@ -258,14 +295,15 @@ describe("Email Template Rendering", () => {
 
     it("should be able to use render function from React Email", async () => {
       expect(async () => {
-        const { render, Html, Body, Text } = await import("@react-email/components");
+        const { render, Html, Body, Text } =
+          await import("@react-email/components");
 
         const template = Html({
           children: Body({
             children: Text({
-              children: "Test email template"
-            })
-          })
+              children: "Test email template",
+            }),
+          }),
         });
 
         const rendered = render(template as any);
@@ -286,7 +324,8 @@ describe("Email Template Rendering", () => {
         hostName: "Jane Smith",
         bookingUid: "booking-perf",
         cancelUrl: "https://calmill.example.com/booking/booking-perf/cancel",
-        rescheduleUrl: "https://calmill.example.com/booking/booking-perf/reschedule",
+        rescheduleUrl:
+          "https://calmill.example.com/booking/booking-perf/reschedule",
       };
 
       const startTime = process.hrtime.bigint();
@@ -333,7 +372,8 @@ describe("Email Template Rendering", () => {
         hostName: "Jane Smith",
         bookingUid: "booking-123",
         cancelUrl: "https://calmill.example.com/booking/booking-123/cancel",
-        rescheduleUrl: "https://calmill.example.com/booking/booking-123/reschedule",
+        rescheduleUrl:
+          "https://calmill.example.com/booking/booking-123/reschedule",
       };
 
       sendBookingConfirmationEmail(testData);
@@ -345,7 +385,7 @@ describe("Email Template Rendering", () => {
           to: ["john@example.com"],
           subject: expect.stringContaining("30 Minute Meeting"),
           from: expect.stringContaining("CalMill"),
-        })
+        }),
       );
     });
 
@@ -371,7 +411,7 @@ describe("Email Template Rendering", () => {
         expect.objectContaining({
           to: ["jane@example.com"],
           subject: expect.stringContaining("New Booking"),
-        })
+        }),
       );
     });
   });
@@ -388,11 +428,14 @@ describe("Email Template Rendering", () => {
         hostName: "Jane Smith",
         bookingUid: "booking-invalid",
         cancelUrl: "https://calmill.example.com/booking/booking-invalid/cancel",
-        rescheduleUrl: "https://calmill.example.com/booking/booking-invalid/reschedule",
+        rescheduleUrl:
+          "https://calmill.example.com/booking/booking-invalid/reschedule",
       };
 
       // Should not throw, should handle gracefully
-      expect(() => sendBookingConfirmationEmail(testDataWithInvalidDate)).not.toThrow();
+      expect(() =>
+        sendBookingConfirmationEmail(testDataWithInvalidDate),
+      ).not.toThrow();
     });
 
     it("should handle extremely long content without breaking", () => {
@@ -407,10 +450,13 @@ describe("Email Template Rendering", () => {
         hostName: longString,
         bookingUid: "booking-long",
         cancelUrl: "https://calmill.example.com/booking/booking-long/cancel",
-        rescheduleUrl: "https://calmill.example.com/booking/booking-long/reschedule",
+        rescheduleUrl:
+          "https://calmill.example.com/booking/booking-long/reschedule",
       };
 
-      expect(() => sendBookingConfirmationEmail(testDataWithLongContent)).not.toThrow();
+      expect(() =>
+        sendBookingConfirmationEmail(testDataWithLongContent),
+      ).not.toThrow();
     });
   });
 });

@@ -2,7 +2,9 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Authentication Flow", () => {
   test.describe("Login Flow", () => {
-    test("user can login with demo credentials and view dashboard", async ({ page }) => {
+    test("user can login with demo credentials and view dashboard", async ({
+      page,
+    }) => {
       // Navigate to login page
       await page.goto("/login");
 
@@ -41,7 +43,9 @@ test.describe("Authentication Flow", () => {
       await expect(page).toHaveURL("/login");
 
       // Should show error message
-      await expect(page.locator('[data-testid="error-message"]')).toContainText("Invalid credentials");
+      await expect(page.locator('[data-testid="error-message"]')).toContainText(
+        "Invalid credentials",
+      );
     });
 
     test("shows error for empty fields", async ({ page }) => {
@@ -97,11 +101,15 @@ test.describe("Authentication Flow", () => {
 
       // Should redirect to login page with success message or directly to dashboard
       // Check if redirected to dashboard (auto-login after signup) or login page
-      await page.waitForURL(url => url.includes('/dashboard') || url.includes('/login'));
+      await page.waitForURL(
+        (url) => url.includes("/dashboard") || url.includes("/login"),
+      );
 
-      if (page.url().includes('/login')) {
+      if (page.url().includes("/login")) {
         // If redirected to login, should show success message
-        await expect(page.locator('[data-testid="success-message"]')).toContainText("Account created successfully");
+        await expect(
+          page.locator('[data-testid="success-message"]'),
+        ).toContainText("Account created successfully");
 
         // Login with new credentials
         await page.fill('input[name="email"]', uniqueEmail);
@@ -131,7 +139,9 @@ test.describe("Authentication Flow", () => {
 
       // Should stay on signup page with error
       await expect(page).toHaveURL("/signup");
-      await expect(page.locator('[data-testid="error-message"]')).toContainText("Email already exists");
+      await expect(page.locator('[data-testid="error-message"]')).toContainText(
+        "Email already exists",
+      );
     });
 
     test("shows error for existing username", async ({ page }) => {
@@ -148,7 +158,9 @@ test.describe("Authentication Flow", () => {
 
       // Should stay on signup page with error
       await expect(page).toHaveURL("/signup");
-      await expect(page.locator('[data-testid="error-message"]')).toContainText("Username already exists");
+      await expect(page.locator('[data-testid="error-message"]')).toContainText(
+        "Username already exists",
+      );
     });
 
     test("shows error for password mismatch", async ({ page }) => {
@@ -167,7 +179,9 @@ test.describe("Authentication Flow", () => {
       await expect(page.locator('text="Passwords do not match"')).toBeVisible();
     });
 
-    test("shows validation errors for empty required fields", async ({ page }) => {
+    test("shows validation errors for empty required fields", async ({
+      page,
+    }) => {
       await page.goto("/signup");
 
       // Try to submit with empty fields
@@ -182,7 +196,9 @@ test.describe("Authentication Flow", () => {
   });
 
   test.describe("Logout Flow", () => {
-    test("user can logout and is redirected to login page", async ({ page }) => {
+    test("user can logout and is redirected to login page", async ({
+      page,
+    }) => {
       // First login
       await page.goto("/login");
       await page.fill('input[name="email"]', "demo@workermill.com");
@@ -197,7 +213,7 @@ test.describe("Authentication Flow", () => {
         'button:has-text("Logout")',
         'button:has-text("Sign Out")',
         '[data-testid="user-menu"] >> text="Logout"',
-        '[data-testid="user-menu"] >> text="Sign Out"'
+        '[data-testid="user-menu"] >> text="Sign Out"',
       ];
 
       let logoutFound = false;
@@ -219,7 +235,9 @@ test.describe("Authentication Flow", () => {
       if (!logoutFound) {
         try {
           await page.click('[data-testid="user-menu"]');
-          await page.waitForSelector('text="Logout", text="Sign Out"', { timeout: 2000 });
+          await page.waitForSelector('text="Logout", text="Sign Out"', {
+            timeout: 2000,
+          });
           await page.click('text="Logout", text="Sign Out"');
           logoutFound = true;
         } catch (e) {
@@ -233,7 +251,11 @@ test.describe("Authentication Flow", () => {
       }
 
       // Should be redirected to login page or home page
-      await page.waitForURL(url => url.includes('/login') || url === page.url().replace(/\/[^\/]*$/, '/'));
+      await page.waitForURL(
+        (url) =>
+          url.includes("/login") ||
+          url === page.url().replace(/\/[^\/]*$/, "/"),
+      );
 
       // Verify we're logged out by trying to access dashboard
       await page.goto("/dashboard");
@@ -260,14 +282,16 @@ test.describe("Authentication Flow", () => {
       await expect(page.locator("h1")).toContainText("Dashboard");
     });
 
-    test("unauthenticated user is redirected from protected pages", async ({ page }) => {
+    test("unauthenticated user is redirected from protected pages", async ({
+      page,
+    }) => {
       // Try to access protected pages without logging in
       const protectedRoutes = [
         "/dashboard",
         "/event-types",
         "/bookings",
         "/availability",
-        "/settings"
+        "/settings",
       ];
 
       for (const route of protectedRoutes) {

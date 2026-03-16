@@ -199,7 +199,7 @@ export default function BookingCancelPage({ params }: RouteParams) {
               has been sent to you and the host.
             </p>
             <div className="space-y-3">
-              <Button  className="w-full">
+              <Button className="w-full">
                 <Link href={`/booking/${booking?.uid}`}>
                   View Booking Details
                 </Link>
@@ -226,7 +226,7 @@ export default function BookingCancelPage({ params }: RouteParams) {
               Unable to Cancel Booking
             </h1>
             <p className="text-gray-600 mb-6">{error}</p>
-            <Button  variant="outline">
+            <Button variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -250,7 +250,7 @@ export default function BookingCancelPage({ params }: RouteParams) {
               This booking could not be found. Please check the link and try
               again.
             </p>
-            <Button  variant="outline">
+            <Button variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -276,7 +276,7 @@ export default function BookingCancelPage({ params }: RouteParams) {
         <div className="space-y-6">
           {/* Navigation */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" >
+            <Button variant="ghost" size="sm">
               <Link
                 href={`/booking/${booking.uid}`}
                 className="flex items-center space-x-2"
@@ -446,7 +446,6 @@ export default function BookingCancelPage({ params }: RouteParams) {
                       type="button"
                       variant="outline"
                       className="flex-1"
-                      
                       disabled={submitting}
                     >
                       <Link href={`/booking/${booking.uid}`}>Keep Booking</Link>

@@ -22,7 +22,9 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // Verify current booking details are shown
     await expect(page.locator("text=Current Booking")).toBeVisible();
     await expect(page.locator("text=Quick Chat")).toBeVisible();
-    await expect(page.locator("text=Emma Williams").or(page.locator("text=Emma"))).toBeVisible();
+    await expect(
+      page.locator("text=Emma Williams").or(page.locator("text=Emma")),
+    ).toBeVisible();
 
     // Verify the current booking time is shown with strikethrough
     await expect(page.locator(".line-through")).toBeVisible();
@@ -30,7 +32,9 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // Step 2: Select a new date from the calendar
     // Wait for calendar to load
     await expect(
-      page.locator("text=Select New Date").or(page.locator("[data-testid='calendar-picker']"))
+      page
+        .locator("text=Select New Date")
+        .or(page.locator("[data-testid='calendar-picker']")),
     ).toBeVisible({ timeout: 10000 });
 
     // Find and click an available date (different from current booking)
@@ -49,7 +53,8 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
         .getAttribute("class")
         .then(
           (className) =>
-            className?.includes("disabled") || className?.includes("opacity-50")
+            className?.includes("disabled") ||
+            className?.includes("opacity-50"),
         )
         .catch(() => false);
 
@@ -69,7 +74,9 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // Wait for time slots to load after date selection
     await expect(page.locator("text=Select New Time")).toBeVisible();
     await expect(
-      page.locator("button").filter({ hasText: /\d{1,2}:\d{2}\s?(AM|PM|am|pm)/ })
+      page
+        .locator("button")
+        .filter({ hasText: /\d{1,2}:\d{2}\s?(AM|PM|am|pm)/ }),
     ).toBeVisible({ timeout: 10000 });
 
     // Click on the first available time slot
@@ -80,7 +87,7 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
 
     // Step 4: Fill in reschedule reason (optional)
     const reasonField = page.locator(
-      "textarea[name='reason'], textarea[id*='reschedule-reason']"
+      "textarea[name='reason'], textarea[id*='reschedule-reason']",
     );
 
     await expect(reasonField).toBeVisible();
@@ -88,7 +95,7 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
 
     // Step 5: Submit the reschedule request
     const submitButton = page.locator(
-      "button[type='submit'], button:has-text('Confirm'), button:has-text('Reschedule')"
+      "button[type='submit'], button:has-text('Confirm'), button:has-text('Reschedule')",
     );
     await expect(submitButton).toBeVisible();
     await expect(submitButton).toBeEnabled();
@@ -96,25 +103,31 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
 
     // Step 6: Verify we get to the success page or confirmation
     await expect(
-      page.locator("text=Booking Rescheduled").or(page.locator("text=Successfully rescheduled"))
+      page
+        .locator("text=Booking Rescheduled")
+        .or(page.locator("text=Successfully rescheduled")),
     ).toBeVisible({ timeout: 15000 });
 
     // Verify success message details
     await expect(
-      page.locator("text=successfully rescheduled").or(
-        page.locator("text=confirmation email")
-      )
+      page
+        .locator("text=successfully rescheduled")
+        .or(page.locator("text=confirmation email")),
     ).toBeVisible();
 
     // Check for redirect to new booking (the success message mentions this)
     await expect(
-      page.locator("text=View Updated Booking").or(page.locator("text=redirecting"))
+      page
+        .locator("text=View Updated Booking")
+        .or(page.locator("text=redirecting")),
     ).toBeVisible();
 
     // Step 7: Verify we eventually get to the new booking confirmation page
     // Wait for potential auto-redirect or click the view booking button
-    const viewBookingButton = page.locator("button:has-text('View Updated Booking')");
-    if (await viewBookingButton.count() > 0) {
+    const viewBookingButton = page.locator(
+      "button:has-text('View Updated Booking')",
+    );
+    if ((await viewBookingButton.count()) > 0) {
       await viewBookingButton.click();
     } else {
       // Wait for auto-redirect
@@ -124,7 +137,7 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // Verify we're on a booking confirmation page with the new details
     await expect(page).toHaveURL(/\/booking\/[^\/]+$/);
     await expect(
-      page.locator("text=Confirmed").or(page.locator("text=Pending"))
+      page.locator("text=Confirmed").or(page.locator("text=Pending")),
     ).toBeVisible();
   });
 
@@ -140,30 +153,36 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // Verify we're on the cancel page
     await expect(page.locator("h1")).toContainText("Cancel Booking");
     await expect(
-      page.locator("text=Are you sure you want to cancel this booking")
+      page.locator("text=Are you sure you want to cancel this booking"),
     ).toBeVisible();
 
     // Verify booking details are shown
     await expect(page.locator("text=60 Minute Consultation")).toBeVisible();
-    await expect(page.locator("text=David Rodriguez").or(page.locator("text=David"))).toBeVisible();
+    await expect(
+      page.locator("text=David Rodriguez").or(page.locator("text=David")),
+    ).toBeVisible();
 
     // Verify warning information is displayed
     await expect(page.locator("text=Important")).toBeVisible();
-    await expect(page.locator("text=This action cannot be undone")).toBeVisible();
+    await expect(
+      page.locator("text=This action cannot be undone"),
+    ).toBeVisible();
 
     // Step 2: Fill in the cancellation reason (required)
     const reasonField = page.locator(
-      "textarea[name='cancellationReason'], textarea[id*='cancellation-reason']"
+      "textarea[name='cancellationReason'], textarea[id*='cancellation-reason']",
     );
 
     await expect(reasonField).toBeVisible();
     await expect(reasonField).toHaveAttribute("required", "");
 
-    await reasonField.fill("Unfortunately, I need to cancel due to an emergency situation that has come up. I apologize for the short notice.");
+    await reasonField.fill(
+      "Unfortunately, I need to cancel due to an emergency situation that has come up. I apologize for the short notice.",
+    );
 
     // Step 3: Submit the cancellation
     const cancelButton = page.locator(
-      "button[type='submit']:has-text('Confirm'), button:has-text('Confirm Cancellation')"
+      "button[type='submit']:has-text('Confirm'), button:has-text('Confirm Cancellation')",
     );
 
     await expect(cancelButton).toBeVisible();
@@ -172,24 +191,30 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
 
     // Step 4: Verify we get to the success page
     await expect(
-      page.locator("text=Booking Cancelled").or(page.locator("text=successfully cancelled"))
+      page
+        .locator("text=Booking Cancelled")
+        .or(page.locator("text=successfully cancelled")),
     ).toBeVisible({ timeout: 15000 });
 
     // Verify success message details
     await expect(
-      page.locator("text=confirmation email").or(
-        page.locator("text=sent to you and the host")
-      )
+      page
+        .locator("text=confirmation email")
+        .or(page.locator("text=sent to you and the host")),
     ).toBeVisible();
 
     // Check for option to view booking details
     await expect(
-      page.locator("text=View Booking Details").or(page.locator("text=redirecting"))
+      page
+        .locator("text=View Booking Details")
+        .or(page.locator("text=redirecting")),
     ).toBeVisible();
 
     // Step 5: Navigate to booking details to verify cancellation
-    const viewDetailsButton = page.locator("button:has-text('View Booking Details')");
-    if (await viewDetailsButton.count() > 0) {
+    const viewDetailsButton = page.locator(
+      "button:has-text('View Booking Details')",
+    );
+    if ((await viewDetailsButton.count()) > 0) {
       await viewDetailsButton.click();
     } else {
       // Wait for auto-redirect
@@ -203,14 +228,16 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // Verify the cancellation reason is displayed
     await expect(page.locator("text=Cancellation Reason")).toBeVisible();
     await expect(
-      page.locator("text=emergency situation").or(
-        page.locator("text=Unfortunately, I need to cancel")
-      )
+      page
+        .locator("text=emergency situation")
+        .or(page.locator("text=Unfortunately, I need to cancel")),
     ).toBeVisible();
 
     // Verify reschedule/cancel actions are no longer available
     await expect(
-      page.locator("button:has-text('Reschedule')").or(page.locator("a[href*='reschedule']"))
+      page
+        .locator("button:has-text('Reschedule')")
+        .or(page.locator("a[href*='reschedule']")),
     ).not.toBeVisible();
   });
 
@@ -225,11 +252,11 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // Try to submit without selecting anything
     // The form should not allow submission without date/time selection
     const submitButton = page.locator(
-      "button[type='submit'], button:has-text('Confirm'), button:has-text('Reschedule')"
+      "button[type='submit'], button:has-text('Confirm'), button:has-text('Reschedule')",
     );
 
     // Initially, submit button should either not be visible or be disabled
-    if (await submitButton.count() > 0) {
+    if ((await submitButton.count()) > 0) {
       await expect(submitButton).toBeDisabled();
     }
 
@@ -240,7 +267,7 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     await availableDateButtons.first().click();
 
     // Submit button should still be disabled without time selection
-    if (await submitButton.count() > 0) {
+    if ((await submitButton.count()) > 0) {
       await expect(submitButton).toBeDisabled();
     }
 
@@ -269,7 +296,7 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
 
     // Try to submit without providing reason
     const cancelButton = page.locator(
-      "button[type='submit']:has-text('Confirm'), button:has-text('Confirm Cancellation')"
+      "button[type='submit']:has-text('Confirm'), button:has-text('Confirm Cancellation')",
     );
 
     await expect(cancelButton).toBeVisible();
@@ -279,7 +306,7 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
 
     // Fill in just a few characters (test minimum validation)
     const reasonField = page.locator(
-      "textarea[name='cancellationReason'], textarea[id*='cancellation-reason']"
+      "textarea[name='cancellationReason'], textarea[id*='cancellation-reason']",
     );
 
     await reasonField.fill("too short");
@@ -295,7 +322,9 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     // 3. Server validation returns an error
 
     // Fill in a proper reason
-    await reasonField.fill("I need to cancel this booking due to unexpected circumstances that require my immediate attention.");
+    await reasonField.fill(
+      "I need to cancel this booking due to unexpected circumstances that require my immediate attention.",
+    );
 
     // Now button should be enabled
     await expect(cancelButton).toBeEnabled();
@@ -311,30 +340,34 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     await expect(page.locator("h1")).toContainText("Cancel Booking");
 
     const reasonField = page.locator(
-      "textarea[name='cancellationReason'], textarea[id*='cancellation-reason']"
+      "textarea[name='cancellationReason'], textarea[id*='cancellation-reason']",
     );
 
     await reasonField.fill("Cancelling for reschedule test");
 
     const cancelButton = page.locator(
-      "button[type='submit']:has-text('Confirm'), button:has-text('Confirm Cancellation')"
+      "button[type='submit']:has-text('Confirm'), button:has-text('Confirm Cancellation')",
     );
 
     await cancelButton.click();
 
     // Wait for cancellation to complete
-    await expect(page.locator("text=Booking Cancelled")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("text=Booking Cancelled")).toBeVisible({
+      timeout: 15000,
+    });
 
     // Now try to visit the reschedule page for the cancelled booking
     await page.goto(`/booking/${TEST_BOOKING_UID}/reschedule`);
 
     // Should see an error message that booking cannot be rescheduled
     await expect(
-      page.locator("text=Cannot reschedule").or(
-        page.locator("text=cancelled").or(
-          page.locator("text=Unable to Reschedule")
-        )
-      )
+      page
+        .locator("text=Cannot reschedule")
+        .or(
+          page
+            .locator("text=cancelled")
+            .or(page.locator("text=Unable to Reschedule")),
+        ),
     ).toBeVisible();
 
     // The reschedule form should not be available
@@ -348,17 +381,27 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
     await expect(page.locator("text=Quick Chat")).toBeVisible();
 
     // Check for attendee information
-    await expect(page.locator("text=Emma Williams").or(page.locator("text=Emma"))).toBeVisible();
+    await expect(
+      page.locator("text=Emma Williams").or(page.locator("text=Emma")),
+    ).toBeVisible();
 
     // Check for date/time information
-    await expect(page.locator("text=15 min").or(page.locator("text=minutes"))).toBeVisible();
+    await expect(
+      page.locator("text=15 min").or(page.locator("text=minutes")),
+    ).toBeVisible();
 
     // Check for host information
     await expect(page.locator("text=Host")).toBeVisible();
-    await expect(page.locator("text=Alex Demo").or(page.locator("text=demo@workermill.com"))).toBeVisible();
+    await expect(
+      page
+        .locator("text=Alex Demo")
+        .or(page.locator("text=demo@workermill.com")),
+    ).toBeVisible();
 
     // Verify timezone information is shown
-    await expect(page.locator("text=America").or(page.locator("text=Chicago"))).toBeVisible();
+    await expect(
+      page.locator("text=America").or(page.locator("text=Chicago")),
+    ).toBeVisible();
   });
 
   test("reschedule page shows original booking with strikethrough", async ({
@@ -374,10 +417,14 @@ test.describe("Reschedule and Cancel Booking Flows", () => {
 
     // Verify booking details are shown
     await expect(page.locator("text=Quick Chat")).toBeVisible();
-    await expect(page.locator("text=Emma Williams").or(page.locator("text=Emma"))).toBeVisible();
+    await expect(
+      page.locator("text=Emma Williams").or(page.locator("text=Emma")),
+    ).toBeVisible();
 
     // Verify warning information about rescheduling
     await expect(page.locator("text=Important")).toBeVisible();
-    await expect(page.locator("text=This will create a new booking")).toBeVisible();
+    await expect(
+      page.locator("text=This will create a new booking"),
+    ).toBeVisible();
   });
 });

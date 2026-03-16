@@ -67,7 +67,7 @@ test.describe("Bookings API", () => {
       // All returned bookings should have PENDING status
       if (result.data.bookings.length > 0) {
         const allPending = result.data.bookings.every(
-          (booking: any) => booking.status === "PENDING"
+          (booking: any) => booking.status === "PENDING",
         );
         expect(allPending).toBe(true);
       }
@@ -82,7 +82,7 @@ test.describe("Bookings API", () => {
         const eventTypeId = eventTypesResult.data.eventTypes[0].id;
 
         const response = await apiClient.fetch(
-          `/api/bookings?eventTypeId=${eventTypeId}`
+          `/api/bookings?eventTypeId=${eventTypeId}`,
         );
         const result = await parseApiResponse(response);
 
@@ -91,7 +91,7 @@ test.describe("Bookings API", () => {
         // All returned bookings should belong to the specified event type
         if (result.data.bookings.length > 0) {
           const allMatchEventType = result.data.bookings.every(
-            (booking: any) => booking.eventType.id === eventTypeId
+            (booking: any) => booking.eventType.id === eventTypeId,
           );
           expect(allMatchEventType).toBe(true);
         }
@@ -103,7 +103,7 @@ test.describe("Bookings API", () => {
       const endDate = formatDateString(getFutureDate(30));
 
       const response = await apiClient.fetch(
-        `/api/bookings?startDate=${startDate}&endDate=${endDate}`
+        `/api/bookings?startDate=${startDate}&endDate=${endDate}`,
       );
       const result = await parseApiResponse(response);
 
@@ -134,7 +134,7 @@ test.describe("Bookings API", () => {
 
     test("should search by attendee email", async () => {
       const response = await apiClient.fetch(
-        "/api/bookings?attendeeEmail=test"
+        "/api/bookings?attendeeEmail=test",
       );
       const result = await parseApiResponse(response);
 
@@ -143,7 +143,7 @@ test.describe("Bookings API", () => {
       // All returned bookings should contain "test" in attendee email
       if (result.data.bookings.length > 0) {
         const allMatchEmail = result.data.bookings.every((booking: any) =>
-          booking.attendeeEmail.toLowerCase().includes("test")
+          booking.attendeeEmail.toLowerCase().includes("test"),
         );
         expect(allMatchEmail).toBe(true);
       }
@@ -177,7 +177,7 @@ test.describe("Bookings API", () => {
       const futureDate = getFutureDate(7);
       const dateStr = formatDateString(futureDate);
       const slotsResponse = await apiClient.fetch(
-        `/api/slots?eventTypeId=${activeEventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`
+        `/api/slots?eventTypeId=${activeEventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`,
       );
       const slotsResult = await parseApiResponse(slotsResponse);
 
@@ -228,12 +228,12 @@ test.describe("Bookings API", () => {
     test("should reject booking for inactive event type", async () => {
       // Get event types including inactive ones
       const eventTypesResponse = await apiClient.fetch(
-        "/api/event-types?includeInactive=true"
+        "/api/event-types?includeInactive=true",
       );
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
 
       const inactiveEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => !et.isActive
+        (et: any) => !et.isActive,
       );
 
       if (!inactiveEventType) {
@@ -321,7 +321,7 @@ test.describe("Bookings API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -377,7 +377,7 @@ test.describe("Bookings API", () => {
 
       // Access booking by UID without authentication (public access)
       const response = await fetch(
-        `http://localhost:3000/api/bookings/${bookingUid}`
+        `http://localhost:3000/api/bookings/${bookingUid}`,
       );
       const result = await parseApiResponse(response);
 
@@ -394,7 +394,7 @@ test.describe("Bookings API", () => {
 
     test("should return 404 for non-existent booking UID", async () => {
       const response = await fetch(
-        "http://localhost:3000/api/bookings/non-existent-uid"
+        "http://localhost:3000/api/bookings/non-existent-uid",
       );
       const result = await parseApiResponse(response);
 
@@ -406,7 +406,9 @@ test.describe("Bookings API", () => {
   test.describe("PATCH /api/bookings/[uid]", () => {
     test("should accept pending booking (host only)", async () => {
       // Find a pending booking
-      const listResponse = await apiClient.fetch("/api/bookings?status=PENDING");
+      const listResponse = await apiClient.fetch(
+        "/api/bookings?status=PENDING",
+      );
       const listResult = await parseApiResponse(listResponse);
 
       if (listResult.data.bookings.length === 0) {
@@ -421,7 +423,7 @@ test.describe("Bookings API", () => {
         {
           method: "PATCH",
           body: JSON.stringify({ action: "accept" }),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -432,7 +434,9 @@ test.describe("Bookings API", () => {
 
     test("should reject pending booking (host only)", async () => {
       // Find a pending booking
-      const listResponse = await apiClient.fetch("/api/bookings?status=PENDING");
+      const listResponse = await apiClient.fetch(
+        "/api/bookings?status=PENDING",
+      );
       const listResult = await parseApiResponse(listResponse);
 
       if (listResult.data.bookings.length === 0) {
@@ -447,7 +451,7 @@ test.describe("Bookings API", () => {
         {
           method: "PATCH",
           body: JSON.stringify({ action: "reject" }),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -459,7 +463,7 @@ test.describe("Bookings API", () => {
     test("should cancel accepted booking (host only)", async () => {
       // Find an accepted booking
       const listResponse = await apiClient.fetch(
-        "/api/bookings?status=ACCEPTED"
+        "/api/bookings?status=ACCEPTED",
       );
       const listResult = await parseApiResponse(listResponse);
 
@@ -478,14 +482,14 @@ test.describe("Bookings API", () => {
             action: "cancel",
             cancellationReason: "Host cancelled due to conflict",
           }),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(200);
       expect(result.data.booking.status).toBe("CANCELLED");
       expect(result.data.booking.cancellationReason).toBe(
-        "Host cancelled due to conflict"
+        "Host cancelled due to conflict",
       );
       expect(result.data.message).toContain("cancelled");
     });
@@ -529,7 +533,7 @@ test.describe("Bookings API", () => {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "accept" }),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -540,7 +544,7 @@ test.describe("Bookings API", () => {
     test("should prevent actions on already cancelled bookings", async () => {
       // Find a cancelled booking
       const listResponse = await apiClient.fetch(
-        "/api/bookings?status=CANCELLED"
+        "/api/bookings?status=CANCELLED",
       );
       const listResult = await parseApiResponse(listResponse);
 
@@ -556,7 +560,7 @@ test.describe("Bookings API", () => {
         {
           method: "PATCH",
           body: JSON.stringify({ action: "accept" }),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -566,13 +570,10 @@ test.describe("Bookings API", () => {
     });
 
     test("should return 404 for non-existent booking", async () => {
-      const response = await apiClient.fetch(
-        "/api/bookings/non-existent-uid",
-        {
-          method: "PATCH",
-          body: JSON.stringify({ action: "accept" }),
-        }
-      );
+      const response = await apiClient.fetch("/api/bookings/non-existent-uid", {
+        method: "PATCH",
+        body: JSON.stringify({ action: "accept" }),
+      });
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(404);
@@ -587,7 +588,7 @@ test.describe("Bookings API", () => {
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
 
       const recurringEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.recurringEnabled && et.isActive
+        (et: any) => et.recurringEnabled && et.isActive,
       );
 
       if (!recurringEventType) {
@@ -599,14 +600,11 @@ test.describe("Bookings API", () => {
       const futureDate = getFutureDate(14);
       const dateStr = formatDateString(futureDate);
       const slotsResponse = await apiClient.fetch(
-        `/api/slots?eventTypeId=${recurringEventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`
+        `/api/slots?eventTypeId=${recurringEventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`,
       );
       const slotsResult = await parseApiResponse(slotsResponse);
 
-      if (
-        slotsResult.status !== 200 ||
-        slotsResult.data.slots.length === 0
-      ) {
+      if (slotsResult.status !== 200 || slotsResult.data.slots.length === 0) {
         console.log("No available slots found, skipping test");
         return;
       }
@@ -652,7 +650,7 @@ test.describe("Bookings API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {

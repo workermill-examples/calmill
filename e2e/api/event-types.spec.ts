@@ -47,17 +47,23 @@ test.describe("Event Types API", () => {
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(200);
-      const activeEventTypes = result.data.eventTypes.filter((et: any) => et.isActive);
+      const activeEventTypes = result.data.eventTypes.filter(
+        (et: any) => et.isActive,
+      );
       expect(activeEventTypes.length).toBe(result.data.eventTypes.length);
     });
 
     test("should include inactive event types when requested", async () => {
-      const response = await apiClient.fetch("/api/event-types?includeInactive=true");
+      const response = await apiClient.fetch(
+        "/api/event-types?includeInactive=true",
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(200);
       // Should include both active and inactive
-      const hasInactive = result.data.eventTypes.some((et: any) => !et.isActive);
+      const hasInactive = result.data.eventTypes.some(
+        (et: any) => !et.isActive,
+      );
       expect(hasInactive).toBe(true);
     });
 
@@ -151,9 +157,10 @@ test.describe("Event Types API", () => {
       expect(eventType.recurringFrequency).toBe("weekly");
 
       // Custom questions are stored as JSON string
-      const customQuestions = typeof eventType.customQuestions === 'string'
-        ? JSON.parse(eventType.customQuestions)
-        : eventType.customQuestions;
+      const customQuestions =
+        typeof eventType.customQuestions === "string"
+          ? JSON.parse(eventType.customQuestions)
+          : eventType.customQuestions;
       expect(customQuestions).toHaveLength(2);
       expect(customQuestions[0].label).toBe("What is your company?");
     });

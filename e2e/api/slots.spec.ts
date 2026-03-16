@@ -30,7 +30,7 @@ test.describe("Slots API", () => {
 
       expect(eventTypesResult.status).toBe(200);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -42,7 +42,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(7));
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -58,8 +58,12 @@ test.describe("Slots API", () => {
         expect(slot).toHaveProperty("duration");
 
         // Verify time formats
-        expect(slot.time).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/); // ISO format
-        expect(slot.localTime).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}$/); // Local time with timezone
+        expect(slot.time).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+        ); // ISO format
+        expect(slot.localTime).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}$/,
+        ); // Local time with timezone
 
         // Duration should match event type
         expect(slot.duration).toBe(activeEventType.duration);
@@ -73,28 +77,28 @@ test.describe("Slots API", () => {
     test("should require all query parameters", async () => {
       // Missing eventTypeId
       const response1 = await fetch(
-        "http://localhost:3000/api/slots?startDate=2024-12-01&endDate=2024-12-01&timezone=UTC"
+        "http://localhost:3000/api/slots?startDate=2024-12-01&endDate=2024-12-01&timezone=UTC",
       );
       const result1 = await parseApiResponse(response1);
       expect(result1.status).toBe(400);
 
       // Missing startDate
       const response2 = await fetch(
-        "http://localhost:3000/api/slots?eventTypeId=test&endDate=2024-12-01&timezone=UTC"
+        "http://localhost:3000/api/slots?eventTypeId=test&endDate=2024-12-01&timezone=UTC",
       );
       const result2 = await parseApiResponse(response2);
       expect(result2.status).toBe(400);
 
       // Missing endDate
       const response3 = await fetch(
-        "http://localhost:3000/api/slots?eventTypeId=test&startDate=2024-12-01&timezone=UTC"
+        "http://localhost:3000/api/slots?eventTypeId=test&startDate=2024-12-01&timezone=UTC",
       );
       const result3 = await parseApiResponse(response3);
       expect(result3.status).toBe(400);
 
       // Missing timezone
       const response4 = await fetch(
-        "http://localhost:3000/api/slots?eventTypeId=test&startDate=2024-12-01&endDate=2024-12-01"
+        "http://localhost:3000/api/slots?eventTypeId=test&startDate=2024-12-01&endDate=2024-12-01",
       );
       const result4 = await parseApiResponse(response4);
       expect(result4.status).toBe(400);
@@ -102,7 +106,7 @@ test.describe("Slots API", () => {
 
     test("should validate date format", async () => {
       const response = await fetch(
-        "http://localhost:3000/api/slots?eventTypeId=test&startDate=invalid-date&endDate=2024-12-01&timezone=UTC"
+        "http://localhost:3000/api/slots?eventTypeId=test&startDate=invalid-date&endDate=2024-12-01&timezone=UTC",
       );
       const result = await parseApiResponse(response);
 
@@ -113,7 +117,7 @@ test.describe("Slots API", () => {
     test("should validate date range", async () => {
       // End date before start date
       const response = await fetch(
-        "http://localhost:3000/api/slots?eventTypeId=test&startDate=2024-12-31&endDate=2024-12-01&timezone=UTC"
+        "http://localhost:3000/api/slots?eventTypeId=test&startDate=2024-12-31&endDate=2024-12-01&timezone=UTC",
       );
       const result = await parseApiResponse(response);
 
@@ -127,7 +131,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(35)); // 34+ days apart
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=test&startDate=${startDate}&endDate=${endDate}&timezone=UTC`
+        `http://localhost:3000/api/slots?eventTypeId=test&startDate=${startDate}&endDate=${endDate}&timezone=UTC`,
       );
       const result = await parseApiResponse(response);
 
@@ -141,7 +145,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(1));
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=test&startDate=${startDate}&endDate=${endDate}&timezone=Invalid/Timezone`
+        `http://localhost:3000/api/slots?eventTypeId=test&startDate=${startDate}&endDate=${endDate}&timezone=Invalid/Timezone`,
       );
       const result = await parseApiResponse(response);
 
@@ -155,7 +159,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(7));
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=non-existent-event&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=non-existent-event&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -170,7 +174,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -183,12 +187,12 @@ test.describe("Slots API", () => {
 
       // Get slots in different timezones
       const nyResponse = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
       const nyResult = await parseApiResponse(nyResponse);
 
       const laResponse = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/Los_Angeles`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/Los_Angeles`,
       );
       const laResult = await parseApiResponse(laResponse);
 
@@ -200,7 +204,7 @@ test.describe("Slots API", () => {
         // The UTC times should be the same, but local times should differ
         const nySlot = nyResult.data.slots[0];
         const laSlot = laResult.data.slots.find(
-          (slot: any) => slot.time === nySlot.time
+          (slot: any) => slot.time === nySlot.time,
         );
 
         if (laSlot) {
@@ -215,7 +219,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const eventTypes = eventTypesResult.data.eventTypes.filter(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (eventTypes.length < 2) {
@@ -229,7 +233,7 @@ test.describe("Slots API", () => {
       // Get slots for different event types
       for (const eventType of eventTypes.slice(0, 2)) {
         const response = await fetch(
-          `http://localhost:3000/api/slots?eventTypeId=${eventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+          `http://localhost:3000/api/slots?eventTypeId=${eventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
         );
         const result = await parseApiResponse(response);
 
@@ -238,7 +242,7 @@ test.describe("Slots API", () => {
         // All slots should have the correct duration
         if (result.data.slots.length > 0) {
           const allCorrectDuration = result.data.slots.every(
-            (slot: any) => slot.duration === eventType.duration
+            (slot: any) => slot.duration === eventType.duration,
           );
           expect(allCorrectDuration).toBe(true);
         }
@@ -250,7 +254,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const eventTypeWithInterval = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive && et.slotInterval
+        (et: any) => et.isActive && et.slotInterval,
       );
 
       if (!eventTypeWithInterval) {
@@ -262,7 +266,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(7));
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${eventTypeWithInterval.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${eventTypeWithInterval.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -284,7 +288,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -294,18 +298,21 @@ test.describe("Slots API", () => {
 
       // Get current bookings for this event type
       const bookingsResponse = await apiClient.fetch(
-        `/api/bookings?eventTypeId=${activeEventType.id}&status=ACCEPTED`
+        `/api/bookings?eventTypeId=${activeEventType.id}&status=ACCEPTED`,
       );
       const bookingsResult = await parseApiResponse(bookingsResponse);
 
-      if (bookingsResult.status === 200 && bookingsResult.data.bookings.length > 0) {
+      if (
+        bookingsResult.status === 200 &&
+        bookingsResult.data.bookings.length > 0
+      ) {
         // Find a day with a booking
         const existingBooking = bookingsResult.data.bookings[0];
         const bookingDate = new Date(existingBooking.startTime);
         const dateStr = formatDateString(bookingDate);
 
         const response = await fetch(
-          `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`
+          `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`,
         );
         const result = await parseApiResponse(response);
 
@@ -327,7 +334,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const eventTypeWithNotice = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive && et.minimumNotice > 0
+        (et: any) => et.isActive && et.minimumNotice > 0,
       );
 
       if (!eventTypeWithNotice) {
@@ -339,7 +346,7 @@ test.describe("Slots API", () => {
       const today = formatDateString(new Date());
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${eventTypeWithNotice.id}&startDate=${today}&endDate=${today}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${eventTypeWithNotice.id}&startDate=${today}&endDate=${today}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -354,7 +361,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const eventTypeWithLimit = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive && et.futureLimit
+        (et: any) => et.isActive && et.futureLimit,
       );
 
       if (!eventTypeWithLimit) {
@@ -367,7 +374,7 @@ test.describe("Slots API", () => {
       const dateStr = formatDateString(futureDate);
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${eventTypeWithLimit.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${eventTypeWithLimit.id}&startDate=${dateStr}&endDate=${dateStr}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -381,7 +388,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -393,7 +400,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(7));
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
 
       expect(response.status).toBe(200);
@@ -410,7 +417,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const eventTypesWithSchedules = eventTypesResult.data.eventTypes.filter(
-        (et: any) => et.isActive && et.schedule
+        (et: any) => et.isActive && et.schedule,
       );
 
       if (eventTypesWithSchedules.length === 0) {
@@ -423,7 +430,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(7));
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${eventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=${eventType.schedule.timezone}`
+        `http://localhost:3000/api/slots?eventTypeId=${eventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=${eventType.schedule.timezone}`,
       );
       const result = await parseApiResponse(response);
 
@@ -448,7 +455,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -457,7 +464,7 @@ test.describe("Slots API", () => {
       }
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${pastDate}&endDate=${pastDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${pastDate}&endDate=${pastDate}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -469,7 +476,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -482,7 +489,7 @@ test.describe("Slots API", () => {
 
       // Make request without any authentication cookies
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -496,7 +503,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -509,7 +516,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(9)); // 3 days
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -529,7 +536,7 @@ test.describe("Slots API", () => {
       const eventTypesResponse = await apiClient.fetch("/api/event-types");
       const eventTypesResult = await parseApiResponse(eventTypesResponse);
       const activeEventType = eventTypesResult.data.eventTypes.find(
-        (et: any) => et.isActive
+        (et: any) => et.isActive,
       );
 
       if (!activeEventType) {
@@ -541,7 +548,7 @@ test.describe("Slots API", () => {
       const endDate = formatDateString(getFutureDate(7));
 
       const response = await fetch(
-        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`
+        `http://localhost:3000/api/slots?eventTypeId=${activeEventType.id}&startDate=${startDate}&endDate=${endDate}&timezone=America/New_York`,
       );
       const result = await parseApiResponse(response);
 
@@ -554,7 +561,9 @@ test.describe("Slots API", () => {
           const currSlot = result.data.slots[i];
 
           const prevStart = new Date(prevSlot.time);
-          const prevEnd = new Date(prevStart.getTime() + prevSlot.duration * 60000);
+          const prevEnd = new Date(
+            prevStart.getTime() + prevSlot.duration * 60000,
+          );
           const currStart = new Date(currSlot.time);
 
           // Current slot should start after previous slot ends

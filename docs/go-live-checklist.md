@@ -30,6 +30,7 @@ This checklist ensures CalMill is production-ready for deployment at https://cal
 Verify all required environment variables are set in Vercel:
 
 **Required:**
+
 - [ ] `DATABASE_URL` - Neon PostgreSQL pooled connection
 - [ ] `DIRECT_DATABASE_URL` - Neon PostgreSQL direct connection
 - [ ] `AUTH_SECRET` - NextAuth JWT secret (32+ characters)
@@ -38,6 +39,7 @@ Verify all required environment variables are set in Vercel:
 - [ ] `SEED_TOKEN` - Secure token for seeding API endpoint
 
 **Optional (but recommended):**
+
 - [ ] `GOOGLE_CLIENT_ID` - For Google Calendar integration
 - [ ] `GOOGLE_CLIENT_SECRET` - For Google Calendar integration
 - [ ] `RESEND_API_KEY` - For email notifications
@@ -62,6 +64,7 @@ Verify all required environment variables are set in Vercel:
 ### 📦 Build Process
 
 - [ ] **Local Build Verification**
+
   ```bash
   npm ci
   npm run lint
@@ -306,6 +309,7 @@ chmod +x scripts/smoke-test.sh
 If critical issues are discovered post-deployment:
 
 1. **Immediate Rollback**
+
    ```bash
    vercel rollback --token=$VERCEL_TOKEN
    ```
@@ -336,11 +340,11 @@ If critical issues are discovered post-deployment:
 - [ ] Team notified of go-live
 - [ ] Rollback plan confirmed
 
-**Deployment Date**: _______________
+**Deployment Date**: **\*\***\_\_\_**\*\***
 
-**Deployed By**: _______________
+**Deployed By**: **\*\***\_\_\_**\*\***
 
-**Sign-off By**: _______________
+**Sign-off By**: **\*\***\_\_\_**\*\***
 
 ---
 
@@ -364,4 +368,4 @@ If critical issues are discovered post-deployment:
 
 ---
 
-*This checklist ensures CalMill launches successfully as a showcase of WorkerMill's AI development capabilities. Every item represents a critical aspect of the production-ready application.*
+_This checklist ensures CalMill launches successfully as a showcase of WorkerMill's AI development capabilities. Every item represents a critical aspect of the production-ready application._

@@ -227,7 +227,7 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
             <p className="text-gray-600 mb-6">
               {error || "This booking could not be found."}
             </p>
-            <Button  variant="outline">
+            <Button variant="outline">
               <Link href="/">Return to Home</Link>
             </Button>
           </div>
@@ -472,7 +472,6 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
                   <Button
                     variant="outline"
                     size="sm"
-                    
                     className="flex items-center space-x-2"
                   >
                     <a
@@ -497,13 +496,13 @@ export default function BookingConfirmationPage({ params }: RouteParams) {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button variant="outline" size="sm" >
+                  <Button variant="outline" size="sm">
                     <Link href={`/booking/${booking.uid}/reschedule`}>
                       <Edit className="w-4 h-4 mr-2" />
                       Reschedule
                     </Link>
                   </Button>
-                  <Button variant="outline" size="sm" >
+                  <Button variant="outline" size="sm">
                     <Link href={`/booking/${booking.uid}/cancel`}>
                       <X className="w-4 h-4 mr-2" />
                       Cancel

@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Health Endpoint", () => {
-  test("should return 200 status and correct JSON shape", async ({ request }) => {
+  test("should return 200 status and correct JSON shape", async ({
+    request,
+  }) => {
     // Make request to health endpoint
     const response = await request.get("/api/health");
 
@@ -16,7 +18,9 @@ test.describe("Health Endpoint", () => {
     expect(data).toHaveProperty("timestamp");
 
     // Verify timestamp is a valid ISO string
-    expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    expect(data.timestamp).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+    );
 
     // Verify timestamp is recent (within last 10 seconds)
     const timestampDate = new Date(data.timestamp);

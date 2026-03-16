@@ -16,7 +16,9 @@ test.describe("Landing Page", () => {
     // Verify hero description
     const heroDescription = page.locator("p").first();
     await expect(heroDescription).toBeVisible();
-    await expect(heroDescription).toContainText("The open-source scheduling platform");
+    await expect(heroDescription).toContainText(
+      "The open-source scheduling platform",
+    );
   });
 
   test("should have Get Started and Try the Demo CTAs", async ({ page }) => {
@@ -28,7 +30,10 @@ test.describe("Landing Page", () => {
     await expect(getStartedButton).toContainText("Get Started");
 
     // Verify "Try the Demo" button
-    const tryDemoButton = page.getByRole("button", { name: "Try the Demo", exact: true });
+    const tryDemoButton = page.getByRole("button", {
+      name: "Try the Demo",
+      exact: true,
+    });
     await expect(tryDemoButton).toBeVisible();
 
     // Verify demo credentials are shown
@@ -40,7 +45,9 @@ test.describe("Landing Page", () => {
     await page.goto("/");
 
     // Verify features section heading
-    const featuresHeading = page.locator("h2", { hasText: "Everything you need for scheduling" });
+    const featuresHeading = page.locator("h2", {
+      hasText: "Everything you need for scheduling",
+    });
     await expect(featuresHeading).toBeVisible();
 
     // Verify the three feature cards
@@ -54,47 +61,71 @@ test.describe("Landing Page", () => {
     await expect(embedAnywhereCard).toBeVisible();
 
     // Verify feature descriptions are present
-    await expect(page.locator("text=Intelligent availability detection")).toBeVisible();
-    await expect(page.locator("text=Round-robin and collective scheduling")).toBeVisible();
-    await expect(page.locator("text=Lightweight embeddable widgets")).toBeVisible();
+    await expect(
+      page.locator("text=Intelligent availability detection"),
+    ).toBeVisible();
+    await expect(
+      page.locator("text=Round-robin and collective scheduling"),
+    ).toBeVisible();
+    await expect(
+      page.locator("text=Lightweight embeddable widgets"),
+    ).toBeVisible();
   });
 
-  test("should display Built by WorkerMill section prominently", async ({ page }) => {
+  test("should display Built by WorkerMill section prominently", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     // Verify "Built by WorkerMill AI" section heading
-    const workerMillHeading = page.locator("h2", { hasText: "Built by WorkerMill AI" });
+    const workerMillHeading = page.locator("h2", {
+      hasText: "Built by WorkerMill AI",
+    });
     await expect(workerMillHeading).toBeVisible();
 
     // Verify the explanation text
-    const explanationText = page.locator("text=This entire application was built autonomously by AI coding agents");
+    const explanationText = page.locator(
+      "text=This entire application was built autonomously by AI coding agents",
+    );
     await expect(explanationText).toBeVisible();
 
     // Verify the three capability cards
     const fullStackCard = page.locator("text=Full-Stack Development");
     await expect(fullStackCard).toBeVisible();
-    await expect(page.locator("text=Next.js 16, TypeScript, Prisma, PostgreSQL")).toBeVisible();
+    await expect(
+      page.locator("text=Next.js 16, TypeScript, Prisma, PostgreSQL"),
+    ).toBeVisible();
 
     const modernArchCard = page.locator("text=Modern Architecture");
     await expect(modernArchCard).toBeVisible();
-    await expect(page.locator("text=API routes, authentication, real-time sync")).toBeVisible();
+    await expect(
+      page.locator("text=API routes, authentication, real-time sync"),
+    ).toBeVisible();
 
     const productionReadyCard = page.locator("text=Production Ready");
     await expect(productionReadyCard).toBeVisible();
-    await expect(page.locator("text=Tests, CI/CD, scalable infrastructure")).toBeVisible();
+    await expect(
+      page.locator("text=Tests, CI/CD, scalable infrastructure"),
+    ).toBeVisible();
 
     // Verify links to WorkerMill
-    const learnWorkerMillLink = page.locator('a[href="https://workermill.com"]').first();
+    const learnWorkerMillLink = page
+      .locator('a[href="https://workermill.com"]')
+      .first();
     await expect(learnWorkerMillLink).toBeVisible();
     await expect(learnWorkerMillLink).toContainText("Learn About WorkerMill");
 
     // Verify GitHub source link
-    const githubLink = page.locator('a[href="https://github.com/workermill-examples/calmill"]');
+    const githubLink = page.locator(
+      'a[href="https://github.com/workermill-examples/calmill"]',
+    );
     await expect(githubLink).toBeVisible();
     await expect(githubLink).toContainText("View Source Code");
   });
 
-  test("should have proper footer with WorkerMill attribution", async ({ page }) => {
+  test("should have proper footer with WorkerMill attribution", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     // Verify footer is present
@@ -106,15 +137,21 @@ test.describe("Landing Page", () => {
     await expect(calMillLogo).toBeVisible();
 
     // Verify copyright and WorkerMill attribution
-    const copyrightText = footer.locator("text=© 2024 CalMill. Built autonomously by");
+    const copyrightText = footer.locator(
+      "text=© 2024 CalMill. Built autonomously by",
+    );
     await expect(copyrightText).toBeVisible();
 
-    const workerMillFooterLink = footer.locator('a[href="https://workermill.com"]');
+    const workerMillFooterLink = footer.locator(
+      'a[href="https://workermill.com"]',
+    );
     await expect(workerMillFooterLink).toBeVisible();
     await expect(workerMillFooterLink).toContainText("WorkerMill AI");
   });
 
-  test("should be responsive and have no horizontal overflow", async ({ page }) => {
+  test("should be responsive and have no horizontal overflow", async ({
+    page,
+  }) => {
     // Test mobile viewport (320px)
     await page.setViewportSize({ width: 320, height: 568 });
     await page.goto("/");
@@ -132,22 +169,31 @@ test.describe("Landing Page", () => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto("/");
 
-    const bodyWidthTablet = await page.evaluate(() => document.body.scrollWidth);
+    const bodyWidthTablet = await page.evaluate(
+      () => document.body.scrollWidth,
+    );
     expect(bodyWidthTablet).toBeLessThanOrEqual(768);
 
     // Test desktop viewport (1024px)
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto("/");
 
-    const bodyWidthDesktop = await page.evaluate(() => document.body.scrollWidth);
+    const bodyWidthDesktop = await page.evaluate(
+      () => document.body.scrollWidth,
+    );
     expect(bodyWidthDesktop).toBeLessThanOrEqual(1024);
   });
 
-  test("Try the Demo button should attempt to sign in with demo credentials", async ({ page }) => {
+  test("Try the Demo button should attempt to sign in with demo credentials", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     // Click the "Try the Demo" button
-    const tryDemoButton = page.getByRole("button", { name: "Try the Demo", exact: true });
+    const tryDemoButton = page.getByRole("button", {
+      name: "Try the Demo",
+      exact: true,
+    });
     await expect(tryDemoButton).toBeVisible();
     await tryDemoButton.click();
 

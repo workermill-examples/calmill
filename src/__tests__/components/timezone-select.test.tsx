@@ -49,7 +49,7 @@ describe("TimezoneSelect", () => {
           { type: "timeZoneName", value: "EST" },
         ]),
       })),
-      { supportedLocalesOf: vi.fn(() => []) }
+      { supportedLocalesOf: vi.fn(() => []) },
     );
   });
 
@@ -302,7 +302,7 @@ describe("TimezoneSelect", () => {
         vi.fn().mockImplementation(() => ({
           resolvedOptions: () => ({ timeZone: "America/Los_Angeles" }),
         })),
-        { supportedLocalesOf: vi.fn(() => []) }
+        { supportedLocalesOf: vi.fn(() => []) },
       );
 
       render(<TimezoneSelect {...defaultProps} value="Europe/London" />);
@@ -408,7 +408,7 @@ describe("TimezoneSelect", () => {
         vi.fn().mockImplementation(() => {
           throw new Error("Timezone not supported");
         }),
-        { supportedLocalesOf: vi.fn(() => []) }
+        { supportedLocalesOf: vi.fn(() => []) },
       );
 
       const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});

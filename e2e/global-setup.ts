@@ -30,8 +30,12 @@ async function globalSetup(config: FullConfig) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ Failed to seed database: ${response.status} - ${errorText}`);
-      console.log("⚠️ Continuing without database seeding - some tests may fail");
+      console.error(
+        `❌ Failed to seed database: ${response.status} - ${errorText}`,
+      );
+      console.log(
+        "⚠️ Continuing without database seeding - some tests may fail",
+      );
       return;
     }
 

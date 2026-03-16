@@ -14,7 +14,9 @@ interface AuthenticatedApiClient {
 /**
  * Creates an authenticated API client by logging in and extracting session cookies
  */
-export async function createAuthenticatedApiClient(page: Page): Promise<AuthenticatedApiClient> {
+export async function createAuthenticatedApiClient(
+  page: Page,
+): Promise<AuthenticatedApiClient> {
   // Navigate to login page
   await page.goto("/login");
 
@@ -36,8 +38,8 @@ export async function createAuthenticatedApiClient(page: Page): Promise<Authenti
 
   // Format cookies for HTTP requests
   const cookieString = cookies
-    .map(cookie => `${cookie.name}=${cookie.value}`)
-    .join('; ');
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join("; ");
 
   const baseUrl = "http://localhost:3000";
 
@@ -45,12 +47,12 @@ export async function createAuthenticatedApiClient(page: Page): Promise<Authenti
     baseUrl,
     cookies: cookieString,
     fetch: async (url: string, options: RequestInit = {}) => {
-      const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+      const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
 
       const defaultOptions: RequestInit = {
         headers: {
-          'Content-Type': 'application/json',
-          'Cookie': cookieString,
+          "Content-Type": "application/json",
+          Cookie: cookieString,
           ...options.headers,
         },
       };
@@ -65,14 +67,16 @@ export async function createAuthenticatedApiClient(page: Page): Promise<Authenti
       };
 
       return fetch(fullUrl, mergedOptions);
-    }
+    },
   };
 }
 
 /**
  * Helper function to parse JSON response and handle errors
  */
-export async function parseApiResponse<T = any>(response: Response): Promise<{
+export async function parseApiResponse<T = any>(
+  response: Response,
+): Promise<{
   status: number;
   ok: boolean;
   data: T | null;
@@ -151,13 +155,17 @@ export function getFutureDate(daysFromNow: number = 7): Date {
  * Format date as YYYY-MM-DD for API requests
  */
 export function formatDateString(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 }
 
 /**
  * Generate a time slot for testing (ISO string)
  */
-export function generateTimeSlot(date: Date, hour: number = 10, minute: number = 0): string {
+export function generateTimeSlot(
+  date: Date,
+  hour: number = 10,
+  minute: number = 0,
+): string {
   const slot = new Date(date);
   slot.setHours(hour, minute, 0, 0);
   return slot.toISOString();

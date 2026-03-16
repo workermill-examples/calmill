@@ -113,7 +113,9 @@ describe("CalendarPicker", () => {
       );
 
       // Try to click a past date (should be disabled)
-      const dayButton = screen.getByTestId("calendar-day-0") as HTMLButtonElement;
+      const dayButton = screen.getByTestId(
+        "calendar-day-0",
+      ) as HTMLButtonElement;
       if (!dayButton.disabled) {
         // If button is not disabled, simulate the disabled check
         // This test verifies the disabled logic works

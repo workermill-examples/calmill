@@ -4,10 +4,7 @@
  */
 
 import { test, expect, Page } from "@playwright/test";
-import {
-  createAuthenticatedApiClient,
-  parseApiResponse,
-} from "./auth-helper";
+import { createAuthenticatedApiClient, parseApiResponse } from "./auth-helper";
 
 test.describe("Teams API", () => {
   let apiClient: Awaited<ReturnType<typeof createAuthenticatedApiClient>>;
@@ -303,10 +300,13 @@ test.describe("Teams API", () => {
         logoUrl: "https://example.com/updated-logo.png",
       };
 
-      const response = await apiClient.fetch(`/api/teams/${originalData.slug}`, {
-        method: "PUT",
-        body: JSON.stringify(updatedData),
-      });
+      const response = await apiClient.fetch(
+        `/api/teams/${originalData.slug}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(updatedData),
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(200);
@@ -330,7 +330,9 @@ test.describe("Teams API", () => {
       }
 
       const team = listResult.data.teams[0];
-      const userRole = team.members.find((m: any) => m.userId === team.members[0].userId)?.role;
+      const userRole = team.members.find(
+        (m: any) => m.userId === team.members[0].userId,
+      )?.role;
 
       const updateData = {
         name: "Should Not Update",
@@ -392,7 +394,9 @@ test.describe("Teams API", () => {
       expect(result.data.message).toContain("deleted");
 
       // Verify team no longer exists
-      const verifyResponse = await apiClient.fetch(`/api/teams/${teamData.slug}`);
+      const verifyResponse = await apiClient.fetch(
+        `/api/teams/${teamData.slug}`,
+      );
       const verifyResult = await parseApiResponse(verifyResponse);
       expect(verifyResult.status).toBe(404);
     });
@@ -465,10 +469,13 @@ test.describe("Teams API", () => {
         role: "MEMBER",
       };
 
-      const response = await apiClient.fetch(`/api/teams/${team.slug}/members`, {
-        method: "POST",
-        body: JSON.stringify(inviteData),
-      });
+      const response = await apiClient.fetch(
+        `/api/teams/${team.slug}/members`,
+        {
+          method: "POST",
+          body: JSON.stringify(inviteData),
+        },
+      );
       const result = await parseApiResponse(response);
 
       // This might fail if the email doesn't correspond to an existing user
@@ -498,10 +505,13 @@ test.describe("Teams API", () => {
         role: "INVALID_ROLE",
       };
 
-      const response = await apiClient.fetch(`/api/teams/${team.slug}/members`, {
-        method: "POST",
-        body: JSON.stringify(invalidInviteData),
-      });
+      const response = await apiClient.fetch(
+        `/api/teams/${team.slug}/members`,
+        {
+          method: "POST",
+          body: JSON.stringify(invalidInviteData),
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(400);
@@ -524,7 +534,9 @@ test.describe("Teams API", () => {
 
       // Only test if user has permission and there are multiple members
       if (!["OWNER"].includes(userRole) || team.members.length < 2) {
-        console.log("Insufficient permissions or members for role update test, skipping");
+        console.log(
+          "Insufficient permissions or members for role update test, skipping",
+        );
         return;
       }
 
@@ -545,7 +557,7 @@ test.describe("Teams API", () => {
         {
           method: "PUT",
           body: JSON.stringify(updateData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -570,7 +582,9 @@ test.describe("Teams API", () => {
 
       // Only test if user has permission and there are multiple members
       if (!["OWNER", "ADMIN"].includes(userRole) || team.members.length < 2) {
-        console.log("Insufficient permissions or members for removal test, skipping");
+        console.log(
+          "Insufficient permissions or members for removal test, skipping",
+        );
         return;
       }
 
@@ -586,7 +600,7 @@ test.describe("Teams API", () => {
         `/api/teams/${team.slug}/members/${targetMember.id}`,
         {
           method: "DELETE",
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -631,7 +645,9 @@ test.describe("Teams API", () => {
       const teamSlug = listResult.data.teams[0].slug;
 
       // Access public team info without authentication
-      const response = await fetch(`http://localhost:3000/api/teams/${teamSlug}/public`);
+      const response = await fetch(
+        `http://localhost:3000/api/teams/${teamSlug}/public`,
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(200);
@@ -656,7 +672,9 @@ test.describe("Teams API", () => {
     });
 
     test("should return 404 for non-existent public team", async () => {
-      const response = await fetch("http://localhost:3000/api/teams/non-existent-team/public");
+      const response = await fetch(
+        "http://localhost:3000/api/teams/non-existent-team/public",
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(404);

@@ -4,10 +4,7 @@
  */
 
 import { test, expect, Page } from "@playwright/test";
-import {
-  createAuthenticatedApiClient,
-  parseApiResponse,
-} from "./auth-helper";
+import { createAuthenticatedApiClient, parseApiResponse } from "./auth-helper";
 
 test.describe("Webhooks API", () => {
   let apiClient: Awaited<ReturnType<typeof createAuthenticatedApiClient>>;
@@ -80,7 +77,11 @@ test.describe("Webhooks API", () => {
     test("should create webhook with full data", async () => {
       const webhookData = {
         url: `https://example.com/full-webhook-${Date.now()}`,
-        eventTriggers: ["BOOKING_CREATED", "BOOKING_CANCELLED", "BOOKING_RESCHEDULED"],
+        eventTriggers: [
+          "BOOKING_CREATED",
+          "BOOKING_CANCELLED",
+          "BOOKING_RESCHEDULED",
+        ],
         active: false,
         secret: "custom-secret-key-for-testing",
       };
@@ -410,7 +411,9 @@ test.describe("Webhooks API", () => {
       expect(result.data.message).toContain("deleted");
 
       // Verify webhook no longer exists
-      const verifyResponse = await apiClient.fetch(`/api/webhooks/${webhookId}`);
+      const verifyResponse = await apiClient.fetch(
+        `/api/webhooks/${webhookId}`,
+      );
       const verifyResult = await parseApiResponse(verifyResponse);
       expect(verifyResult.status).toBe(404);
     });
@@ -445,9 +448,12 @@ test.describe("Webhooks API", () => {
       const webhookId = createResult.data.webhook.id;
 
       // Test webhook delivery
-      const response = await apiClient.fetch(`/api/webhooks/${webhookId}/test`, {
-        method: "POST",
-      });
+      const response = await apiClient.fetch(
+        `/api/webhooks/${webhookId}/test`,
+        {
+          method: "POST",
+        },
+      );
       const result = await parseApiResponse(response);
 
       // The test might succeed or fail depending on network/endpoint availability
@@ -484,7 +490,9 @@ test.describe("Webhooks API", () => {
       const webhookId = createResult.data.webhook.id;
 
       // Get initial delivery count
-      const initialResponse = await apiClient.fetch(`/api/webhooks/${webhookId}`);
+      const initialResponse = await apiClient.fetch(
+        `/api/webhooks/${webhookId}`,
+      );
       const initialResult = await parseApiResponse(initialResponse);
       const initialDeliveryCount = initialResult.data.webhook.deliveries.length;
 
@@ -528,9 +536,12 @@ test.describe("Webhooks API", () => {
       const webhookId = createResult.data.webhook.id;
 
       // Try to test inactive webhook
-      const response = await apiClient.fetch(`/api/webhooks/${webhookId}/test`, {
-        method: "POST",
-      });
+      const response = await apiClient.fetch(
+        `/api/webhooks/${webhookId}/test`,
+        {
+          method: "POST",
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(400);
@@ -556,9 +567,12 @@ test.describe("Webhooks API", () => {
       const webhookId = createResult.data.webhook.id;
 
       // Test webhook (should fail but still create delivery record)
-      const response = await apiClient.fetch(`/api/webhooks/${webhookId}/test`, {
-        method: "POST",
-      });
+      const response = await apiClient.fetch(
+        `/api/webhooks/${webhookId}/test`,
+        {
+          method: "POST",
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(422);
@@ -568,9 +582,12 @@ test.describe("Webhooks API", () => {
     });
 
     test("should return 404 for non-existent webhook", async () => {
-      const response = await apiClient.fetch("/api/webhooks/non-existent-id/test", {
-        method: "POST",
-      });
+      const response = await apiClient.fetch(
+        "/api/webhooks/non-existent-id/test",
+        {
+          method: "POST",
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(404);
@@ -578,10 +595,13 @@ test.describe("Webhooks API", () => {
     });
 
     test("should require authentication", async () => {
-      const response = await fetch("http://localhost:3000/api/webhooks/some-id/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/webhooks/some-id/test",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(401);
@@ -595,10 +615,10 @@ test.describe("Webhooks API", () => {
       "BOOKING_CANCELLED",
       "BOOKING_RESCHEDULED",
       "BOOKING_ACCEPTED",
-      "BOOKING_REJECTED"
+      "BOOKING_REJECTED",
     ];
 
-    validEvents.forEach(event => {
+    validEvents.forEach((event) => {
       test(`should accept valid event trigger: ${event}`, async () => {
         const webhookData = {
           url: `https://example.com/test-${event.toLowerCase()}-${Date.now()}`,
@@ -635,7 +655,11 @@ test.describe("Webhooks API", () => {
     test("should remove duplicate event triggers", async () => {
       const webhookData = {
         url: `https://example.com/duplicate-events-${Date.now()}`,
-        eventTriggers: ["BOOKING_CREATED", "BOOKING_CREATED", "BOOKING_CANCELLED"],
+        eventTriggers: [
+          "BOOKING_CREATED",
+          "BOOKING_CREATED",
+          "BOOKING_CANCELLED",
+        ],
       };
 
       const response = await apiClient.fetch("/api/webhooks", {
@@ -645,7 +669,10 @@ test.describe("Webhooks API", () => {
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(201);
-      expect(result.data.webhook.eventTriggers).toEqual(["BOOKING_CREATED", "BOOKING_CANCELLED"]);
+      expect(result.data.webhook.eventTriggers).toEqual([
+        "BOOKING_CREATED",
+        "BOOKING_CANCELLED",
+      ]);
     });
   });
 

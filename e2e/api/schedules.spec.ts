@@ -113,7 +113,9 @@ test.describe("Schedules API", () => {
       const listResponse = await apiClient.fetch("/api/schedules");
       const listResult = await parseApiResponse(listResponse);
 
-      const defaultSchedules = listResult.data.schedules.filter((s: any) => s.isDefault);
+      const defaultSchedules = listResult.data.schedules.filter(
+        (s: any) => s.isDefault,
+      );
       expect(defaultSchedules).toHaveLength(1);
       expect(defaultSchedules[0].id).toBe(result.data.schedule.id);
     });
@@ -183,7 +185,9 @@ test.describe("Schedules API", () => {
     });
 
     test("should require authentication", async () => {
-      const response = await fetch("http://localhost:3000/api/schedules/any-id");
+      const response = await fetch(
+        "http://localhost:3000/api/schedules/any-id",
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(401);
@@ -296,7 +300,9 @@ test.describe("Schedules API", () => {
 
       expect(result.status).toBe(400);
       expect(result.error).toHaveProperty("error", "validation_error");
-      expect(result.error.message).toContain("Start time must be before end time");
+      expect(result.error.message).toContain(
+        "Start time must be before end time",
+      );
     });
 
     test("should return 404 for non-existent schedule", async () => {
@@ -317,11 +323,14 @@ test.describe("Schedules API", () => {
     test("should require authentication", async () => {
       const updateData = { name: "Updated Name" };
 
-      const response = await fetch("http://localhost:3000/api/schedules/any-id", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/schedules/any-id",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(401);
@@ -365,13 +374,13 @@ test.describe("Schedules API", () => {
 
       // Find a schedule with event types
       const scheduleWithEventTypes = listResult.data.schedules.find(
-        (s: any) => s.eventTypeCount > 0
+        (s: any) => s.eventTypeCount > 0,
       );
 
       if (scheduleWithEventTypes) {
         const response = await apiClient.fetch(
           `/api/schedules/${scheduleWithEventTypes.id}`,
-          { method: "DELETE" }
+          { method: "DELETE" },
         );
         const result = await parseApiResponse(response);
 
@@ -392,9 +401,12 @@ test.describe("Schedules API", () => {
     });
 
     test("should require authentication", async () => {
-      const response = await fetch("http://localhost:3000/api/schedules/any-id", {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/schedules/any-id",
+        {
+          method: "DELETE",
+        },
+      );
       const result = await parseApiResponse(response);
 
       expect(result.status).toBe(401);
@@ -410,7 +422,7 @@ test.describe("Schedules API", () => {
       const scheduleId = listResult.data.schedules[0].id;
 
       const response = await apiClient.fetch(
-        `/api/schedules/${scheduleId}/overrides`
+        `/api/schedules/${scheduleId}/overrides`,
       );
       const result = await parseApiResponse(response);
 
@@ -429,7 +441,7 @@ test.describe("Schedules API", () => {
       const endDate = formatDateString(getFutureDate(7));
 
       const response = await apiClient.fetch(
-        `/api/schedules/${scheduleId}/overrides?startDate=${startDate}&endDate=${endDate}`
+        `/api/schedules/${scheduleId}/overrides?startDate=${startDate}&endDate=${endDate}`,
       );
       const result = await parseApiResponse(response);
 
@@ -439,7 +451,7 @@ test.describe("Schedules API", () => {
 
     test("should return 404 for non-existent schedule", async () => {
       const response = await apiClient.fetch(
-        "/api/schedules/non-existent-id/overrides"
+        "/api/schedules/non-existent-id/overrides",
       );
       const result = await parseApiResponse(response);
 
@@ -449,7 +461,7 @@ test.describe("Schedules API", () => {
 
     test("should require authentication", async () => {
       const response = await fetch(
-        "http://localhost:3000/api/schedules/any-id/overrides"
+        "http://localhost:3000/api/schedules/any-id/overrides",
       );
       const result = await parseApiResponse(response);
 
@@ -478,7 +490,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -508,7 +520,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -535,7 +547,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -563,7 +575,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result1 = await parseApiResponse(response1);
       expect(result1.status).toBe(201);
@@ -574,7 +586,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result2 = await parseApiResponse(response2);
 
@@ -601,7 +613,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -629,7 +641,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(invalidOverrideData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -649,7 +661,7 @@ test.describe("Schedules API", () => {
         {
           method: "POST",
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 
@@ -670,7 +682,7 @@ test.describe("Schedules API", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(overrideData),
-        }
+        },
       );
       const result = await parseApiResponse(response);
 

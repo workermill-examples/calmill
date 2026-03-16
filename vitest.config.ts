@@ -19,7 +19,7 @@ export default defineConfig({
       "**/components/calendar-picker.test.tsx",
       "**/components/slot-list.test.tsx",
       "**/lib/slots.test.ts",
-      "**/lib/email.test.ts"
+      "**/lib/email.test.ts",
     ],
     coverage: {
       provider: "v8",
