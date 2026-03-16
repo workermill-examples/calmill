@@ -6,6 +6,7 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool as NeonPool, neonConfig } from "@neondatabase/serverless";
 import pg from "pg";
+import ws from "ws";
 
 // Singleton pattern for PrismaClient
 declare global {
@@ -19,18 +20,10 @@ const connectionString = process.env.DATABASE_URL!;
 const isNeonDatabase = connectionString && connectionString.includes('neon');
 
 if (isNeonDatabase) {
-  // Configure Neon for WebSocket usage
-  neonConfig.webSocketConstructor = (
-    url: string,
-    protocols: string | string[] | undefined,
-  ) => {
-    // In Node.js environment, use ws
-    if (typeof WebSocket === "undefined") {
-      const WebSocket = require("ws");
-      return new WebSocket(url, protocols);
-    }
-    return new WebSocket(url, protocols);
-  };
+  // Configure Neon for WebSocket usage with Node 24
+  // CRITICAL: Node 24 has a built-in WebSocket that is INCOMPATIBLE with Neon
+  // Set the ws class directly — NOT a factory function, NOT with typeof WebSocket checks
+  neonConfig.webSocketConstructor = ws;
 }
 
 if (process.env.NODE_ENV === "production") {
