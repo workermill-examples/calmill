@@ -516,11 +516,15 @@ test.describe("Bookings API", () => {
     });
 
     test("should prevent unauthorized access for accept/reject", async () => {
-      const listResponse = await apiClient.fetch("/api/bookings");
+      // Find a PENDING booking specifically to avoid the "already cancelled/rejected"
+      // check that runs before the auth check in the route handler.
+      const listResponse = await apiClient.fetch(
+        "/api/bookings?status=PENDING",
+      );
       const listResult = await parseApiResponse(listResponse);
 
       if (listResult.data.bookings.length === 0) {
-        console.log("No bookings found, skipping test");
+        console.log("No pending bookings found, skipping test");
         return;
       }
 

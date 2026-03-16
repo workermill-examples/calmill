@@ -240,8 +240,9 @@ test.describe("Teams API", () => {
         expect(member).toHaveProperty("user");
         expect(member.user).toHaveProperty("name");
         expect(member.user).toHaveProperty("username");
-        expect(member.user).toHaveProperty("bio");
-        expect(member.user).toHaveProperty("timezone");
+        // API selects: id, name, email, username — no bio or timezone
+        expect(member.user).toHaveProperty("id");
+        expect(member.user).toHaveProperty("email");
       }
     });
 
@@ -352,7 +353,7 @@ test.describe("Teams API", () => {
       }
     });
 
-    test("should return 404 for non-existent team", async () => {
+    test("should return 403 for non-existent team", async () => {
       const updateData = {
         name: "Non-existent Team",
       };
@@ -363,8 +364,9 @@ test.describe("Teams API", () => {
       });
       const result = await parseApiResponse(response);
 
-      expect(result.status).toBe(404);
-      expect(result.error).toHaveProperty("error", "not_found");
+      // API checks permission first; user is not a member of non-existent team -> 403
+      expect(result.status).toBe(403);
+      expect(result.error).toHaveProperty("error", "forbidden");
     });
   });
 
@@ -401,14 +403,15 @@ test.describe("Teams API", () => {
       expect(verifyResult.status).toBe(404);
     });
 
-    test("should return 404 for non-existent team", async () => {
+    test("should return 403 for non-existent team", async () => {
       const response = await apiClient.fetch("/api/teams/non-existent", {
         method: "DELETE",
       });
       const result = await parseApiResponse(response);
 
-      expect(result.status).toBe(404);
-      expect(result.error).toHaveProperty("error", "not_found");
+      // API checks OWNER permission first; user is not OWNER of non-existent team -> 403
+      expect(result.status).toBe(403);
+      expect(result.error).toHaveProperty("error", "forbidden");
     });
   });
 
@@ -485,7 +488,8 @@ test.describe("Teams API", () => {
         expect(result.data.member.accepted).toBe(false); // Invitation pending
       } else if (result.status === 404) {
         expect(result.error).toHaveProperty("error", "not_found");
-        expect(result.error.message).toContain("User not found");
+        // API message: "User with this email does not exist"
+        expect(result.error.message).toContain("does not exist");
       }
     });
 
@@ -660,13 +664,12 @@ test.describe("Teams API", () => {
       expect(team).toHaveProperty("logoUrl");
       expect(team).toHaveProperty("members");
 
-      // Should not include sensitive member information
+      // Public API member structure
       if (team.members.length > 0) {
         const member = team.members[0];
         expect(member.user).toHaveProperty("name");
         expect(member.user).toHaveProperty("username");
-        expect(member.user).toHaveProperty("bio");
-        // Should not include email or other sensitive data
+        // Public API does not include email (private) or bio
         expect(member.user).not.toHaveProperty("email");
       }
     });
