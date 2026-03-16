@@ -44,6 +44,7 @@ export default defineConfig({
     port: 3000,
     reuseExistingServer: !process.env.CI,
     env: {
+      ...process.env,
       AUTH_TRUST_HOST: "true",
     },
   },
