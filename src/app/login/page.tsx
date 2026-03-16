@@ -35,7 +35,7 @@ function LoginForm() {
       if (result?.error) {
         setError("Invalid email or password");
       } else if (result?.ok) {
-        router.push(callbackUrl);
+        router.push(callbackUrl as any);
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -58,7 +58,7 @@ function LoginForm() {
       if (result?.error) {
         setError("Demo login failed");
       } else if (result?.ok) {
-        router.push(callbackUrl);
+        router.push(callbackUrl as any);
       }
     } catch (err) {
       setError("Demo login failed");
