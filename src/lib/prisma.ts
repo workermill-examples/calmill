@@ -1,72 +1,34 @@
 // PrismaClient singleton with PrismaNeon adapter for Prisma 7
-// Import from the generated client location as required by Prisma 7
+// Uses Pool-based pattern proven in previous CalMill build
 
-import { PrismaClient, Prisma } from "@/generated/prisma";
+import { PrismaClient } from "@/generated/prisma";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool as NeonPool, neonConfig } from "@neondatabase/serverless";
-import pg from "pg";
+import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 
-// Singleton pattern for PrismaClient
-declare global {
-  var cachedPrisma: PrismaClient | undefined;
+// Node 24 has a built-in WebSocket that is INCOMPATIBLE with Neon.
+// Must use the ws npm package directly — no factory, no typeof checks.
+neonConfig.webSocketConstructor = ws;
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+function createPrismaClient() {
+  const connectionString =
+    process.env.DATABASE_URL ||
+    process.env.DIRECT_DATABASE_URL ||
+    "postgresql://localhost:5432/calmill";
+
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaNeon(pool as any) as any;
+
+  return new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+  });
 }
 
-let prisma: PrismaClient;
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-// Detect if we're connecting to Neon (contains 'neon' in the hostname) or local PostgreSQL
-const connectionString = process.env.DATABASE_URL!;
-const isNeonDatabase = connectionString && connectionString.includes('neon');
-
-if (isNeonDatabase) {
-  // Configure Neon for WebSocket usage with Node 24
-  // CRITICAL: Node 24 has a built-in WebSocket that is INCOMPATIBLE with Neon
-  // Set the ws class directly — NOT a factory function, NOT with typeof WebSocket checks
-  neonConfig.webSocketConstructor = ws;
-}
-
-if (process.env.NODE_ENV === "production") {
-  // In production, create a new instance
-  if (isNeonDatabase) {
-    // Use Neon adapter for Neon database
-    const adapter = new PrismaNeon({ connectionString });
-    prisma = new PrismaClient({
-      adapter,
-      log: ["error"],
-    });
-  } else {
-    // Use PostgreSQL adapter for local PostgreSQL
-    const pool = new pg.Pool({ connectionString });
-    const adapter = new PrismaPg(pool as any);
-    prisma = new PrismaClient({
-      adapter,
-      log: ["error"],
-    });
-  }
-} else {
-  // In development, use singleton pattern to avoid multiple instances
-  if (!global.cachedPrisma) {
-    if (isNeonDatabase) {
-      // Use Neon adapter for Neon database
-      const adapter = new PrismaNeon({ connectionString });
-      global.cachedPrisma = new PrismaClient({
-        adapter,
-        log: ["query", "error"],
-      });
-    } else {
-      // Use PostgreSQL adapter for local PostgreSQL
-      const pool = new pg.Pool({ connectionString });
-      const adapter = new PrismaPg(pool as any);
-      global.cachedPrisma = new PrismaClient({
-        adapter,
-        log: ["query", "error"],
-      });
-    }
-  }
-
-  prisma = global.cachedPrisma;
-}
-
-export { prisma };
-export default prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
