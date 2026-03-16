@@ -596,7 +596,7 @@ describe("Public User Routes and Seed Endpoint", () => {
       // Verify demo user creation
       expect(prisma.user.upsert).toHaveBeenCalledWith({
         where: { email: "demo@workermill.com" },
-        update: {},
+        update: { passwordHash: mockHashedPassword },
         create: expect.objectContaining({
           email: "demo@workermill.com",
           username: "demo",
