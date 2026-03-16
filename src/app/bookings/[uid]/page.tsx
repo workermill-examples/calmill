@@ -475,7 +475,7 @@ export default function BookingDetailPage({ params }: RouteParams) {
               {booking.meetingUrl && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Meeting URL</p>
-                  <Link href={booking.meetingUrl} target="_blank" rel="noopener noreferrer">
+                  <Link href={booking.meetingUrl as any} target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" size="sm">
                       Join Meeting
                     </Button>
@@ -550,17 +550,17 @@ export default function BookingDetailPage({ params }: RouteParams) {
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">Add to Calendar</p>
                   <div className="space-y-2">
-                    <Link href={calendarUrls.google} target="_blank" rel="noopener noreferrer">
+                    <Link href={calendarUrls.google as any} target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="w-full justify-start">
                         📅 Google Calendar
                       </Button>
                     </Link>
-                    <Link href={calendarUrls.outlook} target="_blank" rel="noopener noreferrer">
+                    <Link href={calendarUrls.outlook as any} target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="w-full justify-start">
                         📅 Outlook
                       </Button>
                     </Link>
-                    <Link href={calendarUrls.ics} download={`${booking.title}.ics`}>
+                    <Link href={calendarUrls.ics as any} download={`${booking.title}.ics`}>
                       <Button variant="outline" size="sm" className="w-full justify-start">
                         📥 Download .ics
                       </Button>
@@ -569,7 +569,7 @@ export default function BookingDetailPage({ params }: RouteParams) {
                 </div>
               )}
 
-              <Link href={`/booking/${booking.uid}`}>
+              <Link href={`/booking/${booking.uid}` as any}>
                 <Button variant="outline" className="w-full justify-start">
                   🔗 Public Link
                 </Button>
