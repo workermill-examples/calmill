@@ -1,9 +1,8 @@
 // PrismaClient singleton with PrismaNeon adapter for Prisma 7
-// Uses lazy initialization to ensure DATABASE_URL is available at runtime
 
 import { PrismaClient } from "@/generated/prisma";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import { Pool, neonConfig } from "@neondatabase/serverless";
+import { neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 
 // Node 24 has a built-in WebSocket that is INCOMPATIBLE with Neon.
@@ -25,8 +24,9 @@ function createPrismaClient() {
     );
   }
 
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaNeon(pool as any) as any;
+  // Pass config object to PrismaNeon — NOT a Pool instance.
+  // PrismaNeon creates its own Pool internally from the config.
+  const adapter = new PrismaNeon({ connectionString });
 
   return new PrismaClient({
     adapter,
@@ -34,8 +34,7 @@ function createPrismaClient() {
   });
 }
 
-// Lazy initialization — do NOT create the client at module load time.
-// Next.js 16 may evaluate this module during build when DATABASE_URL is not set.
+// Lazy initialization via Proxy — defers Pool creation to first database call
 function getPrismaClient(): PrismaClient {
   if (!globalForPrisma.prisma) {
     globalForPrisma.prisma = createPrismaClient();
@@ -43,7 +42,6 @@ function getPrismaClient(): PrismaClient {
   return globalForPrisma.prisma;
 }
 
-// Export a proxy that defers to the lazy getter on every property access
 export const prisma = new Proxy({} as PrismaClient, {
   get(_target, prop) {
     return (getPrismaClient() as any)[prop];
