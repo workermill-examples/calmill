@@ -46,15 +46,49 @@ vi.mock("@/generated/prisma/client", () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    team: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    teamMember: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
     $transaction: vi.fn(),
     $connect: vi.fn(),
     $disconnect: vi.fn(),
   })),
+  // Export enums
+  TeamRole: {
+    OWNER: "OWNER",
+    ADMIN: "ADMIN",
+    MEMBER: "MEMBER",
+  },
+  BookingStatus: {
+    PENDING: "PENDING",
+    ACCEPTED: "ACCEPTED",
+    CANCELLED: "CANCELLED",
+    REJECTED: "REJECTED",
+    RESCHEDULED: "RESCHEDULED",
+  },
+  SchedulingType: {
+    ROUND_ROBIN: "ROUND_ROBIN",
+    COLLECTIVE: "COLLECTIVE",
+  },
 }));
 
 // Mock lib/prisma
-vi.mock("@/lib/prisma", () => ({
-  default: {
+vi.mock("@/lib/prisma", () => {
+  const mockPrisma = {
     user: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -96,11 +130,33 @@ vi.mock("@/lib/prisma", () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    team: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    teamMember: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
     $transaction: vi.fn(),
     $connect: vi.fn(),
     $disconnect: vi.fn(),
-  },
-}));
+  };
+
+  return {
+    default: mockPrisma,
+    prisma: mockPrisma,
+  };
+});
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -133,20 +189,43 @@ vi.mock("next-auth/react", () => ({
 }));
 
 // Mock Intl.DateTimeFormat for timezone detection
-Object.defineProperty(global.Intl, "DateTimeFormat", {
-  writable: true,
-  value: vi.fn().mockImplementation((locale, options) => ({
-    resolvedOptions: () => ({ timeZone: "America/New_York" }),
-    format: vi.fn(() => "12/25/2023"),
-    formatToParts: vi.fn(() => [
+class MockDateTimeFormat {
+  private options: any;
+
+  constructor(locale: any, options: any) {
+    // Validate timezone if provided
+    if (options && 'timeZone' in options) {
+      const invalidTimezones = ["Invalid/Timezone", "GMT+5", "America/Invalid"];
+      if (!options.timeZone || options.timeZone === "" || invalidTimezones.includes(options.timeZone)) {
+        throw new RangeError("Invalid time zone specified");
+      }
+    }
+    this.options = options;
+  }
+
+  resolvedOptions() {
+    return { timeZone: this.options?.timeZone || "America/New_York" };
+  }
+
+  format() {
+    return "12/25/2023";
+  }
+
+  formatToParts() {
+    return [
       { type: "month", value: "12" },
       { type: "literal", value: "/" },
       { type: "day", value: "25" },
       { type: "literal", value: "/" },
       { type: "year", value: "2023" },
       { type: "timeZoneName", value: "EST" },
-    ]),
-  })),
+    ];
+  }
+}
+
+Object.defineProperty(global.Intl, "DateTimeFormat", {
+  writable: true,
+  value: MockDateTimeFormat,
 });
 
 // Mock window.matchMedia for responsive tests
@@ -240,13 +319,33 @@ vi.mock("date-fns", () => ({
   isYesterday: vi.fn(() => false),
 }));
 
+// Mock @generated/prisma (without /client)
+vi.mock("@/generated/prisma", () => ({
+  BookingStatus: {
+    PENDING: "PENDING",
+    ACCEPTED: "ACCEPTED",
+    CANCELLED: "CANCELLED",
+    REJECTED: "REJECTED",
+    RESCHEDULED: "RESCHEDULED",
+  },
+  TeamRole: {
+    OWNER: "OWNER",
+    ADMIN: "ADMIN",
+    MEMBER: "MEMBER",
+  },
+  SchedulingType: {
+    ROUND_ROBIN: "ROUND_ROBIN",
+    COLLECTIVE: "COLLECTIVE",
+  },
+}));
+
 // Mock @date-fns/tz
 vi.mock("@date-fns/tz", () => ({
-  TZDate: vi.fn().mockImplementation((date: Date, timezone: string) => {
-    const tzDate = new Date(date);
-    // Simple mock that just returns the date
-    return tzDate;
-  }),
+  TZDate: class TZDate extends Date {
+    constructor(date?: string | number | Date, timezone?: string) {
+      super(date || new Date());
+    }
+  },
   toZonedTime: vi.fn((date: Date, timezone: string) => date),
   fromZonedTime: vi.fn((date: Date, timezone: string) => date),
 }));
