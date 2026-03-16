@@ -199,4 +199,7 @@ export const EventTypeSkeleton: React.FC<LoadingSkeletonProps> = ({ className })
   </div>
 );
 
+// Simple skeleton component for backwards compatibility
+export const LoadingSkeleton: React.FC<React.ComponentProps<typeof Skeleton>> = Skeleton;
+
 export { Skeleton };
