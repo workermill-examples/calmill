@@ -15,10 +15,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const connectionString =
-    process.env.DATABASE_URL ||
-    process.env.DIRECT_DATABASE_URL ||
-    "postgresql://localhost:5432/calmill";
+  const connectionString = process.env.DATABASE_URL || process.env.DIRECT_DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL or DIRECT_DATABASE_URL must be set. " +
+      `DATABASE_URL is ${process.env.DATABASE_URL ? "set" : "MISSING"}, ` +
+      `DIRECT_DATABASE_URL is ${process.env.DIRECT_DATABASE_URL ? "set" : "MISSING"}`
+    );
+  }
 
   const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool as any) as any;
