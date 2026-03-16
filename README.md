@@ -4,7 +4,7 @@
 
 CalMill is a showcase application demonstrating [WorkerMill](https://workermill.com) — an autonomous AI coding platform that takes tickets and ships production code. Every line of code in this repository was written, tested, and deployed by WorkerMill's AI workers.
 
-[Live Demo](https://calmill.workermill.com) | [WorkerMill Platform](https://workermill.com) | [Documentation](https://workermill.com/docs)
+[Live Demo](https://calmill.workermill.com) | [WorkerMill Platform](https://workermill.com)
 
 [![CI](https://github.com/workermill-examples/calmill/actions/workflows/ci.yml/badge.svg)](https://github.com/workermill-examples/calmill/actions/workflows/ci.yml)
 [![Deploy](https://github.com/workermill-examples/calmill/actions/workflows/deploy.yml/badge.svg)](https://github.com/workermill-examples/calmill/actions/workflows/deploy.yml)
