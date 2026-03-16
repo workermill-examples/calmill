@@ -9,6 +9,7 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -38,6 +39,7 @@ jobs:
   e2e:
     needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     env:
       DATABASE_URL: "postgresql://test:test@localhost:5432/test"

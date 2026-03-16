@@ -12,7 +12,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -35,6 +35,12 @@ export default defineConfig({
     },
   ],
 
+  /* Shared test timeout */
+  timeout: 30000,
+  expect: {
+    timeout: 10000,
+  },
+
   /* Global setup to seed the database before running tests */
   globalSetup: require.resolve("./e2e/global-setup.ts"),
 
@@ -47,5 +53,6 @@ export default defineConfig({
       ...process.env,
       AUTH_TRUST_HOST: "true",
     },
+    timeout: 120000,
   },
 });
