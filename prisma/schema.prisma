@@ -1,0 +1,18 @@
+// CalMill - Scheduling Platform Schema
+// This is a minimal schema to allow the project scaffold to work
+// The full schema implementation will be added in subsequent cards
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// Placeholder model for scaffold - will be replaced
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
