@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { TeamRole } from '@/generated/prisma/client'
 
 // Validation schema for updating teams
 const updateTeamSchema = z.object({
@@ -19,7 +20,7 @@ const updateTeamSchema = z.object({
 })
 
 // Helper function to check if user has permission (OWNER or ADMIN)
-async function checkTeamPermission(teamSlug: string, userId: string, requiredRoles: string[] = ['OWNER', 'ADMIN']) {
+async function checkTeamPermission(teamSlug: string, userId: string, requiredRoles: TeamRole[] = [TeamRole.OWNER, TeamRole.ADMIN]) {
   const membership = await prisma.teamMember.findFirst({
     where: {
       userId,
