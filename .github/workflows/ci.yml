@@ -44,6 +44,7 @@ jobs:
       DIRECT_DATABASE_URL: "postgresql://test:test@localhost:5432/test"
       AUTH_SECRET: "test-secret-for-ci"
       NEXTAUTH_URL: "http://localhost:3000"
+      AUTH_TRUST_HOST: "true"
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
       SEED_TOKEN: "test-seed-token"
 
