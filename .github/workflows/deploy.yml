@@ -1,0 +1,100 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript type checking
+        run: npx tsc -b
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          NEXTAUTH_URL: "https://calmill.workermill.com"
+          NEXT_PUBLIC_APP_URL: "https://calmill.workermill.com"
+          SEED_TOKEN: ${{ secrets.SEED_TOKEN }}
+
+      - name: Deploy Project Artifacts
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Push Prisma Schema to Database
+        run: npx prisma db push
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+
+      - name: Seed Production Database
+        run: |
+          curl -X POST "https://calmill.workermill.com/api/seed" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SEED_TOKEN }}" \
+            --fail \
+            --retry 3 \
+            --retry-delay 10
+
+      - name: Health Check
+        run: |
+          response=$(curl -s https://calmill.workermill.com/api/health)
+          echo "Health check response: $response"
+          status=$(echo "$response" | jq -r '.status')
+          if [ "$status" != "ok" ]; then
+            echo "Health check failed - status: $status"
+            exit 1
+          fi
+          echo "Health check passed"
+
+      - name: Verify CORS Headers on Embed Script
+        run: |
+          echo "Checking CORS headers on embed script..."
+          headers=$(curl -s -I https://calmill.workermill.com/embed/calmill-embed.js)
+          echo "Headers: $headers"
+          if echo "$headers" | grep -q "Access-Control-Allow-Origin: \*"; then
+            echo "CORS verification passed"
+          else
+            echo "CORS verification failed - missing Access-Control-Allow-Origin header"
+            exit 1
+          fi
+
+      - name: Run Smoke Tests
+        run: |
+          if [ -f "./scripts/smoke-test.sh" ]; then
+            chmod +x ./scripts/smoke-test.sh
+            ./scripts/smoke-test.sh https://calmill.workermill.com
+          else
+            echo "Smoke test script not found, skipping..."
+          fi
+        env:
+          SMOKE_TEST_URL: "https://calmill.workermill.com"
+          SEED_TOKEN: ${{ secrets.SEED_TOKEN }}

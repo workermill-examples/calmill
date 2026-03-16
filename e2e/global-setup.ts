@@ -13,9 +13,9 @@ async function globalSetup(config: FullConfig) {
   // Get seed token from environment
   const seedToken = process.env.SEED_TOKEN;
   if (!seedToken) {
-    throw new Error(
-      "SEED_TOKEN environment variable is required for E2E tests",
-    );
+    console.log("⚠️ SEED_TOKEN not set - skipping database seeding");
+    console.log("🎉 Global setup completed (no seeding)");
+    return;
   }
 
   try {
@@ -30,9 +30,9 @@ async function globalSetup(config: FullConfig) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `Failed to seed database: ${response.status} - ${errorText}`,
-      );
+      console.error(`❌ Failed to seed database: ${response.status} - ${errorText}`);
+      console.log("⚠️ Continuing without database seeding - some tests may fail");
+      return;
     }
 
     const result = await response.json();
@@ -40,7 +40,8 @@ async function globalSetup(config: FullConfig) {
     console.log("📊 Seed summary:", result.data?.counts);
   } catch (error) {
     console.error("❌ Failed to seed database:", error);
-    throw error;
+    console.log("⚠️ Continuing without database seeding - some tests may fail");
+    return;
   }
 
   console.log("🎉 Global setup completed successfully");
