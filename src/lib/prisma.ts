@@ -1,5 +1,5 @@
 // PrismaClient singleton with PrismaNeon adapter for Prisma 7
-// Uses Pool-based pattern proven in previous CalMill build
+// Uses lazy initialization to ensure DATABASE_URL is available at runtime
 
 import { PrismaClient } from "@/generated/prisma";
 import { PrismaNeon } from "@prisma/adapter-neon";
@@ -34,6 +34,20 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+// Lazy initialization — do NOT create the client at module load time.
+// Next.js 16 may evaluate this module during build when DATABASE_URL is not set.
+function getPrismaClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Export a proxy that defers to the lazy getter on every property access
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    return (getPrismaClient() as any)[prop];
+  },
+});
+
+export default prisma;
