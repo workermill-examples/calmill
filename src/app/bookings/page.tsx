@@ -122,7 +122,7 @@ function BookingsPageContent() {
       params.set("page", "1");
     }
 
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}` as any);
   };
 
   // Determine status filter based on active tab

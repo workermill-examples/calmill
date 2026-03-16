@@ -567,7 +567,7 @@ function BookingSuccess({
           Add to Google Calendar
         </a>
         <Link
-          href={`${baseUrl}/booking/${booking.uid}`}
+          href={`${baseUrl}/booking/${booking.uid}` as any}
           className="text-blue-600 hover:underline"
         >
           View Booking Details
