@@ -3,11 +3,12 @@ import { resolve } from "path";
 
 export default defineConfig({
   test: {
-    environment: "node",
+    environment: "jsdom",
     pool: "forks",
     testTimeout: 30000,
     hookTimeout: 30000,
     fileParallelism: false,
+    setupFiles: ["./src/__tests__/setup.ts"],
     exclude: ["**/node_modules/**", "**/e2e/**", "**/tests/e2e/**"],
     coverage: {
       provider: "v8",

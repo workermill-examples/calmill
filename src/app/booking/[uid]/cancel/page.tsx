@@ -384,7 +384,7 @@ export default function BookingCancelPage({ params }: RouteParams) {
               <CardHeader>
                 <CardTitle>Reason for Cancellation</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Please let the host know why you're cancelling this booking.
+                  Please let the host know why you&apos;re cancelling this booking.
                 </p>
               </CardHeader>
               <CardContent>
@@ -446,7 +446,7 @@ export default function BookingCancelPage({ params }: RouteParams) {
                     <ul className="space-y-1 text-xs">
                       <li>• This action cannot be undone</li>
                       <li>• Both you and the host will receive a cancellation confirmation email</li>
-                      <li>• If you need to reschedule instead, use the "Reschedule" option</li>
+                      <li>• If you need to reschedule instead, use the &quot;Reschedule&quot; option</li>
                     </ul>
                   </div>
                 </div>

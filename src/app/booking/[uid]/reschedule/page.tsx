@@ -268,7 +268,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
               Booking Rescheduled
             </h1>
             <p className="text-gray-600 mb-6">
-              Your booking has been successfully rescheduled. You'll receive a confirmation email with the new details.
+              Your booking has been successfully rescheduled. You&apos;ll receive a confirmation email with the new details.
             </p>
             <div className="space-y-3">
               <Button asChild className="w-full">
@@ -578,7 +578,7 @@ export default function BookingReschedulePage({ params }: RouteParams) {
                       <li>• This will create a new booking and cancel the current one</li>
                       <li>• Both you and the host will receive email notifications</li>
                       <li>• {booking.eventType.requiresConfirmation ? "The new booking may require host confirmation" : "The new booking will be automatically confirmed"}</li>
-                      <li>• If you need to cancel instead, use the "Cancel" option</li>
+                      <li>• If you need to cancel instead, use the &quot;Cancel&quot; option</li>
                     </ul>
                   </div>
                 </div>
